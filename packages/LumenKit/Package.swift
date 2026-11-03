@@ -32,12 +32,13 @@ let package = Package(
         .target(name: "LumenProximity"),
         .target(
             name: "LumenMacUI",
-            dependencies: ["LumenApplication", "LumenDomain"],
+            dependencies: ["LumenApplication", "LumenDomain", "LumenSignal"],
             resources: [.process("Resources")]
         ),
         .testTarget(name: "LumenDomainTests", dependencies: ["LumenDomain"]),
         .testTarget(name: "LumenApplicationTests", dependencies: ["LumenApplication", "LumenDomain"]),
         .testTarget(name: "LumenProtocolTests", dependencies: ["LumenProtocol"]),
         .testTarget(name: "LumenSignalTests", dependencies: ["LumenSignal"]),
+        .testTarget(name: "LumenTransportTests", dependencies: ["LumenApplication", "LumenDomain", "LumenTransport"]),
     ]
 )
