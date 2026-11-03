@@ -12,14 +12,24 @@ Lumen makes an iPhone and a Mac feel like one surface. Drag a photo off the edge
 
 ## Stack
 
-| Area | Technology |
-| --- | --- |
-| iPhone | React Native CLI (New Architecture), TypeScript, Reanimated, Skia |
-| Mac | Swift 6, SwiftUI + AppKit, Metal, menu bar app |
-| Shared | `LumenKit` Swift Package: DSP, protocol, transport, cryptography |
-| Protocol | Protocol Buffers, generated for Swift and TypeScript |
+| Area     | Technology                                                        |
+| -------- | ----------------------------------------------------------------- |
+| iPhone   | React Native CLI (New Architecture), TypeScript, Reanimated, Skia |
+| Mac      | Swift 6, SwiftUI + AppKit, Metal, menu bar app                    |
+| Shared   | `LumenKit` Swift Package: DSP, protocol, transport, cryptography  |
+| Protocol | Protocol Buffers, generated for Swift and TypeScript              |
 
 Requires iOS 18 and macOS 15 or later.
+
+## Development
+
+Requires Node 24, pnpm, Xcode, CocoaPods, `protoc`, SwiftLint and SwiftFormat.
+
+```bash
+pnpm install
+pnpm check
+```
+
 
 ## Documentation
 
