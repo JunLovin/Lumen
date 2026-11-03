@@ -3,14 +3,16 @@ import { ScrollView, Share, StyleSheet, Text } from 'react-native';
 import type { LabUseCases } from '../../application/lab-use-cases';
 import {
   summarizeTrials,
+  type PlacementCalibration,
+  type PlacementFailure,
   type PlacementSide,
   type PlacementTrial,
 } from '../../domain/placement';
-import { CorrelationChart } from '../components/CorrelationChart';
 import { DiagnosticRow } from '../components/DiagnosticRow';
 import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
+import { PlacementResult } from './PlacementResult';
 
 type Props = {
   readonly useCases: LabUseCases;
@@ -18,33 +20,52 @@ type Props = {
 
 export function PlacementLabScreen({ useCases }: Props) {
   const [trials, setTrials] = useState<readonly PlacementTrial[]>([]);
-  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [calibration, setCalibration] = useState<PlacementCalibration | null>(
+    null,
+  );
+  const [calibrationFailure, setCalibrationFailure] =
+    useState<PlacementFailure | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
   const last = trials.at(-1);
-  const measurement = last?.measurement;
   const summary = summarizeTrials(trials);
+  const failure = last?.failure ?? calibrationFailure;
+
+  const calibrate = useCallback(async () => {
+    setIsBusy(true);
+    const result = await useCases.calibratePlacement();
+    setCalibration(result.ok ? result.value : null);
+    setCalibrationFailure(result.ok ? null : result.error);
+    setTrials([]);
+    setIsBusy(false);
+  }, [useCases]);
 
   const measure = useCallback(
-    async (expected: PlacementSide) => {
-      setIsMeasuring(true);
-      const trial = await useCases.runPlacementTrial(expected);
-      setTrials(current => [...current, trial]);
-      setIsMeasuring(false);
+    async (expected: PlacementSide, current: PlacementCalibration) => {
+      setIsBusy(true);
+      const trial = await useCases.runPlacementTrial(expected, current);
+      setTrials(previous => [...previous, trial]);
+      setIsBusy(false);
     },
     [useCases],
   );
 
   const exportResults = useCallback(() => {
-    const rows = trials.map(({ expected, measurement: result, failure }) => ({
-      expected,
-      failure,
-      side: result?.side,
-      tauMicroseconds: result?.tauMicroseconds,
-      levelDifferenceDecibels: result?.levelDifferenceDecibels,
-      snrDecibels: result?.snrDecibels,
-      acceptedPairs: result?.acceptedPairs,
-    }));
-    Share.share({ message: JSON.stringify(rows, null, 2) });
-  }, [trials]);
+    const rows = trials.map(
+      ({ expected, measuredSide, measurement, failure: reason }) => ({
+        expected,
+        measuredSide,
+        failure: reason,
+        tauMicroseconds: measurement?.tauMicroseconds,
+        levelDifferenceDecibels: measurement?.levelDifferenceDecibels,
+        snrDecibels: measurement?.snrDecibels,
+        acceptedPairs: measurement?.acceptedPairs,
+        pairs: measurement?.pairs,
+      }),
+    );
+    Share.share({
+      message: JSON.stringify({ calibration, trials: rows }, null, 2),
+    });
+  }, [calibration, trials]);
 
   const exportRecording = useCallback(async () => {
     const url = await useCases.exportLastRecording();
@@ -55,21 +76,41 @@ export function PlacementLabScreen({ useCases }: Props) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.privacy}>{translate('placement.privacy')}</Text>
+      <Text style={styles.note}>{translate('placement.privacy')}</Text>
+      <Text style={styles.note}>{translate('placement.calibrationFirst')}</Text>
       <LabButton
         title={translate(
-          isMeasuring ? 'placement.measuring' : 'placement.measureLeft',
+          isBusy ? 'placement.calibrating' : 'placement.calibrate',
         )}
-        disabled={isMeasuring}
-        onPress={() => measure('left')}
+        disabled={isBusy}
+        onPress={calibrate}
       />
-      <LabButton
-        title={translate(
-          isMeasuring ? 'placement.measuring' : 'placement.measureRight',
-        )}
-        disabled={isMeasuring}
-        onPress={() => measure('right')}
-      />
+      {calibration && (
+        <>
+          <DiagnosticRow
+            label={translate('placement.calibrationTau')}
+            value={`${calibration.tauMicroseconds.toFixed(0)} µs`}
+          />
+          <DiagnosticRow
+            label={translate('placement.calibrationLevel')}
+            value={`${calibration.levelDifferenceDecibels.toFixed(1)} dB`}
+          />
+          <LabButton
+            title={translate(
+              isBusy ? 'placement.measuring' : 'placement.measureLeft',
+            )}
+            disabled={isBusy}
+            onPress={() => measure('left', calibration)}
+          />
+          <LabButton
+            title={translate(
+              isBusy ? 'placement.measuring' : 'placement.measureRight',
+            )}
+            disabled={isBusy}
+            onPress={() => measure('right', calibration)}
+          />
+        </>
+      )}
       <DiagnosticRow
         label={translate('placement.hits')}
         value={`${summary.hits} / ${summary.total}`}
@@ -78,36 +119,18 @@ export function PlacementLabScreen({ useCases }: Props) {
         label={translate('placement.criterion')}
         value={translate(summary.meetsCriterion ? 'common.yes' : 'common.no')}
       />
-      {last?.failure && (
+      {failure && (
         <DiagnosticRow
           label={translate('placement.lastResult')}
-          value={translate(`failure.${last.failure}`)}
+          value={translate(`failure.${failure}`)}
         />
       )}
-      {measurement && (
-        <>
-          <DiagnosticRow
-            label={translate('placement.side')}
-            value={translate(`side.${measurement.side}`)}
-          />
-          <DiagnosticRow
-            label={translate('placement.tau')}
-            value={`${measurement.tauMicroseconds.toFixed(0)} µs`}
-          />
-          <DiagnosticRow
-            label={translate('placement.level')}
-            value={`${measurement.levelDifferenceDecibels.toFixed(1)} dB`}
-          />
-          <DiagnosticRow
-            label={translate('placement.snr')}
-            value={`${measurement.snrDecibels.toFixed(1)} dB`}
-          />
-          <DiagnosticRow
-            label={translate('placement.pairs')}
-            value={String(measurement.acceptedPairs)}
-          />
-          <CorrelationChart curve={measurement.curve} />
-        </>
+      {last?.measurement && calibration && (
+        <PlacementResult
+          trial={last}
+          measurement={last.measurement}
+          calibration={calibration}
+        />
       )}
       <LabButton
         title={translate('placement.export')}
@@ -128,7 +151,7 @@ export function PlacementLabScreen({ useCases }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: labTheme.background },
   content: { padding: labTheme.spacing },
-  privacy: {
+  note: {
     color: labTheme.secondaryText,
     fontSize: 13,
     marginBottom: labTheme.spacing,

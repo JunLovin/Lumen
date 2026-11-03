@@ -1,29 +1,32 @@
-import { summarizeTrials, type PlacementTrial } from './placement';
+import {
+  calibrationFrom,
+  classifySide,
+  summarizeTrials,
+  type PlacementMeasurement,
+  type PlacementTrial,
+} from './placement';
 
-const measured = (side: 'left' | 'right' | 'center') => ({
-  tauMicroseconds: 0,
-  levelDifferenceDecibels: 0,
+const measurement = (tauMicroseconds: number): PlacementMeasurement => ({
+  tauMicroseconds,
+  levelDifferenceDecibels: 5,
   snrDecibels: 30,
   acceptedPairs: 3,
-  side,
+  pairs: [],
   curve: [],
 });
 
-const hit: PlacementTrial = {
-  expected: 'left',
-  measurement: measured('left'),
-  failure: null,
-};
-const miss: PlacementTrial = {
-  expected: 'left',
-  measurement: measured('right'),
-  failure: null,
-};
-const failed: PlacementTrial = {
+const trial = (
+  measuredSide: PlacementTrial['measuredSide'],
+): PlacementTrial => ({
   expected: 'left',
   measurement: null,
-  failure: 'low_signal',
-};
+  measuredSide,
+  failure: null,
+});
+
+const hit = trial('left');
+const miss = trial('right');
+const failed: PlacementTrial = { ...trial(null), failure: 'low_signal' };
 
 describe('summarizeTrials', () => {
   it('meets the criterion at 38 of 40', () => {
@@ -48,5 +51,40 @@ describe('summarizeTrials', () => {
 
   it('counts failed measurements as misses', () => {
     expect(summarizeTrials([failed]).hits).toBe(0);
+  });
+});
+
+describe('calibrationFrom', () => {
+  it('uses the median, ignoring an outlier', () => {
+    const result = calibrationFrom([
+      measurement(1000),
+      measurement(1100),
+      measurement(4000),
+    ]);
+    expect(result).toEqual({
+      ok: true,
+      value: { tauMicroseconds: 1100, levelDifferenceDecibels: 5, samples: 3 },
+    });
+  });
+
+  it('fails without measurements', () => {
+    expect(calibrationFrom([])).toEqual({ ok: false, error: 'low_signal' });
+  });
+});
+
+describe('classifySide', () => {
+  const calibration = {
+    tauMicroseconds: 1000,
+    levelDifferenceDecibels: 5,
+    samples: 5,
+  };
+
+  it('removes the bias before reading the sign', () => {
+    expect(classifySide(800, calibration)).toBe('right');
+    expect(classifySide(1300, calibration)).toBe('left');
+  });
+
+  it('treats values near the calibration as center', () => {
+    expect(classifySide(1050, calibration)).toBe('center');
   });
 });

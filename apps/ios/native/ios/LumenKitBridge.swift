@@ -66,7 +66,13 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
                     "levelDifferenceDecibels": estimate.levelDifferenceDecibels,
                     "snrDecibels": estimate.snrDecibels,
                     "acceptedPairs": estimate.acceptedPairs,
-                    "side": estimate.side.rawValue,
+                    "pairs": measurement.pairs.map { pair in
+                        [
+                            "tauMicroseconds": pair.tauSeconds * 1_000_000,
+                            "levelDifferenceDecibels": Double(pair.levelDifferenceDecibels),
+                            "snrDecibels": Double(pair.snrDecibels),
+                        ]
+                    },
                     "curve": measurement.curve,
                 ])
             } catch let error as PlacementError {

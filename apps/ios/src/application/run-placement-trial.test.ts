@@ -3,15 +3,24 @@ import type {
   PlacementMeasurement,
 } from '../domain/placement';
 import { err, ok, type Result } from '../domain/result';
-import { createRunPlacementTrial } from './run-placement-trial';
+import {
+  createCalibratePlacement,
+  createRunPlacementTrial,
+} from './run-placement-trial';
 
-const measurement = {
-  tauMicroseconds: -600,
+const measurement: PlacementMeasurement = {
+  tauMicroseconds: 700,
   levelDifferenceDecibels: -3,
   snrDecibels: 25,
   acceptedPairs: 3,
-  side: 'right' as const,
+  pairs: [],
   curve: [],
+};
+
+const calibration = {
+  tauMicroseconds: 1000,
+  levelDifferenceDecibels: 5,
+  samples: 5,
 };
 
 const acoustic = (result: Result<PlacementMeasurement, PlacementFailure>) => ({
@@ -20,21 +29,41 @@ const acoustic = (result: Result<PlacementMeasurement, PlacementFailure>) => ({
 });
 
 describe('runPlacementTrial', () => {
-  it('records the measurement with the expected side', async () => {
+  it('classifies the measurement against the calibration', async () => {
     const run = createRunPlacementTrial(acoustic(ok(measurement)));
-    await expect(run('right')).resolves.toEqual({
+    await expect(run('right', calibration)).resolves.toEqual({
       expected: 'right',
       measurement,
+      measuredSide: 'right',
       failure: null,
     });
   });
 
   it('records a failure as a value', async () => {
     const run = createRunPlacementTrial(acoustic(err('low_signal')));
-    await expect(run('left')).resolves.toEqual({
+    await expect(run('left', calibration)).resolves.toEqual({
       expected: 'left',
       measurement: null,
+      measuredSide: null,
       failure: 'low_signal',
+    });
+  });
+});
+
+describe('calibratePlacement', () => {
+  it('summarizes several measurements', async () => {
+    const calibrate = createCalibratePlacement(acoustic(ok(measurement)));
+    await expect(calibrate()).resolves.toEqual({
+      ok: true,
+      value: { tauMicroseconds: 700, levelDifferenceDecibels: -3, samples: 5 },
+    });
+  });
+
+  it('stops at the first failure', async () => {
+    const calibrate = createCalibratePlacement(acoustic(err('link_down')));
+    await expect(calibrate()).resolves.toEqual({
+      ok: false,
+      error: 'link_down',
     });
   });
 });

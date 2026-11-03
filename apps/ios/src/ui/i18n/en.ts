@@ -44,6 +44,13 @@ export const en = {
   'glow.p95': 'Frame interval p95',
   'glow.frames': 'Frames measured',
   'glow.reset': 'Reset',
+  'placement.calibrate': 'Calibrate: iPhone centered',
+  'placement.calibrating': 'Calibrating…',
+  'placement.calibrationTau': 'Center τ',
+  'placement.calibrationLevel': 'Center level',
+  'placement.relativeTau': 'τ from center',
+  'placement.calibrationFirst':
+    'Calibrate first: put the iPhone in front of the trackpad, centered, in the orientation you will use for every trial.',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

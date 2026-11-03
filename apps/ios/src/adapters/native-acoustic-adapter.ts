@@ -1,4 +1,4 @@
-import type { MeasuredSide, PlacementFailure } from '../domain/placement';
+import type { PlacementFailure } from '../domain/placement';
 import { err, ok } from '../domain/result';
 import type { AcousticPort } from '../ports/acoustic-port';
 import NativeLumenKit from './native/NativeLumenKit';
@@ -18,8 +18,7 @@ const failureFrom = (error: unknown): PlacementFailure => {
 export const createNativeAcousticAdapter = (): AcousticPort => ({
   measure: async () => {
     try {
-      const measurement = await NativeLumenKit.measurePlacement();
-      return ok({ ...measurement, side: measurement.side as MeasuredSide });
+      return ok(await NativeLumenKit.measurePlacement());
     } catch (error) {
       return err(failureFrom(error));
     }

@@ -13,6 +13,7 @@ enum PlacementError: String, Error {
 
 struct PlacementMeasurement {
     let estimate: AcousticEstimate
+    let pairs: [ChirpPairArrival]
     let curve: [Float]
 }
 
@@ -83,7 +84,7 @@ actor LabSession {
             throw PlacementError.lowSignal
         }
         await report(estimate, requestID: requestID)
-        return PlacementMeasurement(estimate: estimate, curve: curve)
+        return PlacementMeasurement(estimate: estimate, pairs: pairs, curve: curve)
     }
 
     #if DEBUG

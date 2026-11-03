@@ -47,6 +47,13 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'glow.p95': 'Intervalo de frame p95',
   'glow.frames': 'Frames medidos',
   'glow.reset': 'Reiniciar',
+  'placement.calibrate': 'Calibrar: iPhone centrado',
+  'placement.calibrating': 'Calibrando…',
+  'placement.calibrationTau': 'τ en el centro',
+  'placement.calibrationLevel': 'Nivel en el centro',
+  'placement.relativeTau': 'τ respecto al centro',
+  'placement.calibrationFirst':
+    'Calibra primero: pon el iPhone centrado frente al trackpad, en la orientación que usarás en todas las pruebas.',
   'common.yes': 'Sí',
   'common.no': 'No',
 };

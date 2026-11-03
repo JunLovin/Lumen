@@ -1,11 +1,17 @@
 import { TurboModuleRegistry, type TurboModule } from 'react-native';
 
+export type NativePairArrival = {
+  readonly tauMicroseconds: number;
+  readonly levelDifferenceDecibels: number;
+  readonly snrDecibels: number;
+};
+
 export type NativePlacementMeasurement = {
   readonly tauMicroseconds: number;
   readonly levelDifferenceDecibels: number;
   readonly snrDecibels: number;
   readonly acceptedPairs: number;
-  readonly side: string;
+  readonly pairs: readonly NativePairArrival[];
   readonly curve: readonly number[];
 };
 

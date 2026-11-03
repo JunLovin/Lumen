@@ -8,7 +8,10 @@ import { createSystemClockAdapter } from '../adapters/system-clock-adapter';
 import { createDragFrameSender } from '../application/drag-frame-sender';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { createLoadDiagnostics } from '../application/load-diagnostics';
-import { createRunPlacementTrial } from '../application/run-placement-trial';
+import {
+  createCalibratePlacement,
+  createRunPlacementTrial,
+} from '../application/run-placement-trial';
 import { RootNavigator } from '../ui/RootNavigator';
 
 const composeUseCases = (): LabUseCases => {
@@ -17,6 +20,7 @@ const composeUseCases = (): LabUseCases => {
   peer.start();
   return {
     loadDiagnostics: createLoadDiagnostics(createRuntimeInfoAdapter()),
+    calibratePlacement: createCalibratePlacement(acoustic),
     runPlacementTrial: createRunPlacementTrial(acoustic),
     exportLastRecording: () => acoustic.exportLastRecording(),
     isPeerConnected: () => peer.isConnected(),
