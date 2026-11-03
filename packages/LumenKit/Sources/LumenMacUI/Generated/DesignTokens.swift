@@ -43,6 +43,12 @@ public enum DesignTokens {
         ]
     }
 
+    public enum Placement {
+        public static let cometSeconds: Double = 1.2
+        public static let cometLengthFraction: Double = 0.18
+        public static let cometWidthPoints: Double = 6
+    }
+
     public enum Chirp {
         public static let defaultAmplitude: Float = 0.25
     }

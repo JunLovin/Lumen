@@ -16,6 +16,7 @@
                 DragPreview(model: model)
                 Form {
                     ConnectionSection(model: model, pairing: pairing)
+                    PlacementSection(model: model)
                     LatencySection(model: model)
                     AcousticSection(model: model)
                     OverlaySection(model: model)
@@ -62,6 +63,25 @@
                 LabRow("lab.connected", yesNo(model.isConnected))
                 LabRow("lab.rssi", pairing.signalStrength.map { "\($0) dBm" } ?? "—")
                 LabRow("lab.clockRoundTrip", milliseconds(model.clockRoundTripMilliseconds))
+            }
+        }
+    }
+
+    private struct PlacementSection: View {
+        let model: LabModel
+
+        var body: some View {
+            Section {
+                LabRow("lab.side", model.placement.map { String(describing: $0.side) } ?? "—")
+                LabRow("lab.confidence", model.placement.map { String(format: "%.0f %%", $0.confidence * 100) } ?? "—")
+                LabRow("lab.detached", model.placement.map { yesNo($0.isDetached) } ?? "—")
+                LabRow("lab.ultrasoundRoute", model.canPlayUltrasound.map(yesNo) ?? "—")
+                ForEach(PlacementSide.allCases, id: \.self) { side in
+                    ProgressView(value: model.placement?.distribution.probability(of: side) ?? 0) {
+                        Text(String(describing: side))
+                    }
+                }
+                LabRow("lab.history", model.placementHistory.joined(separator: ", "))
             }
         }
     }

@@ -24,6 +24,12 @@ const tokens = {
     },
   },
   chirp: { defaultAmplitude: 0.25 },
+  placement: {
+    cometSeconds: 1,
+    cometLengthFraction: 0.2,
+    cometWidthPoints: 6,
+    pulseSeconds: 1,
+  },
   pairing: {
     ringCycleSeconds: 1.6,
     ringCount: 3,

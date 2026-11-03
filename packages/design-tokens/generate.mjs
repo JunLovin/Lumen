@@ -39,7 +39,7 @@ export function renderSwift(tokens) {
     ([name, { seconds }]) =>
       `        public static let ${name}Seconds: Double = ${seconds}`,
   );
-  const { glow, chirp, pairing } = tokens;
+  const { glow, chirp, pairing, placement } = tokens;
   const color = ([red, green, blue]) =>
     `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
   return [
@@ -78,6 +78,12 @@ export function renderSwift(tokens) {
     '        public static let verificationPalette = [',
     ...pairing.verificationPalette.map(value => `            ${color(value)},`),
     '        ]',
+    '    }',
+    '',
+    '    public enum Placement {',
+    `        public static let cometSeconds: Double = ${placement.cometSeconds}`,
+    `        public static let cometLengthFraction: Double = ${placement.cometLengthFraction}`,
+    `        public static let cometWidthPoints: Double = ${placement.cometWidthPoints}`,
     '    }',
     '',
     '    public enum Chirp {',

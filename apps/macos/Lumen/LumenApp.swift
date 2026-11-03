@@ -19,6 +19,8 @@ struct LumenApp: App {
             link: link,
             clock: clock,
             chirpPlayer: ChirpPlayerAdapter(),
+            audioRoute: AudioRouteAdapter(),
+            placementStore: UserDefaultsPlacementStore(),
             chirpAmplitude: amplitude
         )
         let model = LabModel(session: session, clock: clock, chirpAmplitude: amplitude)
@@ -41,6 +43,11 @@ struct LumenApp: App {
         Task { await session.run() }
         Task { await model.consumeUpdates() }
         Task { await pairing.run() }
+        Task {
+            for await rssi in await MacProximityScanner().rssiReadings() {
+                await session.observe(rssi: rssi)
+            }
+        }
     }
 
     var body: some Scene {
