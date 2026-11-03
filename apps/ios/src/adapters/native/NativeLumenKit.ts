@@ -21,12 +21,23 @@ export type NativePairingStatus = {
   readonly peerName?: string;
 };
 
+export type NativePlacementStatus = {
+  readonly side: number;
+  readonly confidence: number;
+  readonly probabilities: readonly number[];
+  readonly isDetached: boolean;
+  readonly facingEdge: number;
+  readonly locationFailure?: string;
+};
+
 export interface Spec extends TurboModule {
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;
   pairingStatus(): Promise<NativePairingStatus>;
   forgetPairing(): void;
+  reportEdgeExit(edge: number): void;
+  placementStatus(): Promise<NativePlacementStatus>;
   reconnect(): void;
   probeFileChannel(): Promise<boolean>;
   sendDragFrame(

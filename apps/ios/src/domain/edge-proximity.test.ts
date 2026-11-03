@@ -1,4 +1,4 @@
-import { edgeProximity } from './edge-proximity';
+import { edgeProximity, horizontalExitEdge } from './edge-proximity';
 
 describe('edgeProximity', () => {
   it('is zero outside the activation distance', () => {
@@ -12,5 +12,16 @@ describe('edgeProximity', () => {
   it('is one at the edge and past it', () => {
     expect(edgeProximity(390, 390, 100)).toBe(1);
     expect(edgeProximity(420, 390, 100)).toBe(1);
+  });
+});
+
+describe('horizontalExitEdge', () => {
+  it('finds the edge within the margin', () => {
+    expect(horizontalExitEdge(5, 390, 20)).toBe('left');
+    expect(horizontalExitEdge(380, 390, 20)).toBe('right');
+  });
+
+  it('is null away from the edges', () => {
+    expect(horizontalExitEdge(200, 390, 20)).toBeNull();
   });
 });

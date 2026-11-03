@@ -12,17 +12,23 @@ import { DiagnosticRow } from '../components/DiagnosticRow';
 import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
+import { PlacementLive } from './PlacementLive';
 import { PlacementResult } from './PlacementResult';
 
 type Props = {
   readonly useCases: LabUseCases;
 };
 
+const NO_CALIBRATION: PlacementCalibration = {
+  tauMicroseconds: 0,
+  levelDifferenceDecibels: 0,
+  samples: 0,
+};
+
 export function PlacementLabScreen({ useCases }: Props) {
   const [trials, setTrials] = useState<readonly PlacementTrial[]>([]);
-  const [calibration, setCalibration] = useState<PlacementCalibration | null>(
-    null,
-  );
+  const [calibration, setCalibration] =
+    useState<PlacementCalibration>(NO_CALIBRATION);
   const [calibrationFailure, setCalibrationFailure] =
     useState<PlacementFailure | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -33,7 +39,7 @@ export function PlacementLabScreen({ useCases }: Props) {
   const calibrate = useCallback(async () => {
     setIsBusy(true);
     const result = await useCases.calibratePlacement();
-    setCalibration(result.ok ? result.value : null);
+    setCalibration(result.ok ? result.value : NO_CALIBRATION);
     setCalibrationFailure(result.ok ? null : result.error);
     setTrials([]);
     setIsBusy(false);
@@ -85,32 +91,29 @@ export function PlacementLabScreen({ useCases }: Props) {
         disabled={isBusy}
         onPress={calibrate}
       />
-      {calibration && (
-        <>
-          <DiagnosticRow
-            label={translate('placement.calibrationTau')}
-            value={`${calibration.tauMicroseconds.toFixed(0)} µs`}
-          />
-          <DiagnosticRow
-            label={translate('placement.calibrationLevel')}
-            value={`${calibration.levelDifferenceDecibels.toFixed(1)} dB`}
-          />
-          <LabButton
-            title={translate(
-              isBusy ? 'placement.measuring' : 'placement.measureLeft',
-            )}
-            disabled={isBusy}
-            onPress={() => measure('left', calibration)}
-          />
-          <LabButton
-            title={translate(
-              isBusy ? 'placement.measuring' : 'placement.measureRight',
-            )}
-            disabled={isBusy}
-            onPress={() => measure('right', calibration)}
-          />
-        </>
-      )}
+      <PlacementLive readPlacement={useCases.readPlacement} />
+      <DiagnosticRow
+        label={translate('placement.calibrationTau')}
+        value={`${calibration.tauMicroseconds.toFixed(0)} µs`}
+      />
+      <DiagnosticRow
+        label={translate('placement.calibrationLevel')}
+        value={`${calibration.levelDifferenceDecibels.toFixed(1)} dB`}
+      />
+      <LabButton
+        title={translate(
+          isBusy ? 'placement.measuring' : 'placement.measureLeft',
+        )}
+        disabled={isBusy}
+        onPress={() => measure('left', calibration)}
+      />
+      <LabButton
+        title={translate(
+          isBusy ? 'placement.measuring' : 'placement.measureRight',
+        )}
+        disabled={isBusy}
+        onPress={() => measure('right', calibration)}
+      />
       <DiagnosticRow
         label={translate('placement.hits')}
         value={`${summary.hits} / ${summary.total}`}
@@ -125,7 +128,7 @@ export function PlacementLabScreen({ useCases }: Props) {
           value={translate(`failure.${failure}`)}
         />
       )}
-      {last?.measurement && calibration && (
+      {last?.measurement && (
         <PlacementResult
           trial={last}
           measurement={last.measurement}

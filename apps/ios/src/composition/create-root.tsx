@@ -29,6 +29,8 @@ const composeUseCases = (): LabUseCases => {
     readPairingStatus: () => pairing.read(),
     forgetPairing: () => pairing.forget(),
     reconnectToPeer: () => peer.reconnect(),
+    reportEdgeExit: edge => peer.reportEdgeExit(edge),
+    readPlacement: () => peer.readPlacement(),
     probeFileChannel: () => peer.probeFileChannel(),
     dragFrameSender: createDragFrameSender(peer, createSystemClockAdapter()),
   };

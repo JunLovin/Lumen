@@ -4,12 +4,15 @@ export type PlacementSide = 'left' | 'right';
 
 export type MeasuredSide = PlacementSide | 'center';
 
-export type PlacementFailure =
-  | 'link_down'
-  | 'low_signal'
-  | 'microphone_denied'
-  | 'microphone_unavailable'
-  | 'unknown';
+export const PLACEMENT_FAILURES = [
+  'link_down',
+  'low_signal',
+  'microphone_denied',
+  'microphone_unavailable',
+  'unknown',
+] as const;
+
+export type PlacementFailure = (typeof PLACEMENT_FAILURES)[number];
 
 export type PairArrival = {
   readonly tauMicroseconds: number;

@@ -20,6 +20,8 @@ const setup = () => {
       start: () => undefined,
       isConnected: () => Promise.resolve(true),
       reconnect: () => undefined,
+      reportEdgeExit: () => undefined,
+      readPlacement: () => Promise.reject(new Error('unused')),
       probeFileChannel: () => Promise.resolve(true),
       sendDragFrame: frame => frames.push(frame),
     },

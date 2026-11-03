@@ -1,4 +1,5 @@
 import type { PairingStatus } from '../domain/pairing';
+import type { PeerPlacement, PhoneEdge } from '../domain/peer-placement';
 import type { DragFrameSender } from './drag-frame-sender';
 import type { LoadDiagnostics } from './load-diagnostics';
 import type {
@@ -15,6 +16,8 @@ export type LabUseCases = {
   readonly readPairingStatus: () => Promise<PairingStatus>;
   readonly forgetPairing: () => void;
   readonly reconnectToPeer: () => void;
+  readonly reportEdgeExit: (edge: PhoneEdge) => void;
+  readonly readPlacement: () => Promise<PeerPlacement>;
   readonly probeFileChannel: () => Promise<boolean>;
   readonly dragFrameSender: DragFrameSender;
 };
