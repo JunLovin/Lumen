@@ -39,6 +39,14 @@ export function PlacementLive({ readPlacement }: Props) {
         value={`${Math.round(placement.confidence * 100)} %`}
       />
       <DiagnosticRow
+        label={translate('live.locateTime')}
+        value={
+          placement.locateMilliseconds === null
+            ? '—'
+            : `${Math.round(placement.locateMilliseconds)} ms`
+        }
+      />
+      <DiagnosticRow
         label={translate('live.detached')}
         value={translate(placement.isDetached ? 'common.yes' : 'common.no')}
       />

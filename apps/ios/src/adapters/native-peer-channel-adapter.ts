@@ -10,6 +10,7 @@ import NativeLumenKit, {
 } from './native/NativeLumenKit';
 
 const toPlacement = (status: NativePlacementStatus): PeerPlacement => ({
+  locateMilliseconds: status.locateMilliseconds ?? null,
   side: PLACEMENT_SIDES[status.side] ?? 'unknown',
   confidence: status.confidence,
   probabilities: status.probabilities,

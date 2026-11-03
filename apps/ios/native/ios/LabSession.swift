@@ -9,27 +9,31 @@ actor LabSession {
     /// In g: a phone resting on a table reads well under this, and a phone being moved well over it.
     private static let movingAcceleration = 0.05
     private static let quietNanoseconds: UInt64 = 1_000_000_000
+    private static let locatedConfidence = 0.8
 
-    private let link: PhoneSecureLink
+    let link: PhoneSecureLink
     private let pairing: PairNearbyDevice
     private let advertiser = PhoneProximityAdvertiser()
-    private let clock = SystemClockAdapter()
+    let clock = SystemClockAdapter()
     private let locator = AcousticLocator()
     private let frames: AsyncStream<DragFrameSample>.Continuation
     private var isConnected = false
     private var hasStarted = false
     private(set) var pairingStage: PairingStage = .idle
     private(set) var placement: Placement?
-    private let motion = MotionMonitor()
-    private var settleDetector = MotionSettleDetector(
+    let motion = MotionMonitor()
+    var settleDetector = MotionSettleDetector(
         movingAcceleration: LabSession.movingAcceleration,
         quietNanoseconds: LabSession.quietNanoseconds
     )
-    private var isLocating = false
-    private var lastLocationFailure: PlacementError?
-    private var referenceYawRadians: Double?
+    var isLocating = false
+    var hasPendingLocate = false
+    var lastLocationFailure: PlacementError?
+    var settledAtNanoseconds: UInt64?
+    private(set) var lastLocateMilliseconds: Double?
+    var referenceYawRadians: Double?
     private var referenceEdge: PhoneEdge?
-    private var currentYawRadians: Double?
+    var currentYawRadians: Double?
     private var nextRequestID: UInt32 = 1
 
     init() {
@@ -105,32 +109,6 @@ actor LabSession {
         lastLocationFailure?.rawValue
     }
 
-    private func consumeMotion() async {
-        for await sample in motion.start() {
-            currentYawRadians = sample.yawRadians
-            if referenceYawRadians == nil {
-                referenceYawRadians = sample.yawRadians
-            }
-            if settleDetector.observe(acceleration: sample.acceleration, atNanoseconds: clock.nowNanoseconds()) {
-                await link.send(.motionSettled)
-            }
-        }
-    }
-
-    private func locate() async {
-        guard !isLocating else { return }
-        isLocating = true
-        defer { isLocating = false }
-        do {
-            _ = try await measurePlacement()
-            lastLocationFailure = nil
-        } catch let error as PlacementError {
-            lastLocationFailure = error
-        } catch {
-            lastLocationFailure = .microphoneUnavailable
-        }
-    }
-
     private func consumePairing() async {
         for await stage in pairing.stages {
             pairingStage = stage
@@ -148,18 +126,17 @@ actor LabSession {
         let requestID = nextRequestID
         nextRequestID += 1
         let link = link
-        let measurement = try await locator.measure {
+        return try await locator.measure {
             await link.send(.playChirpPair(requestID: requestID))
+        } onPair: { pair in
+            await link.send(.acousticReport(AcousticReading(
+                requestID: requestID,
+                tauMicroseconds: Float(pair.tauSeconds * 1_000_000),
+                levelDifferenceDecibels: pair.levelDifferenceDecibels,
+                snrDecibels: pair.snrDecibels,
+                acceptedPairs: 1
+            )))
         }
-        let estimate = measurement.estimate
-        await link.send(.acousticReport(AcousticReading(
-            requestID: requestID,
-            tauMicroseconds: Float(estimate.tauSeconds * 1_000_000),
-            levelDifferenceDecibels: estimate.levelDifferenceDecibels,
-            snrDecibels: estimate.snrDecibels,
-            acceptedPairs: Int32(estimate.acceptedPairs)
-        )))
-        return measurement
     }
 
     #if DEBUG
@@ -186,6 +163,10 @@ actor LabSession {
                     referenceYawRadians = currentYawRadians
                 }
                 placement = update
+                if let settledAt = settledAtNanoseconds, update.confidence >= Self.locatedConfidence {
+                    lastLocateMilliseconds = Double(clock.nowNanoseconds() - settledAt) / 1_000_000
+                    settledAtNanoseconds = nil
+                }
             case .received:
                 break
             }

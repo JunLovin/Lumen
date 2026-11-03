@@ -79,6 +79,7 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'side.below': 'Delante',
   'side.above': 'Detrás',
   'side.unknown': 'Desconocido',
+  'live.locateTime': 'Tiempo de localización al asentarse',
   'common.yes': 'Sí',
   'common.no': 'No',
 };

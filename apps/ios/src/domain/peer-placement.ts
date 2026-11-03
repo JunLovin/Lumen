@@ -19,4 +19,5 @@ export type PeerPlacement = {
   readonly isDetached: boolean;
   readonly facingEdge: PhoneEdge | null;
   readonly locationFailure: PlacementFailure | null;
+  readonly locateMilliseconds: number | null;
 };

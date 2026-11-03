@@ -16,14 +16,17 @@ struct PlacementMeasurement {
 
 actor AcousticLocator {
     private static let pairsPerMeasurement = 3
-    // Wider than the plan's 300 ms: it absorbs network and Mac audio start latency before the 140 ms pair.
-    private static let recordingSeconds = 0.5
+    // Slightly over the plan's 300 ms: measured pairs ended about 350 ms into the recording.
+    private static let recordingSeconds = 0.4
     private static let curvePointCount = 240
 
     private let recorder = MicrophoneRecorder()
     private var lastRecording: MicrophoneRecording?
 
-    func measure(onCapturing: @Sendable () async -> Void) async throws -> PlacementMeasurement {
+    func measure(
+        onCapturing: @Sendable () async -> Void,
+        onPair: @Sendable (ChirpPairArrival) async -> Void
+    ) async throws -> PlacementMeasurement {
         var pairs: [ChirpPairArrival] = []
         var curve: [Float] = []
         let parameters = ChirpParameters.initial
@@ -38,6 +41,7 @@ actor AcousticLocator {
                 sampleRate: recording.sampleRate
             ) {
                 pairs.append(pair)
+                await onPair(pair)
             }
         }
         guard let estimate = AcousticEstimate(pairs: pairs, parameters: parameters) else {

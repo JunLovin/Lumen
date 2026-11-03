@@ -76,6 +76,7 @@ export const en = {
   'side.below': 'In front',
   'side.above': 'Behind',
   'side.unknown': 'Unknown',
+  'live.locateTime': 'Time to locate after settling',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

@@ -28,6 +28,7 @@ export type NativePlacementStatus = {
   readonly isDetached: boolean;
   readonly facingEdge: number;
   readonly locationFailure?: string;
+  readonly locateMilliseconds?: number;
 };
 
 export interface Spec extends TurboModule {

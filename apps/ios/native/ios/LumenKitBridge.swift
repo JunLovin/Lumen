@@ -76,6 +76,9 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
             if let failure {
                 status["locationFailure"] = failure
             }
+            if let locateMilliseconds = await session.lastLocateMilliseconds {
+                status["locateMilliseconds"] = locateMilliseconds
+            }
             completion(status as NSDictionary)
         }
     }
