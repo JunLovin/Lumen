@@ -44,9 +44,13 @@ const controlMessages = {
   'control-session-key': {
     sessionKey: { x25519Public: bytes(1, 2), signature: bytes(3, 4) },
   },
-  'control-session-ready': { sessionReady: { realtimePort: 5000, filePort: 5001 } },
+  'control-session-ready': {
+    sessionReady: { realtimePort: 5000, filePort: 5001 },
+  },
   'control-incompatible-version': {
-    incompatibleVersion: { supported: ProtocolVersion.PROTOCOL_VERSION_CURRENT },
+    incompatibleVersion: {
+      supported: ProtocolVersion.PROTOCOL_VERSION_CURRENT,
+    },
   },
   'control-clock-ping': { clockPing: { originNs: 1_000 } },
   'control-clock-pong': {
@@ -77,8 +81,14 @@ for (const [name, message] of Object.entries(datagrams)) {
   writeFileSync(`${directory}${name}.bin`, Datagram.encode(message).finish());
 }
 for (const [name, message] of Object.entries(controlMessages)) {
-  writeFileSync(`${directory}${name}.bin`, ControlMessage.encode(message).finish());
+  writeFileSync(
+    `${directory}${name}.bin`,
+    ControlMessage.encode(message).finish(),
+  );
 }
 for (const [name, message] of Object.entries(pairingMessages)) {
-  writeFileSync(`${directory}${name}.bin`, PairingMessage.encode(message).finish());
+  writeFileSync(
+    `${directory}${name}.bin`,
+    PairingMessage.encode(message).finish(),
+  );
 }
