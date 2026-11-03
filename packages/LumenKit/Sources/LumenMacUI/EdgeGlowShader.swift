@@ -11,7 +11,8 @@
             float intensity;
             float flowSpeed;
             float noiseScale;
-            float2 padding;
+            float mirrored;
+            float padding;
             float4 primary;
             float4 secondary;
             float4 highlight;
@@ -54,7 +55,7 @@
         }
 
         fragment float4 edgeGlowFragment(Varyings in [[stage_in]], constant Uniforms &u [[buffer(0)]]) {
-            float distanceToEdge = 1 - in.uv.x;
+            float distanceToEdge = u.mirrored > 0.5 ? in.uv.x : 1 - in.uv.x;
             float band = max(u.bandFraction * u.proximity, 0.001);
             float flow = fbm(float2(in.uv.y * u.noiseScale, distanceToEdge * u.noiseScale - u.time * u.flowSpeed));
             float falloff = exp(-distanceToEdge / (band * (0.5 + flow)));

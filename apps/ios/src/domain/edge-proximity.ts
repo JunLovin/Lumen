@@ -20,3 +20,17 @@ export const horizontalExitEdge = (
   }
   return position >= extent - margin ? 'right' : null;
 };
+
+export const crossingFraction = (
+  fingerX: number,
+  edge: 'left' | 'right',
+  screenWidth: number,
+  objectSize: number,
+): number => {
+  'worklet';
+  const leading =
+    edge === 'right'
+      ? fingerX + objectSize / 2 - screenWidth
+      : objectSize / 2 - fingerX;
+  return Math.min(Math.max(leading / objectSize, 0), 1);
+};

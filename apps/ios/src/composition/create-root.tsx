@@ -43,6 +43,8 @@ const composeUseCases = (): LabUseCases => {
     loadGalleryPage: createLoadGalleryPage(media),
     loadThumbnail: (assetId, size) => media.loadThumbnail(assetId, size),
     manageLimitedAccess: () => media.manageLimitedAccess(),
+    beginDragTransfer: (session, assetId, height) =>
+      media.beginDragTransfer(session, assetId, height),
   };
 };
 

@@ -9,7 +9,7 @@
         private var dismissal: Task<Void, Never>?
 
         init?() {
-            guard let screen = NSScreen.main else { return nil }
+            let screen = BuiltInScreen.current
             panel = NSPanel(
                 contentRect: screen.frame,
                 styleMask: [.borderless, .nonactivatingPanel],

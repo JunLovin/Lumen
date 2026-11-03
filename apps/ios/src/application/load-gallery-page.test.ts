@@ -17,6 +17,7 @@ describe('loadGalleryPage', () => {
       fetchAssets,
       loadThumbnail: () => Promise.resolve(null),
       manageLimitedAccess: () => undefined,
+      beginDragTransfer: () => undefined,
     });
     await expect(load([asset('a')])).resolves.toEqual([asset('a'), asset('b')]);
     expect(fetchAssets).toHaveBeenCalledWith(1, GALLERY_PAGE_SIZE);

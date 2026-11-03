@@ -32,6 +32,11 @@ export type LabUseCases = {
     size: number,
   ) => Promise<string | null>;
   readonly manageLimitedAccess: () => void;
+  readonly beginDragTransfer: (
+    session: number,
+    assetId: string,
+    phoneHeightMillimeters: number,
+  ) => void;
 };
 
 export type { UIThreadChannelPort };

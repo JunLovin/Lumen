@@ -9,7 +9,8 @@
         var intensity = DesignTokens.Glow.intensity
         var flowSpeed = DesignTokens.Glow.flowSpeed
         var noiseScale = DesignTokens.Glow.noiseScale
-        var padding = SIMD2<Float>(repeating: 0)
+        var mirrored: Float
+        var padding: Float = 0
         var primary = SIMD4(color: DesignTokens.Glow.primary)
         var secondary = SIMD4(color: DesignTokens.Glow.secondary)
         var highlight = SIMD4(color: DesignTokens.Glow.highlight)
@@ -24,6 +25,7 @@
     @MainActor
     final class EdgeGlowRenderer: NSObject, MTKViewDelegate {
         var proximity: Float = 0
+        var isMirrored = false
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
         private let startTime = CACurrentMediaTime()
@@ -53,7 +55,11 @@
                 let buffer = queue.makeCommandBuffer(),
                 let encoder = buffer.makeRenderCommandEncoder(descriptor: pass)
             else { return }
-            var uniforms = EdgeGlowUniforms(time: Float(CACurrentMediaTime() - startTime), proximity: proximity)
+            var uniforms = EdgeGlowUniforms(
+                time: Float(CACurrentMediaTime() - startTime),
+                proximity: proximity,
+                mirrored: isMirrored ? 1 : 0
+            )
             encoder.setRenderPipelineState(pipeline)
             encoder.setFragmentBytes(&uniforms, length: MemoryLayout<EdgeGlowUniforms>.stride, index: 0)
             encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)

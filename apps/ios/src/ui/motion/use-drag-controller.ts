@@ -6,6 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { LabUseCases } from '../../application/lab-use-cases';
 import type { PeerPlacement } from '../../domain/peer-placement';
+import type { DragSession } from '../../domain/drag-session';
 import type { FacingSide } from '../../domain/shared-space';
 
 const PLACEMENT_POLL_MILLISECONDS = 500;
@@ -33,6 +34,8 @@ export const useDragController = (useCases: LabUseCases) => {
   const sequence = useSharedValue(0);
   const gridOffsetY = useSharedValue(0);
   const layerTop = useSharedValue(0);
+  const dragSession = useSharedValue<DragSession>({ stage: 'idle' });
+  const lastEdge = useSharedValue<FacingSide>('right');
   const layerRef = useAnimatedRef<Animated.View>();
 
   useEffect(() => {
@@ -71,8 +74,18 @@ export const useDragController = (useCases: LabUseCases) => {
       gridOffsetY,
       layerTop,
       layerRef,
+      dragSession,
+      lastEdge,
+      beginTransfer: (session: number, assetId: string) =>
+        useCases.beginDragTransfer(
+          session,
+          assetId,
+          height / useCases.phoneMetrics.pointsPerMillimeter,
+        ),
     }),
     [
+      dragSession,
+      lastEdge,
       activeIndex,
       confidence,
       facingIsRight,

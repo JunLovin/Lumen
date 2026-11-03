@@ -93,5 +93,18 @@ export const tokens = {
     "cometLengthFraction": 0.18,
     "cometWidthPoints": 6,
     "pulseSeconds": 0.8
+  },
+  "mirror": {
+    "renderDelayMilliseconds": 30,
+    "maxExtrapolationMilliseconds": 100,
+    "entryStripFraction": 0.6
+  },
+  "shelf": {
+    "insetPoints": 24,
+    "widthPoints": 200,
+    "heightPoints": 260,
+    "itemPoints": 140,
+    "fanDegrees": 6,
+    "hideSeconds": 30
   }
 } as const;

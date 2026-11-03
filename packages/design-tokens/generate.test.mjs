@@ -24,6 +24,19 @@ const tokens = {
     },
   },
   chirp: { defaultAmplitude: 0.25 },
+  mirror: {
+    renderDelayMilliseconds: 30,
+    maxExtrapolationMilliseconds: 100,
+    entryStripFraction: 0.6,
+  },
+  shelf: {
+    insetPoints: 24,
+    widthPoints: 200,
+    heightPoints: 260,
+    itemPoints: 140,
+    fanDegrees: 6,
+    hideSeconds: 30,
+  },
   placement: {
     cometSeconds: 1,
     cometLengthFraction: 0.2,

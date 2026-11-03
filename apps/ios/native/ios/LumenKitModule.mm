@@ -22,9 +22,9 @@ public:
     LumenKitBridge *bridge = bridge_;
     if (property == "sendFrame") {
       return jsi::Function::createFromHostFunction(
-          runtime, name, 10,
+          runtime, name, 11,
           [bridge](jsi::Runtime &, const jsi::Value &, const jsi::Value *args, size_t count) {
-            if (count == 10) {
+            if (count == 11) {
               [bridge sendDragFrameWithSession:(int32_t)args[0].asNumber()
                                       sequence:(int32_t)args[1].asNumber()
                                ageMilliseconds:0
@@ -35,7 +35,21 @@ public:
                                  edgeProximity:(float)args[6].asNumber()
                                    objectWidth:(float)args[7].asNumber()
                                   objectHeight:(float)args[8].asNumber()
-                                      rotation:(float)args[9].asNumber()];
+                                      rotation:(float)args[9].asNumber()
+                                          edge:(NSInteger)args[10].asNumber()];
+            }
+            return jsi::Value::undefined();
+          });
+    }
+    if (property == "endDrag") {
+      return jsi::Function::createFromHostFunction(
+          runtime, name, 4,
+          [bridge](jsi::Runtime &, const jsi::Value &, const jsi::Value *args, size_t count) {
+            if (count == 4) {
+              [bridge endDragWithSession:(int32_t)args[0].asNumber()
+                                 crossed:args[1].asBool()
+                               velocityX:(float)args[2].asNumber()
+                               velocityY:(float)args[3].asNumber()];
             }
             return jsi::Value::undefined();
           });
@@ -115,6 +129,14 @@ RCT_EXPORT_MODULE(LumenKit)
                          completion:^(NSString *uri) {
                            resolve(uri);
                          }];
+}
+
+- (void)beginDrag:(double)session
+           assetId:(NSString *)assetId
+ phoneHeightMillimeters:(double)phoneHeightMillimeters {
+  [_bridge beginDragWithSession:(int32_t)session
+                        assetId:assetId
+         phoneHeightMillimeters:(float)phoneHeightMillimeters];
 }
 
 - (void)manageLimitedLibrary {

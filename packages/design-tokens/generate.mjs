@@ -39,7 +39,7 @@ export function renderSwift(tokens) {
     ([name, { seconds }]) =>
       `        public static let ${name}Seconds: Double = ${seconds}`,
   );
-  const { glow, chirp, pairing, placement } = tokens;
+  const { glow, chirp, pairing, placement, mirror, shelf } = tokens;
   const color = ([red, green, blue]) =>
     `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
   return [
@@ -84,6 +84,21 @@ export function renderSwift(tokens) {
     `        public static let cometSeconds: Double = ${placement.cometSeconds}`,
     `        public static let cometLengthFraction: Double = ${placement.cometLengthFraction}`,
     `        public static let cometWidthPoints: Double = ${placement.cometWidthPoints}`,
+    '    }',
+    '',
+    '    public enum Mirror {',
+    `        public static let renderDelayMilliseconds: UInt64 = ${mirror.renderDelayMilliseconds}`,
+    `        public static let maxExtrapolationMilliseconds: UInt64 = ${mirror.maxExtrapolationMilliseconds}`,
+    `        public static let entryStripFraction: Double = ${mirror.entryStripFraction}`,
+    '    }',
+    '',
+    '    public enum Shelf {',
+    `        public static let insetPoints: Double = ${shelf.insetPoints}`,
+    `        public static let widthPoints: Double = ${shelf.widthPoints}`,
+    `        public static let heightPoints: Double = ${shelf.heightPoints}`,
+    `        public static let itemPoints: Double = ${shelf.itemPoints}`,
+    `        public static let fanDegrees: Double = ${shelf.fanDegrees}`,
+    `        public static let hideSeconds: Double = ${shelf.hideSeconds}`,
     '    }',
     '',
     '    public enum Chirp {',

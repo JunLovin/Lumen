@@ -10,10 +10,12 @@ actor LabSession {
     private static let movingAcceleration = 0.05
     private static let quietNanoseconds: UInt64 = 1_000_000_000
     private static let locatedConfidence = 0.8
+    private static let landingHapticStyle = 1
 
     let link: PhoneSecureLink
     private let pairing: PairNearbyDevice
     private let advertiser = PhoneProximityAdvertiser()
+    private let haptics = Haptics()
     let clock = SystemClockAdapter()
     private let locator = AcousticLocator()
     private let frames: AsyncStream<DragFrameSample>.Continuation
@@ -77,6 +79,10 @@ actor LabSession {
         Task { await consumePairing() }
         Task { await consumeMotion() }
         await pairing.start()
+    }
+
+    func send(_ message: PeerMessage) async {
+        await link.send(message)
     }
 
     func forgetPairing() async {
@@ -155,6 +161,8 @@ actor LabSession {
             case let .received(.clockPing(originNs)):
                 let now = clock.nowNanoseconds()
                 await link.send(.clockPong(originNs: originNs, receiveNs: now, transmitNs: now))
+            case .received(.landed):
+                haptics.impact(style: Self.landingHapticStyle)
             case .received(.beginLocate):
                 Task { await locate() }
             case let .received(.placementUpdate(update)):

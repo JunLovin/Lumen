@@ -49,6 +49,21 @@ public enum DesignTokens {
         public static let cometWidthPoints: Double = 6
     }
 
+    public enum Mirror {
+        public static let renderDelayMilliseconds: UInt64 = 30
+        public static let maxExtrapolationMilliseconds: UInt64 = 100
+        public static let entryStripFraction: Double = 0.6
+    }
+
+    public enum Shelf {
+        public static let insetPoints: Double = 24
+        public static let widthPoints: Double = 200
+        public static let heightPoints: Double = 260
+        public static let itemPoints: Double = 140
+        public static let fanDegrees: Double = 6
+        public static let hideSeconds: Double = 30
+    }
+
     public enum Chirp {
         public static let defaultAmplitude: Float = 0.25
     }

@@ -24,6 +24,8 @@ const DOT_SIZE_POINTS = 72;
 const ACTIVATION_DISTANCE_POINTS = 200;
 const EXIT_MARGIN_POINTS = 24;
 const JS_BLOCK_MILLISECONDS = 5000;
+// Position of the right edge in the protocol's PhoneEdge.
+const EDGE_INDEX_RIGHT = 1;
 
 export function LatencyLabScreen({ channel, metrics, onEdgeExit }: Props) {
   const { width } = useWindowDimensions();
@@ -73,6 +75,7 @@ export function LatencyLabScreen({ channel, metrics, onEdgeExit }: Props) {
         size,
         size,
         0,
+        EDGE_INDEX_RIGHT,
       );
     },
   });

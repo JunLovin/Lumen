@@ -160,6 +160,7 @@ export interface DragFrame {
   objectWidthMm: number;
   objectHeightMm: number;
   rotationRad: number;
+  edge: PhoneEdge;
 }
 
 export interface PlayChirpPair {
@@ -210,6 +211,23 @@ export interface PlacementUpdate {
   isDetached: boolean;
 }
 
+export interface DragBegan {
+  session: number;
+  thumbnailJpeg: Uint8Array;
+  phoneHeightMm: number;
+}
+
+export interface DragEnded {
+  session: number;
+  crossed: boolean;
+  velocityXMmS: number;
+  velocityYMmS: number;
+}
+
+export interface Landed {
+  session: number;
+}
+
 export interface ControlMessage {
   hello?: Hello | undefined;
   sessionKey?: SessionKey | undefined;
@@ -223,6 +241,9 @@ export interface ControlMessage {
   beginLocate?: BeginLocate | undefined;
   edgeExit?: EdgeExit | undefined;
   placementUpdate?: PlacementUpdate | undefined;
+  dragBegan?: DragBegan | undefined;
+  dragEnded?: DragEnded | undefined;
+  landed?: Landed | undefined;
 }
 
 export interface PairingCommit {
@@ -547,6 +568,7 @@ function createBaseDragFrame(): DragFrame {
     objectWidthMm: 0,
     objectHeightMm: 0,
     rotationRad: 0,
+    edge: 0,
   };
 }
 
@@ -584,6 +606,9 @@ export const DragFrame: MessageFns<DragFrame> = {
     }
     if (message.rotationRad !== 0) {
       writer.uint32(93).float(message.rotationRad);
+    }
+    if (message.edge !== 0) {
+      writer.uint32(96).int32(message.edge);
     }
     return writer;
   },
@@ -689,6 +714,14 @@ export const DragFrame: MessageFns<DragFrame> = {
             message.rotationRad = reader.float();
             continue;
           }
+          case 12: {
+            if (tag !== 96) {
+              break;
+            }
+
+            message.edge = reader.int32() as any;
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -742,6 +775,7 @@ export const DragFrame: MessageFns<DragFrame> = {
         : isSet(object.rotation_rad)
         ? globalThis.Number(object.rotation_rad)
         : 0,
+      edge: isSet(object.edge) ? phoneEdgeFromJSON(object.edge) : 0,
     };
   },
 
@@ -780,6 +814,9 @@ export const DragFrame: MessageFns<DragFrame> = {
     if (message.rotationRad !== 0) {
       obj.rotationRad = floatToJson(message.rotationRad);
     }
+    if (message.edge !== 0) {
+      obj.edge = phoneEdgeToJSON(message.edge);
+    }
     return obj;
   },
 
@@ -799,6 +836,7 @@ export const DragFrame: MessageFns<DragFrame> = {
     message.objectWidthMm = object.objectWidthMm ?? 0;
     message.objectHeightMm = object.objectHeightMm ?? 0;
     message.rotationRad = object.rotationRad ?? 0;
+    message.edge = object.edge ?? 0;
     return message;
   },
 };
@@ -1677,6 +1715,307 @@ export const PlacementUpdate: MessageFns<PlacementUpdate> = {
   },
 };
 
+function createBaseDragBegan(): DragBegan {
+  return { session: 0, thumbnailJpeg: new Uint8Array(0), phoneHeightMm: 0 };
+}
+
+export const DragBegan: MessageFns<DragBegan> = {
+  encode(message: DragBegan, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== 0) {
+      writer.uint32(8).uint32(message.session);
+    }
+    if (message.thumbnailJpeg.length !== 0) {
+      writer.uint32(18).bytes(message.thumbnailJpeg);
+    }
+    if (message.phoneHeightMm !== 0) {
+      writer.uint32(29).float(message.phoneHeightMm);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DragBegan {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseDragBegan();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.session = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.thumbnailJpeg = reader.bytes();
+            continue;
+          }
+          case 3: {
+            if (tag !== 29) {
+              break;
+            }
+
+            message.phoneHeightMm = reader.float();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): DragBegan {
+    return {
+      session: isSet(object.session) ? globalThis.Number(object.session) : 0,
+      thumbnailJpeg: isSet(object.thumbnailJpeg)
+        ? bytesFromBase64(object.thumbnailJpeg)
+        : isSet(object.thumbnail_jpeg)
+        ? bytesFromBase64(object.thumbnail_jpeg)
+        : new Uint8Array(0),
+      phoneHeightMm: isSet(object.phoneHeightMm)
+        ? globalThis.Number(object.phoneHeightMm)
+        : isSet(object.phone_height_mm)
+        ? globalThis.Number(object.phone_height_mm)
+        : 0,
+    };
+  },
+
+  toJSON(message: DragBegan): unknown {
+    const obj: any = {};
+    if (message.session !== 0) {
+      obj.session = Math.round(message.session);
+    }
+    if (message.thumbnailJpeg.length !== 0) {
+      obj.thumbnailJpeg = base64FromBytes(message.thumbnailJpeg);
+    }
+    if (message.phoneHeightMm !== 0) {
+      obj.phoneHeightMm = floatToJson(message.phoneHeightMm);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DragBegan>, I>>(base?: I): DragBegan {
+    return DragBegan.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DragBegan>, I>>(object: I): DragBegan {
+    const message = createBaseDragBegan();
+    message.session = object.session ?? 0;
+    message.thumbnailJpeg = object.thumbnailJpeg ?? new Uint8Array(0);
+    message.phoneHeightMm = object.phoneHeightMm ?? 0;
+    return message;
+  },
+};
+
+function createBaseDragEnded(): DragEnded {
+  return { session: 0, crossed: false, velocityXMmS: 0, velocityYMmS: 0 };
+}
+
+export const DragEnded: MessageFns<DragEnded> = {
+  encode(message: DragEnded, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== 0) {
+      writer.uint32(8).uint32(message.session);
+    }
+    if (message.crossed !== false) {
+      writer.uint32(16).bool(message.crossed);
+    }
+    if (message.velocityXMmS !== 0) {
+      writer.uint32(29).float(message.velocityXMmS);
+    }
+    if (message.velocityYMmS !== 0) {
+      writer.uint32(37).float(message.velocityYMmS);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DragEnded {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseDragEnded();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.session = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.crossed = reader.bool();
+            continue;
+          }
+          case 3: {
+            if (tag !== 29) {
+              break;
+            }
+
+            message.velocityXMmS = reader.float();
+            continue;
+          }
+          case 4: {
+            if (tag !== 37) {
+              break;
+            }
+
+            message.velocityYMmS = reader.float();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): DragEnded {
+    return {
+      session: isSet(object.session) ? globalThis.Number(object.session) : 0,
+      crossed: isSet(object.crossed) ? globalThis.Boolean(object.crossed) : false,
+      velocityXMmS: isSet(object.velocityXMmS)
+        ? globalThis.Number(object.velocityXMmS)
+        : isSet(object.velocity_x_mm_s)
+        ? globalThis.Number(object.velocity_x_mm_s)
+        : 0,
+      velocityYMmS: isSet(object.velocityYMmS)
+        ? globalThis.Number(object.velocityYMmS)
+        : isSet(object.velocity_y_mm_s)
+        ? globalThis.Number(object.velocity_y_mm_s)
+        : 0,
+    };
+  },
+
+  toJSON(message: DragEnded): unknown {
+    const obj: any = {};
+    if (message.session !== 0) {
+      obj.session = Math.round(message.session);
+    }
+    if (message.crossed !== false) {
+      obj.crossed = message.crossed;
+    }
+    if (message.velocityXMmS !== 0) {
+      obj.velocityXMmS = floatToJson(message.velocityXMmS);
+    }
+    if (message.velocityYMmS !== 0) {
+      obj.velocityYMmS = floatToJson(message.velocityYMmS);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DragEnded>, I>>(base?: I): DragEnded {
+    return DragEnded.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DragEnded>, I>>(object: I): DragEnded {
+    const message = createBaseDragEnded();
+    message.session = object.session ?? 0;
+    message.crossed = object.crossed ?? false;
+    message.velocityXMmS = object.velocityXMmS ?? 0;
+    message.velocityYMmS = object.velocityYMmS ?? 0;
+    return message;
+  },
+};
+
+function createBaseLanded(): Landed {
+  return { session: 0 };
+}
+
+export const Landed: MessageFns<Landed> = {
+  encode(message: Landed, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== 0) {
+      writer.uint32(8).uint32(message.session);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Landed {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseLanded();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.session = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Landed {
+    return { session: isSet(object.session) ? globalThis.Number(object.session) : 0 };
+  },
+
+  toJSON(message: Landed): unknown {
+    const obj: any = {};
+    if (message.session !== 0) {
+      obj.session = Math.round(message.session);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Landed>, I>>(base?: I): Landed {
+    return Landed.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Landed>, I>>(object: I): Landed {
+    const message = createBaseLanded();
+    message.session = object.session ?? 0;
+    return message;
+  },
+};
+
 function createBaseControlMessage(): ControlMessage {
   return {
     hello: undefined,
@@ -1691,6 +2030,9 @@ function createBaseControlMessage(): ControlMessage {
     beginLocate: undefined,
     edgeExit: undefined,
     placementUpdate: undefined,
+    dragBegan: undefined,
+    dragEnded: undefined,
+    landed: undefined,
   };
 }
 
@@ -1731,6 +2073,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.placementUpdate !== undefined) {
       PlacementUpdate.encode(message.placementUpdate, writer.uint32(98).fork()).join();
+    }
+    if (message.dragBegan !== undefined) {
+      DragBegan.encode(message.dragBegan, writer.uint32(106).fork()).join();
+    }
+    if (message.dragEnded !== undefined) {
+      DragEnded.encode(message.dragEnded, writer.uint32(114).fork()).join();
+    }
+    if (message.landed !== undefined) {
+      Landed.encode(message.landed, writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -1844,6 +2195,30 @@ export const ControlMessage: MessageFns<ControlMessage> = {
             message.placementUpdate = PlacementUpdate.decode(reader, reader.uint32());
             continue;
           }
+          case 13: {
+            if (tag !== 106) {
+              break;
+            }
+
+            message.dragBegan = DragBegan.decode(reader, reader.uint32());
+            continue;
+          }
+          case 14: {
+            if (tag !== 114) {
+              break;
+            }
+
+            message.dragEnded = DragEnded.decode(reader, reader.uint32());
+            continue;
+          }
+          case 15: {
+            if (tag !== 122) {
+              break;
+            }
+
+            message.landed = Landed.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -1914,6 +2289,17 @@ export const ControlMessage: MessageFns<ControlMessage> = {
         : isSet(object.placement_update)
         ? PlacementUpdate.fromJSON(object.placement_update)
         : undefined,
+      dragBegan: isSet(object.dragBegan)
+        ? DragBegan.fromJSON(object.dragBegan)
+        : isSet(object.drag_began)
+        ? DragBegan.fromJSON(object.drag_began)
+        : undefined,
+      dragEnded: isSet(object.dragEnded)
+        ? DragEnded.fromJSON(object.dragEnded)
+        : isSet(object.drag_ended)
+        ? DragEnded.fromJSON(object.drag_ended)
+        : undefined,
+      landed: isSet(object.landed) ? Landed.fromJSON(object.landed) : undefined,
     };
   },
 
@@ -1954,6 +2340,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.placementUpdate !== undefined) {
       obj.placementUpdate = PlacementUpdate.toJSON(message.placementUpdate);
+    }
+    if (message.dragBegan !== undefined) {
+      obj.dragBegan = DragBegan.toJSON(message.dragBegan);
+    }
+    if (message.dragEnded !== undefined) {
+      obj.dragEnded = DragEnded.toJSON(message.dragEnded);
+    }
+    if (message.landed !== undefined) {
+      obj.landed = Landed.toJSON(message.landed);
     }
     return obj;
   },
@@ -1996,6 +2391,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
       : undefined;
     message.placementUpdate = (object.placementUpdate !== undefined && object.placementUpdate !== null)
       ? PlacementUpdate.fromPartial(object.placementUpdate)
+      : undefined;
+    message.dragBegan = (object.dragBegan !== undefined && object.dragBegan !== null)
+      ? DragBegan.fromPartial(object.dragBegan)
+      : undefined;
+    message.dragEnded = (object.dragEnded !== undefined && object.dragEnded !== null)
+      ? DragEnded.fromPartial(object.dragEnded)
+      : undefined;
+    message.landed = (object.landed !== undefined && object.landed !== null)
+      ? Landed.fromPartial(object.landed)
       : undefined;
     return message;
   },

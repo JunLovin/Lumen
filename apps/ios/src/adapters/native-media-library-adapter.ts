@@ -25,4 +25,6 @@ export const createNativeMediaLibraryAdapter = (): MediaLibraryPort => ({
   },
   loadThumbnail: (assetId, size) => NativeLumenKit.loadThumbnail(assetId, size),
   manageLimitedAccess: () => NativeLumenKit.manageLimitedLibrary(),
+  beginDragTransfer: (session, assetId, phoneHeightMillimeters) =>
+    NativeLumenKit.beginDrag(session, assetId, phoneHeightMillimeters),
 });

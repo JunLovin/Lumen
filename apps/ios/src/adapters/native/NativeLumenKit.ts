@@ -48,6 +48,11 @@ export interface Spec extends TurboModule {
   ): Promise<readonly NativeLibraryAsset[]>;
   loadThumbnail(assetId: string, size: number): Promise<string | null>;
   manageLimitedLibrary(): void;
+  beginDrag(
+    session: number,
+    assetId: string,
+    phoneHeightMillimeters: number,
+  ): void;
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;
