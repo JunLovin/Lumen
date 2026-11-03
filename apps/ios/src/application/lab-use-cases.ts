@@ -1,3 +1,4 @@
+import type { PairingStatus } from '../domain/pairing';
 import type { DragFrameSender } from './drag-frame-sender';
 import type { LoadDiagnostics } from './load-diagnostics';
 import type {
@@ -11,5 +12,9 @@ export type LabUseCases = {
   readonly runPlacementTrial: RunPlacementTrial;
   readonly exportLastRecording: () => Promise<string | null>;
   readonly isPeerConnected: () => Promise<boolean>;
+  readonly readPairingStatus: () => Promise<PairingStatus>;
+  readonly forgetPairing: () => void;
+  readonly reconnectToPeer: () => void;
+  readonly probeFileChannel: () => Promise<boolean>;
   readonly dragFrameSender: DragFrameSender;
 };

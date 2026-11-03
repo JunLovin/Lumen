@@ -31,6 +31,28 @@ RCT_EXPORT_MODULE(LumenKit)
   [_bridge startLink];
 }
 
+- (void)pairingStatus:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
+  [_bridge pairingStatus:^(NSDictionary *status) {
+    resolve(status);
+  }];
+}
+
+- (void)forgetPairing {
+  [_bridge forgetPairing];
+}
+
+- (void)reconnect {
+  [_bridge reconnect];
+}
+
+- (void)probeFileChannel:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject {
+  [_bridge probeFileChannel:^(BOOL succeeded) {
+    resolve(@(succeeded));
+  }];
+}
+
 - (void)linkStatus:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   [_bridge linkStatus:^(BOOL isConnected) {

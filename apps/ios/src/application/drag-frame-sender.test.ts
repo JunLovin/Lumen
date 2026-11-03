@@ -19,6 +19,8 @@ const setup = () => {
     {
       start: () => undefined,
       isConnected: () => Promise.resolve(true),
+      reconnect: () => undefined,
+      probeFileChannel: () => Promise.resolve(true),
       sendDragFrame: frame => frames.push(frame),
     },
     { nowMilliseconds: () => 100 },

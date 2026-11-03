@@ -21,15 +21,25 @@ const Stack = createNativeStackNavigator<Routes>();
 
 type Props = {
   readonly useCases: LabUseCases;
+  readonly peerName: string;
+  readonly reconnectMilliseconds: number | null;
 };
 
-export function RootNavigator({ useCases }: Props) {
+export function RootNavigator({
+  useCases,
+  peerName,
+  reconnectMilliseconds,
+}: Props) {
   const renderDiagnostics = ({
     navigation,
   }: NativeStackScreenProps<Routes, 'Diagnostics'>) => (
     <DiagnosticsScreen
       loadDiagnostics={useCases.loadDiagnostics}
       isPeerConnected={useCases.isPeerConnected}
+      peerName={peerName}
+      reconnectMilliseconds={reconnectMilliseconds}
+      onForget={useCases.forgetPairing}
+      onProbeFileChannel={useCases.probeFileChannel}
       onOpenPlacement={() => navigation.navigate('Placement')}
       onOpenLatency={() => navigation.navigate('Latency')}
       onOpenGlow={() => navigation.navigate('Glow')}

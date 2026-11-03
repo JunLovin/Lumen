@@ -4,6 +4,8 @@ import NativeLumenKit from './native/NativeLumenKit';
 export const createNativePeerChannelAdapter = (): PeerChannelPort => ({
   start: () => NativeLumenKit.startLink(),
   isConnected: () => NativeLumenKit.linkStatus(),
+  reconnect: () => NativeLumenKit.reconnect(),
+  probeFileChannel: () => NativeLumenKit.probeFileChannel(),
   sendDragFrame: frame =>
     NativeLumenKit.sendDragFrame(
       frame.session,
