@@ -1,0 +1,20 @@
+{
+  "name": "lumen",
+  "private": true,
+  "packageManager": "pnpm@11.3.0",
+  "engines": {
+    "node": ">=22.11.0"
+  },
+  "scripts": {
+    "generate": "pnpm --filter @lumen/design-tokens generate && pnpm --filter @lumen/protocol generate",
+    "check:generated": "./scripts/check-generated.sh",
+    "check:ios": "pnpm --filter @lumen/ios check",
+    "check:mac": "./scripts/check-mac.sh",
+    "check:boundaries": "./scripts/check-boundaries.sh",
+    "check": "pnpm check:generated && pnpm check:ios && pnpm check:mac && pnpm check:boundaries",
+    "format": "prettier --write . && swiftformat ."
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}
