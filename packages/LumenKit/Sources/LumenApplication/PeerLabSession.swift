@@ -10,6 +10,8 @@ public enum PeerLabUpdate: Sendable, Equatable {
     case bestClockRoundTrip(milliseconds: Double)
     case frame(LocalizedDragFrame, receivedAtNs: UInt64)
     case acousticReport(AcousticReading)
+    case placement(Placement, evidence: String)
+    case audioRoute(canPlayUltrasound: Bool)
 }
 
 public actor PeerLabSession {
@@ -22,6 +24,10 @@ public actor PeerLabSession {
     private let link: any PeerLinkPort
     private let clock: any ClockPort
     private let chirpPlayer: any ChirpPlayerPort
+    private let audioRoute: any AudioRoutePort
+    private let placementStore: any PlacementStorePort
+    private var resolver = PlacementResolver()
+    private var detachment = DetachmentDetector(farRSSI: -75, nearRSSI: -65, requiredReadings: 5)
     private var estimator = ClockOffsetEstimator()
     private var chirpAmplitude: Float
     private var pingTask: Task<Void, Never>?
@@ -30,16 +36,23 @@ public actor PeerLabSession {
         link: any PeerLinkPort,
         clock: any ClockPort,
         chirpPlayer: any ChirpPlayerPort,
+        audioRoute: any AudioRoutePort,
+        placementStore: any PlacementStorePort,
         chirpAmplitude: Float
     ) {
         (updates, updatesContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(256))
         self.link = link
         self.clock = clock
         self.chirpPlayer = chirpPlayer
+        self.audioRoute = audioRoute
+        self.placementStore = placementStore
         self.chirpAmplitude = chirpAmplitude
     }
 
     public func run() async {
+        if let saved = await placementStore.load() {
+            resolver = PlacementResolver(distribution: saved, atNanoseconds: clock.nowNanoseconds())
+        }
         for await event in link.events {
             await handle(event)
         }
@@ -59,6 +72,8 @@ public actor PeerLabSession {
             updatesContinuation.yield(.connection(isConnected: true))
             estimator = ClockOffsetEstimator()
             startPinging()
+            await publishPlacement(evidence: "connected")
+            await beginLocateIfPossible()
         case .disconnected, .incompatible:
             updatesContinuation.yield(.connection(isConnected: false))
             pingTask?.cancel()
@@ -89,12 +104,53 @@ public actor PeerLabSession {
             )
             updatesContinuation.yield(.frame(frame, receivedAtNs: clock.nowNanoseconds()))
         case .playChirpPair:
-            await chirpPlayer.playPair(amplitude: chirpAmplitude)
+            if await audioRoute.canPlayUltrasound() {
+                await chirpPlayer.playPair(amplitude: chirpAmplitude)
+            }
         case let .acousticReport(reading):
             updatesContinuation.yield(.acousticReport(reading))
-        case .hello:
+            resolver.apply(
+                .acoustic(
+                    tauMicroseconds: reading.tauMicroseconds,
+                    levelDifferenceDecibels: reading.levelDifferenceDecibels,
+                    snrDecibels: reading.snrDecibels
+                ),
+                atNanoseconds: clock.nowNanoseconds()
+            )
+            await publishPlacement(evidence: "acoustic")
+        case .motionSettled:
+            resolver.apply(.moved, atNanoseconds: clock.nowNanoseconds())
+            await publishPlacement(evidence: "moved")
+            await beginLocateIfPossible()
+        case let .edgeExit(edge):
+            resolver.apply(.edgeExit(edge), atNanoseconds: clock.nowNanoseconds())
+            await publishPlacement(evidence: "edgeExit")
+        case .hello, .beginLocate, .placementUpdate:
             break
         }
+    }
+
+    public func observe(rssi: Int) async {
+        let wasDetached = detachment.isDetached
+        let isDetached = detachment.observe(rssi: rssi)
+        guard isDetached != wasDetached else { return }
+        resolver.setDetached(isDetached)
+        await publishPlacement(evidence: "proximity")
+    }
+
+    private func beginLocateIfPossible() async {
+        let canPlay = await audioRoute.canPlayUltrasound()
+        updatesContinuation.yield(.audioRoute(canPlayUltrasound: canPlay))
+        if canPlay {
+            await link.send(.beginLocate)
+        }
+    }
+
+    private func publishPlacement(evidence: String) async {
+        let placement = resolver.placement(atNanoseconds: clock.nowNanoseconds())
+        updatesContinuation.yield(.placement(placement, evidence: evidence))
+        await placementStore.save(placement.distribution)
+        await link.send(.placementUpdate(placement))
     }
 
     private func startPinging() {

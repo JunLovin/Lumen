@@ -37,26 +37,53 @@ private actor FakeChirpPlayer: ChirpPlayerPort {
     }
 }
 
-@Test func answersClockPingsWithItsOwnTime() async {
-    let link = FakeLink()
-    let session = PeerLabSession(
+private struct FakeRoute: AudioRoutePort {
+    let canPlay: Bool
+
+    func canPlayUltrasound() async -> Bool {
+        canPlay
+    }
+}
+
+private actor FakePlacementStore: PlacementStorePort {
+    private(set) var saved: PlacementDistribution?
+
+    func load() async -> PlacementDistribution? {
+        nil
+    }
+
+    func save(_ distribution: PlacementDistribution) async {
+        saved = distribution
+    }
+}
+
+private func makeSession(
+    link: FakeLink = FakeLink(),
+    player: FakeChirpPlayer = FakeChirpPlayer(),
+    canPlay: Bool = true,
+    store: FakePlacementStore = FakePlacementStore(),
+    now: UInt64 = 0
+) -> PeerLabSession {
+    PeerLabSession(
         link: link,
-        clock: FakeClock(now: 500),
-        chirpPlayer: FakeChirpPlayer(),
+        clock: FakeClock(now: now),
+        chirpPlayer: player,
+        audioRoute: FakeRoute(canPlay: canPlay),
+        placementStore: store,
         chirpAmplitude: 0.25
     )
+}
+
+@Test func answersClockPingsWithItsOwnTime() async {
+    let link = FakeLink()
+    let session = makeSession(link: link, now: 500)
     await session.handle(.received(.clockPing(originNs: 7)))
     #expect(await link.sent == [.clockPong(originNs: 7, receiveNs: 500, transmitNs: 500)])
 }
 
 @Test func playsChirpsAtTheCurrentAmplitude() async {
     let player = FakeChirpPlayer()
-    let session = PeerLabSession(
-        link: FakeLink(),
-        clock: FakeClock(now: 0),
-        chirpPlayer: player,
-        chirpAmplitude: 0.25
-    )
+    let session = makeSession(player: player)
     await session.setChirpAmplitude(0.5)
     await session.handle(.received(.playChirpPair(requestID: 1)))
     #expect(await player.amplitudes == [0.5])
@@ -64,12 +91,56 @@ private actor FakeChirpPlayer: ChirpPlayerPort {
 
 @Test func playsTestTonesOnTheRequestedChannel() async {
     let player = FakeChirpPlayer()
-    let session = PeerLabSession(
-        link: FakeLink(),
-        clock: FakeClock(now: 0),
-        chirpPlayer: player,
-        chirpAmplitude: 0.25
-    )
+    let session = makeSession(player: player)
     await session.playTestTone(on: .right)
     #expect(await player.toneChannels == [.right])
+}
+
+@Test func skipsChirpsWhenTheSpeakersAreNotUsable() async {
+    let player = FakeChirpPlayer()
+    let session = makeSession(player: player, canPlay: false)
+    await session.handle(.received(.playChirpPair(requestID: 1)))
+    #expect(await player.amplitudes.isEmpty)
+}
+
+@Test func anEdgeExitUpdatesThePhoneAndTheStore() async {
+    let link = FakeLink()
+    let store = FakePlacementStore()
+    let session = makeSession(link: link, store: store)
+    await session.handle(.received(.edgeExit(.right)))
+    let sent = await link.sent
+    guard case let .placementUpdate(placement)? = sent.last else {
+        Issue.record("expected a placement update")
+        return
+    }
+    #expect(placement.side == .left)
+    #expect(await store.saved != nil)
+}
+
+@Test func settlingAsksThePhoneToLocateOnlyWhenChirpsCanPlay() async {
+    let usable = FakeLink()
+    await makeSession(link: usable).handle(.received(.motionSettled))
+    #expect(await usable.sent.contains(.beginLocate))
+
+    let silent = FakeLink()
+    await makeSession(link: silent, canPlay: false).handle(.received(.motionSettled))
+    #expect(await !silent.sent.contains(.beginLocate))
+}
+
+@Test func anAcousticReportMovesThePlacement() async {
+    let link = FakeLink()
+    let reading = AcousticReading(
+        requestID: 1,
+        tauMicroseconds: -220,
+        levelDifferenceDecibels: -9,
+        snrDecibels: 40,
+        acceptedPairs: 3
+    )
+    await makeSession(link: link).handle(.received(.acousticReport(reading)))
+    guard case let .placementUpdate(placement)? = await link.sent.last else {
+        Issue.record("expected a placement update")
+        return
+    }
+    #expect(placement.side == .right)
+    #expect(placement.confidence >= 0.8)
 }
