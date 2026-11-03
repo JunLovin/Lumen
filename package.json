@@ -6,6 +6,7 @@
     "node": ">=22.11.0"
   },
   "scripts": {
+    "mac": "./scripts/run-mac.sh",
     "generate": "pnpm --filter @lumen/design-tokens generate && pnpm --filter @lumen/protocol generate",
     "check:generated": "./scripts/check-generated.sh",
     "check:ios": "pnpm --filter @lumen/ios check",
