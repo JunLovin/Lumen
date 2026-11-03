@@ -71,6 +71,8 @@
                 LabRow("lab.networkP95", milliseconds(model.networkLatency?.p95))
                 LabRow("lab.renderP50", milliseconds(model.renderLatency?.p50))
                 LabRow("lab.renderP95", milliseconds(model.renderLatency?.p95))
+                LabRow("lab.gapP95", milliseconds(model.frameGap?.p95))
+                LabRow("lab.gapMax", milliseconds(model.frameGap?.max))
                 LabRow("lab.framesReceived", String(model.receivedFrames))
                 LabRow("lab.framesLost", String(model.lostFrames))
                 Button { model.resetStats() } label: { Text("lab.reset", bundle: .module) }
@@ -92,6 +94,10 @@
                 LabRow("lab.snr", model.acousticReading.map { String(format: "%.1f dB", $0.snrDecibels) } ?? "—")
                 Slider(value: $model.chirpAmplitude, in: 0.02 ... 1) {
                     Text("lab.chirpAmplitude", bundle: .module)
+                }
+                HStack {
+                    Button { model.playTestTone(on: .left) } label: { Text("lab.toneLeft", bundle: .module) }
+                    Button { model.playTestTone(on: .right) } label: { Text("lab.toneRight", bundle: .module) }
                 }
             }
         }

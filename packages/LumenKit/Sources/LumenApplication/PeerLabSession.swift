@@ -7,7 +7,7 @@ public struct LocalizedDragFrame: Sendable, Equatable {
 
 public enum PeerLabUpdate: Sendable, Equatable {
     case connection(isConnected: Bool)
-    case clockRoundTrip(milliseconds: Double)
+    case bestClockRoundTrip(milliseconds: Double)
     case frame(LocalizedDragFrame, receivedAtNs: UInt64)
     case acousticReport(AcousticReading)
 }
@@ -49,6 +49,10 @@ public actor PeerLabSession {
         chirpAmplitude = amplitude
     }
 
+    public func playTestTone(on channel: AudioChannel) async {
+        await chirpPlayer.playTestTone(on: channel)
+    }
+
     func handle(_ event: PeerEvent) async {
         switch event {
         case .connected:
@@ -73,7 +77,8 @@ public actor PeerLabSession {
                 destinationNs: clock.nowNanoseconds()
             )
             estimator.add(sample)
-            updatesContinuation.yield(.clockRoundTrip(milliseconds: Double(sample.roundTripNanoseconds) / 1_000_000))
+            let best = estimator.bestSample?.roundTripNanoseconds ?? sample.roundTripNanoseconds
+            updatesContinuation.yield(.bestClockRoundTrip(milliseconds: Double(best) / 1_000_000))
         case let .clockPing(originNs):
             let now = clock.nowNanoseconds()
             await link.send(.clockPong(originNs: originNs, receiveNs: now, transmitNs: now))

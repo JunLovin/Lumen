@@ -5,6 +5,8 @@
 
     public actor ChirpPlayerAdapter: ChirpPlayerPort {
         private static let sampleRate = 48000.0
+        private static let testToneFrequencyHz = 1000.0
+        private static let testToneSeconds = 0.5
         private let engine = AVAudioEngine()
         private let player = AVAudioPlayerNode()
         private var format: AVAudioFormat?
@@ -14,12 +16,34 @@
         public func playPair(amplitude: Float) {
             guard let format = prepareEngine() else { return }
             let pair = ChirpGenerator.stereoPair(.initial, sampleRate: Self.sampleRate, amplitude: amplitude)
-            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(pair.left.count))
+            play(left: pair.left, right: pair.right, format: format)
+        }
+
+        public func playTestTone(on channel: AudioChannel) {
+            guard let format = prepareEngine() else { return }
+            let tone = ChirpGenerator.testTone(
+                frequencyHz: Self.testToneFrequencyHz,
+                seconds: Self.testToneSeconds,
+                sampleRate: Self.sampleRate,
+                amplitude: DesignTokens.Chirp.defaultAmplitude
+            )
+            let silence = [Float](repeating: 0, count: tone.count)
+            switch channel {
+            case .left:
+                play(left: tone, right: silence, format: format)
+            case .right:
+                play(left: silence, right: tone, format: format)
+            }
+        }
+
+        private func play(left: [Float], right: [Float], format: AVAudioFormat) {
+            guard
+                let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(left.count)),
+                let channels = buffer.floatChannelData
             else { return }
             buffer.frameLength = buffer.frameCapacity
-            guard let channels = buffer.floatChannelData else { return }
-            pair.left.withUnsafeBufferPointer { channels[0].update(from: $0.baseAddress!, count: $0.count) }
-            pair.right.withUnsafeBufferPointer { channels[1].update(from: $0.baseAddress!, count: $0.count) }
+            channels[0].update(from: left, count: left.count)
+            channels[1].update(from: right, count: right.count)
             player.scheduleBuffer(buffer, completionHandler: nil)
             player.play()
         }

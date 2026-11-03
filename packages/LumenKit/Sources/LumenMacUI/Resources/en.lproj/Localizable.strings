@@ -6,7 +6,7 @@
 "common.no" = "No";
 "lab.listening" = "Listening";
 "lab.connected" = "iPhone connected";
-"lab.clockRoundTrip" = "Clock round trip";
+"lab.clockRoundTrip" = "Best clock round trip";
 "lab.networkP50" = "Network latency p50";
 "lab.networkP95" = "Network latency p95";
 "lab.renderP50" = "End-to-end latency p50";
@@ -22,3 +22,7 @@
 "lab.proximity" = "Test proximity";
 "lab.gpuP50" = "GPU per frame p50";
 "lab.gpuP95" = "GPU per frame p95";
+"lab.gapP95" = "Gap between frames p95";
+"lab.gapMax" = "Longest gap between frames";
+"lab.toneLeft" = "Audible tone: left channel";
+"lab.toneRight" = "Audible tone: right channel";

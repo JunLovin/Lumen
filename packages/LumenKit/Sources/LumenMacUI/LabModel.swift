@@ -6,12 +6,14 @@
     public struct LatencySummary: Equatable {
         public let p50: Double
         public let p95: Double
+        public let max: Double
         public let count: Int
 
         init?(window: SampleWindow) {
             guard let p50 = window.percentile(0.5), let p95 = window.percentile(0.95) else { return nil }
             self.p50 = p50
             self.p95 = p95
+            max = window.percentile(1) ?? p95
             count = window.count
         }
     }
@@ -28,6 +30,7 @@
         public private(set) var latestFrame: DragFrameSample?
         public private(set) var networkLatency: LatencySummary?
         public private(set) var renderLatency: LatencySummary?
+        public private(set) var frameGap: LatencySummary?
         public private(set) var receivedFrames = 0
         public private(set) var lostFrames = 0
         public private(set) var acousticReading: AcousticReading?
@@ -53,7 +56,9 @@
         @ObservationIgnored private var overlay: EdgeOverlayPanel?
         @ObservationIgnored private var firstSequence: UInt32?
         @ObservationIgnored private var currentSession: UInt32?
-        @ObservationIgnored private var pendingFrame: LocalizedDragFrame?
+        @ObservationIgnored private var gapWindow = SampleWindow(capacity: windowCapacity)
+        @ObservationIgnored private var lastArrivalNs: UInt64?
+        @ObservationIgnored private var pendingFrames: [LocalizedDragFrame] = []
         @ObservationIgnored private var lastPublishNs: UInt64 = 0
 
         public init(session: PeerLabSession, clock: any ClockPort, chirpAmplitude: Float) {
@@ -73,14 +78,20 @@
         }
 
         public func renderTick() {
-            guard let frame = pendingFrame, let timestamp = frame.localTimestampNs else { return }
-            pendingFrame = nil
-            renderWindow.add(Self.milliseconds(from: timestamp, to: clock.nowNanoseconds()))
+            guard !pendingFrames.isEmpty else { return }
+            let now = clock.nowNanoseconds()
+            for timestamp in pendingFrames.compactMap(\.localTimestampNs) {
+                renderWindow.add(Self.milliseconds(from: timestamp, to: now))
+            }
+            pendingFrames.removeAll(keepingCapacity: true)
         }
 
         public func resetStats() {
             networkWindow = SampleWindow(capacity: Self.windowCapacity)
             renderWindow = SampleWindow(capacity: Self.windowCapacity)
+            gapWindow = SampleWindow(capacity: Self.windowCapacity)
+            lastArrivalNs = nil
+            frameGap = nil
             gpuWindow = SampleWindow(capacity: Self.windowCapacity)
             receivedFrames = 0
             lostFrames = 0
@@ -88,6 +99,11 @@
             networkLatency = nil
             renderLatency = nil
             gpuTime = nil
+        }
+
+        public func playTestTone(on channel: AudioChannel) {
+            let session = session
+            Task { await session.playTestTone(on: channel) }
         }
 
         public func toggleOverlay() {
@@ -118,7 +134,7 @@
             switch update {
             case let .connection(isConnected):
                 self.isConnected = isConnected
-            case let .clockRoundTrip(milliseconds):
+            case let .bestClockRoundTrip(milliseconds):
                 clockRoundTripMilliseconds = milliseconds
             case let .frame(frame, receivedAtNs):
                 apply(frame, receivedAtNs: receivedAtNs)
@@ -133,13 +149,18 @@
                 currentSession = sample.session
                 firstSequence = nil
                 receivedFrames = 0
+                lastArrivalNs = nil
             }
+            if let lastArrivalNs {
+                gapWindow.add(Self.milliseconds(from: lastArrivalNs, to: receivedAtNs))
+            }
+            lastArrivalNs = receivedAtNs
             let first = firstSequence ?? sample.sequence
             firstSequence = first
             receivedFrames += 1
             lostFrames = max(0, Int(sample.sequence) - Int(first) + 1 - receivedFrames)
             latestFrame = sample
-            pendingFrame = frame
+            pendingFrames.append(frame)
             pushProximity()
             if let timestamp = frame.localTimestampNs {
                 networkWindow.add(Self.milliseconds(from: timestamp, to: receivedAtNs))
@@ -153,6 +174,7 @@
             lastPublishNs = now
             networkLatency = LatencySummary(window: networkWindow)
             renderLatency = LatencySummary(window: renderWindow)
+            frameGap = LatencySummary(window: gapWindow)
             gpuTime = LatencySummary(window: gpuWindow)
         }
 

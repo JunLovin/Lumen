@@ -8,8 +8,14 @@ public protocol ClockPort: Sendable {
     func nowNanoseconds() -> UInt64
 }
 
+public enum AudioChannel: Sendable, Equatable {
+    case left
+    case right
+}
+
 public protocol ChirpPlayerPort: Sendable {
     func playPair(amplitude: Float) async
+    func playTestTone(on channel: AudioChannel) async
 }
 
 public enum PeerMessage: Sendable, Equatable {

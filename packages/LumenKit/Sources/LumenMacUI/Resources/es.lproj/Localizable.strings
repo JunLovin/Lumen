@@ -6,7 +6,7 @@
 "common.no" = "No";
 "lab.listening" = "Escuchando";
 "lab.connected" = "iPhone conectado";
-"lab.clockRoundTrip" = "Ida y vuelta del reloj";
+"lab.clockRoundTrip" = "Mejor ida y vuelta del reloj";
 "lab.networkP50" = "Latencia de red p50";
 "lab.networkP95" = "Latencia de red p95";
 "lab.renderP50" = "Latencia de extremo a extremo p50";
@@ -22,3 +22,7 @@
 "lab.proximity" = "Proximidad de prueba";
 "lab.gpuP50" = "GPU por frame p50";
 "lab.gpuP95" = "GPU por frame p95";
+"lab.gapP95" = "Separación entre frames p95";
+"lab.gapMax" = "Mayor separación entre frames";
+"lab.toneLeft" = "Tono audible: canal izquierdo";
+"lab.toneRight" = "Tono audible: canal derecho";

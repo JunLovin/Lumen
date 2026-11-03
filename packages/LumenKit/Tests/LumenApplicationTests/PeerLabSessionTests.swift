@@ -26,8 +26,14 @@ private struct FakeClock: ClockPort {
 private actor FakeChirpPlayer: ChirpPlayerPort {
     private(set) var amplitudes: [Float] = []
 
+    private(set) var toneChannels: [AudioChannel] = []
+
     func playPair(amplitude: Float) async {
         amplitudes.append(amplitude)
+    }
+
+    func playTestTone(on channel: AudioChannel) async {
+        toneChannels.append(channel)
     }
 }
 
@@ -54,4 +60,16 @@ private actor FakeChirpPlayer: ChirpPlayerPort {
     await session.setChirpAmplitude(0.5)
     await session.handle(.received(.playChirpPair(requestID: 1)))
     #expect(await player.amplitudes == [0.5])
+}
+
+@Test func playsTestTonesOnTheRequestedChannel() async {
+    let player = FakeChirpPlayer()
+    let session = PeerLabSession(
+        link: FakeLink(),
+        clock: FakeClock(now: 0),
+        chirpPlayer: player,
+        chirpAmplitude: 0.25
+    )
+    await session.playTestTone(on: .right)
+    #expect(await player.toneChannels == [.right])
 }
