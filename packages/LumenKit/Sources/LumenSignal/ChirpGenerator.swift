@@ -19,6 +19,20 @@ public enum ChirpGenerator {
         return vDSP.multiply(samples, window)
     }
 
+    public static func testTone(frequencyHz: Double, seconds: Double, sampleRate: Double, amplitude: Float) -> [Float] {
+        let count = Int((seconds * sampleRate).rounded())
+        let samples = (0 ..< count).map { index in
+            amplitude * Float(sin(2 * Double.pi * frequencyHz * Double(index) / sampleRate))
+        }
+        let window = vDSP.window(
+            ofType: Float.self,
+            usingSequence: .hanningDenormalized,
+            count: count,
+            isHalfWindow: false
+        )
+        return vDSP.multiply(samples, window)
+    }
+
     public static func stereoPair(
         _ parameters: ChirpParameters,
         sampleRate: Double,

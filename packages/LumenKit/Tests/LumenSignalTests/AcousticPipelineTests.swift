@@ -51,22 +51,28 @@ func recoversTauWithinOneSample(tauSamples: Int) throws {
     #expect(abs(result.tauSeconds - Double(tauSamples) / sampleRate) < 1 / sampleRate)
 }
 
-@Test func anEarlierRightChirpMeansTheRightSide() throws {
-    let result = try arrival(in: recording(tauSamples: -30))
-    let estimate = try #require(AcousticEstimate(pairs: [result], parameters: parameters))
-    #expect(estimate.side == .right)
+@Test(arguments: [-140, 140])
+func recoversBiasedTauBeyondTheGeometricMaximum(tauSamples: Int) throws {
+    let result = try arrival(in: recording(tauSamples: tauSamples))
+    #expect(abs(result.tauSeconds - Double(tauSamples) / sampleRate) < 1 / sampleRate)
 }
 
-@Test func aLaterRightChirpMeansTheLeftSide() throws {
-    let result = try arrival(in: recording(tauSamples: 30))
-    let estimate = try #require(AcousticEstimate(pairs: [result], parameters: parameters))
-    #expect(estimate.side == .left)
+@Test func measuresTheDirectPathWhenAnEchoIsStronger() throws {
+    let chirp = ChirpGenerator.chirp(parameters, sampleRate: sampleRate)
+    var samples = recording(tauSamples: 20, leftGain: 0.1, rightGain: 0.1, noise: 0.001)
+    let leftEcho = 4800 + 48
+    let rightEcho = 4800 + 4800 + 20 + 72
+    for (index, sample) in chirp.enumerated() {
+        samples[leftEcho + index] += sample * 0.2
+        samples[rightEcho + index] += sample * 0.2
+    }
+    let result = try arrival(in: samples)
+    #expect(abs(result.tauSeconds - 20 / sampleRate) < 4 / sampleRate)
 }
 
-@Test func aTauNearZeroMeansTheCenter() throws {
-    let result = try arrival(in: recording(tauSamples: 2))
-    let estimate = try #require(AcousticEstimate(pairs: [result], parameters: parameters))
-    #expect(estimate.side == .center)
+@Test func findsAMuchWeakerFirstChirp() throws {
+    let result = try arrival(in: recording(tauSamples: 10, leftGain: 0.02, rightGain: 0.2, noise: 0.001))
+    #expect(abs(result.levelDifferenceDecibels - -20) < 1)
 }
 
 @Test func aLouderRightSpeakerGivesANegativeLevelDifference() throws {
