@@ -180,6 +180,104 @@ public nonisolated struct Lumen_Datagram: Sendable {
     set {message = .hello(newValue)}
   }
 
+  public var dragFrame: Lumen_DragFrame {
+    get {
+      if case .dragFrame(let v)? = message {return v}
+      return Lumen_DragFrame()
+    }
+    set {message = .dragFrame(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public nonisolated enum OneOf_Message: Equatable, Sendable {
+    case hello(Lumen_Hello)
+    case dragFrame(Lumen_DragFrame)
+
+  }
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_SessionKey: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var x25519Public: Data = Data()
+
+  public var signature: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_SessionReady: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var realtimePort: UInt32 = 0
+
+  public var filePort: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_IncompatibleVersion: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var supported: Lumen_ProtocolVersion = .unspecified
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_ControlMessage: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var message: Lumen_ControlMessage.OneOf_Message? = nil
+
+  public var hello: Lumen_Hello {
+    get {
+      if case .hello(let v)? = message {return v}
+      return Lumen_Hello()
+    }
+    set {message = .hello(newValue)}
+  }
+
+  public var sessionKey: Lumen_SessionKey {
+    get {
+      if case .sessionKey(let v)? = message {return v}
+      return Lumen_SessionKey()
+    }
+    set {message = .sessionKey(newValue)}
+  }
+
+  public var sessionReady: Lumen_SessionReady {
+    get {
+      if case .sessionReady(let v)? = message {return v}
+      return Lumen_SessionReady()
+    }
+    set {message = .sessionReady(newValue)}
+  }
+
+  public var incompatibleVersion: Lumen_IncompatibleVersion {
+    get {
+      if case .incompatibleVersion(let v)? = message {return v}
+      return Lumen_IncompatibleVersion()
+    }
+    set {message = .incompatibleVersion(newValue)}
+  }
+
   public var clockPing: Lumen_ClockPing {
     get {
       if case .clockPing(let v)? = message {return v}
@@ -194,14 +292,6 @@ public nonisolated struct Lumen_Datagram: Sendable {
       return Lumen_ClockPong()
     }
     set {message = .clockPong(newValue)}
-  }
-
-  public var dragFrame: Lumen_DragFrame {
-    get {
-      if case .dragFrame(let v)? = message {return v}
-      return Lumen_DragFrame()
-    }
-    set {message = .dragFrame(newValue)}
   }
 
   public var playChirpPair: Lumen_PlayChirpPair {
@@ -224,11 +314,131 @@ public nonisolated struct Lumen_Datagram: Sendable {
 
   public nonisolated enum OneOf_Message: Equatable, Sendable {
     case hello(Lumen_Hello)
+    case sessionKey(Lumen_SessionKey)
+    case sessionReady(Lumen_SessionReady)
+    case incompatibleVersion(Lumen_IncompatibleVersion)
     case clockPing(Lumen_ClockPing)
     case clockPong(Lumen_ClockPong)
-    case dragFrame(Lumen_DragFrame)
     case playChirpPair(Lumen_PlayChirpPair)
     case acousticReport(Lumen_AcousticReport)
+
+  }
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingCommit: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var commitment: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingKey: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var x25519Public: Data = Data()
+
+  public var nonce: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingSealed: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var sealedBox: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingIdentity: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var deviceID: Data = Data()
+
+  public var signingPublic: Data = Data()
+
+  public var name: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingConfirmed: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var confirmation: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PairingMessage: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var message: Lumen_PairingMessage.OneOf_Message? = nil
+
+  public var commit: Lumen_PairingCommit {
+    get {
+      if case .commit(let v)? = message {return v}
+      return Lumen_PairingCommit()
+    }
+    set {message = .commit(newValue)}
+  }
+
+  public var key: Lumen_PairingKey {
+    get {
+      if case .key(let v)? = message {return v}
+      return Lumen_PairingKey()
+    }
+    set {message = .key(newValue)}
+  }
+
+  public var sealed: Lumen_PairingSealed {
+    get {
+      if case .sealed(let v)? = message {return v}
+      return Lumen_PairingSealed()
+    }
+    set {message = .sealed(newValue)}
+  }
+
+  public var confirmed: Lumen_PairingConfirmed {
+    get {
+      if case .confirmed(let v)? = message {return v}
+      return Lumen_PairingConfirmed()
+    }
+    set {message = .confirmed(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public nonisolated enum OneOf_Message: Equatable, Sendable {
+    case commit(Lumen_PairingCommit)
+    case key(Lumen_PairingKey)
+    case sealed(Lumen_PairingSealed)
+    case confirmed(Lumen_PairingConfirmed)
 
   }
 
@@ -510,7 +720,7 @@ nonisolated extension Lumen_AcousticReport: SwiftProtobuf.Message, SwiftProtobuf
 
 nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Datagram"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}drag_frame\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}drag_frame\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -532,32 +742,6 @@ nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._Mess
         }
       }()
       case 2: try {
-        var v: Lumen_ClockPing?
-        var hadOneofValue = false
-        if let current = self.message {
-          hadOneofValue = true
-          if case .clockPing(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .clockPing(v)
-        }
-      }()
-      case 3: try {
-        var v: Lumen_ClockPong?
-        var hadOneofValue = false
-        if let current = self.message {
-          hadOneofValue = true
-          if case .clockPong(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .clockPong(v)
-        }
-      }()
-      case 4: try {
         var v: Lumen_DragFrame?
         var hadOneofValue = false
         if let current = self.message {
@@ -570,7 +754,226 @@ nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._Mess
           self.message = .dragFrame(v)
         }
       }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.message {
+    case .hello?: try {
+      guard case .hello(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .dragFrame?: try {
+      guard case .dragFrame(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_Datagram, rhs: Lumen_Datagram) -> Bool {
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_SessionKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SessionKey"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}x25519_public\0\u{1}signature\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.x25519Public) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.signature) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.x25519Public.isEmpty {
+      try visitor.visitSingularBytesField(value: self.x25519Public, fieldNumber: 1)
+    }
+    if !self.signature.isEmpty {
+      try visitor.visitSingularBytesField(value: self.signature, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_SessionKey, rhs: Lumen_SessionKey) -> Bool {
+    if lhs.x25519Public != rhs.x25519Public {return false}
+    if lhs.signature != rhs.signature {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_SessionReady: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SessionReady"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}realtime_port\0\u{3}file_port\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.realtimePort) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.filePort) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.realtimePort != 0 {
+      try visitor.visitSingularUInt32Field(value: self.realtimePort, fieldNumber: 1)
+    }
+    if self.filePort != 0 {
+      try visitor.visitSingularUInt32Field(value: self.filePort, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_SessionReady, rhs: Lumen_SessionReady) -> Bool {
+    if lhs.realtimePort != rhs.realtimePort {return false}
+    if lhs.filePort != rhs.filePort {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_IncompatibleVersion: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".IncompatibleVersion"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}supported\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.supported) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.supported != .unspecified {
+      try visitor.visitSingularEnumField(value: self.supported, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_IncompatibleVersion, rhs: Lumen_IncompatibleVersion) -> Bool {
+    if lhs.supported != rhs.supported {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ControlMessage"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Lumen_Hello?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .hello(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .hello(v)
+        }
+      }()
+      case 2: try {
+        var v: Lumen_SessionKey?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .sessionKey(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .sessionKey(v)
+        }
+      }()
+      case 3: try {
+        var v: Lumen_SessionReady?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .sessionReady(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .sessionReady(v)
+        }
+      }()
+      case 4: try {
+        var v: Lumen_IncompatibleVersion?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .incompatibleVersion(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .incompatibleVersion(v)
+        }
+      }()
       case 5: try {
+        var v: Lumen_ClockPing?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .clockPing(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .clockPing(v)
+        }
+      }()
+      case 6: try {
+        var v: Lumen_ClockPong?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .clockPong(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .clockPong(v)
+        }
+      }()
+      case 7: try {
         var v: Lumen_PlayChirpPair?
         var hadOneofValue = false
         if let current = self.message {
@@ -583,7 +986,7 @@ nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._Mess
           self.message = .playChirpPair(v)
         }
       }()
-      case 6: try {
+      case 8: try {
         var v: Lumen_AcousticReport?
         var hadOneofValue = false
         if let current = self.message {
@@ -611,32 +1014,306 @@ nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._Mess
       guard case .hello(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
+    case .sessionKey?: try {
+      guard case .sessionKey(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .sessionReady?: try {
+      guard case .sessionReady(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .incompatibleVersion?: try {
+      guard case .incompatibleVersion(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
     case .clockPing?: try {
       guard case .clockPing(let v)? = self.message else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case .clockPong?: try {
       guard case .clockPong(let v)? = self.message else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .dragFrame?: try {
-      guard case .dragFrame(let v)? = self.message else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     }()
     case .playChirpPair?: try {
       guard case .playChirpPair(let v)? = self.message else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
     case .acousticReport?: try {
       guard case .acousticReport(let v)? = self.message else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Lumen_Datagram, rhs: Lumen_Datagram) -> Bool {
+  public static func ==(lhs: Lumen_ControlMessage, rhs: Lumen_ControlMessage) -> Bool {
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingCommit: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingCommit"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}commitment\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.commitment) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.commitment.isEmpty {
+      try visitor.visitSingularBytesField(value: self.commitment, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingCommit, rhs: Lumen_PairingCommit) -> Bool {
+    if lhs.commitment != rhs.commitment {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingKey"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}x25519_public\0\u{1}nonce\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.x25519Public) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.nonce) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.x25519Public.isEmpty {
+      try visitor.visitSingularBytesField(value: self.x25519Public, fieldNumber: 1)
+    }
+    if !self.nonce.isEmpty {
+      try visitor.visitSingularBytesField(value: self.nonce, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingKey, rhs: Lumen_PairingKey) -> Bool {
+    if lhs.x25519Public != rhs.x25519Public {return false}
+    if lhs.nonce != rhs.nonce {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingSealed: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingSealed"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}sealed_box\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.sealedBox) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.sealedBox.isEmpty {
+      try visitor.visitSingularBytesField(value: self.sealedBox, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingSealed, rhs: Lumen_PairingSealed) -> Bool {
+    if lhs.sealedBox != rhs.sealedBox {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingIdentity: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingIdentity"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}device_id\0\u{3}signing_public\0\u{1}name\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.deviceID) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.signingPublic) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.deviceID.isEmpty {
+      try visitor.visitSingularBytesField(value: self.deviceID, fieldNumber: 1)
+    }
+    if !self.signingPublic.isEmpty {
+      try visitor.visitSingularBytesField(value: self.signingPublic, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingIdentity, rhs: Lumen_PairingIdentity) -> Bool {
+    if lhs.deviceID != rhs.deviceID {return false}
+    if lhs.signingPublic != rhs.signingPublic {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingConfirmed: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingConfirmed"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}confirmation\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.confirmation) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.confirmation.isEmpty {
+      try visitor.visitSingularBytesField(value: self.confirmation, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingConfirmed, rhs: Lumen_PairingConfirmed) -> Bool {
+    if lhs.confirmation != rhs.confirmation {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PairingMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PairingMessage"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}commit\0\u{1}key\0\u{1}sealed\0\u{1}confirmed\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Lumen_PairingCommit?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .commit(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .commit(v)
+        }
+      }()
+      case 2: try {
+        var v: Lumen_PairingKey?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .key(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .key(v)
+        }
+      }()
+      case 3: try {
+        var v: Lumen_PairingSealed?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .sealed(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .sealed(v)
+        }
+      }()
+      case 4: try {
+        var v: Lumen_PairingConfirmed?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .confirmed(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .confirmed(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.message {
+    case .commit?: try {
+      guard case .commit(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .key?: try {
+      guard case .key(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .sealed?: try {
+      guard case .sealed(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .confirmed?: try {
+      guard case .confirmed(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PairingMessage, rhs: Lumen_PairingMessage) -> Bool {
     if lhs.message != rhs.message {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

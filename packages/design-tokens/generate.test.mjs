@@ -24,6 +24,7 @@ const tokens = {
     },
   },
   chirp: { defaultAmplitude: 0.25 },
+  pairing: { ringCycleSeconds: 1.6, ringCount: 3, verificationPalette: [[1, 0, 0]] },
 };
 
 test('renders the same values for both platforms', () => {

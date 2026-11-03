@@ -30,6 +30,7 @@ public enum PeerMessage: Sendable, Equatable {
 public enum PeerEvent: Sendable, Equatable {
     case connected
     case disconnected
+    case incompatible(supported: ProtocolVersion)
     case received(PeerMessage)
 }
 
@@ -37,4 +38,32 @@ public protocol PeerLinkPort: Sendable {
     var events: AsyncStream<PeerEvent> { get }
     func start() async -> Bool
     func send(_ message: PeerMessage) async
+}
+
+public protocol SecureLinkPort: PeerLinkPort {
+    func activate(identity: LocalIdentity, peer: PairedDevice) async
+    func deactivate() async
+}
+
+public protocol TrustStorePort: Sendable {
+    func loadIdentity() async -> LocalIdentity?
+    func save(identity: LocalIdentity) async -> Bool
+    func loadPeer() async -> PairedDevice?
+    func save(peer: PairedDevice) async -> Bool
+    func forgetPeer() async
+}
+
+public protocol IdentityFactoryPort: Sendable {
+    func makeIdentity(name: String) -> LocalIdentity
+}
+
+public protocol PairingPort: Sendable {
+    func begin(identity: LocalIdentity) async -> AsyncStream<PairingStage>
+    func confirm() async
+    func cancel() async
+}
+
+public protocol ProximityPort: Sendable {
+    func rssiReadings() async -> AsyncStream<Int>
+    func stop() async
 }

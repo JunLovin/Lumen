@@ -28,11 +28,10 @@ private let dragFrame = DragFrameSample(
 )
 
 @Test(arguments: [
-    ("datagram-clock-ping", PeerMessage.clockPing(originNs: 1000)),
-    ("datagram-clock-pong", PeerMessage.clockPong(originNs: 1000, receiveNs: 2000, transmitNs: 3000)),
-    ("datagram-drag-frame", PeerMessage.dragFrame(dragFrame)),
-    ("datagram-play-chirp-pair", PeerMessage.playChirpPair(requestID: 9)),
-    ("datagram-acoustic-report", PeerMessage.acousticReport(AcousticReading(
+    ("control-clock-ping", PeerMessage.clockPing(originNs: 1000)),
+    ("control-clock-pong", PeerMessage.clockPong(originNs: 1000, receiveNs: 2000, transmitNs: 3000)),
+    ("control-play-chirp-pair", PeerMessage.playChirpPair(requestID: 9)),
+    ("control-acoustic-report", PeerMessage.acousticReport(AcousticReading(
         requestID: 9,
         tauMicroseconds: -640.5,
         levelDifferenceDecibels: -3.5,
@@ -40,16 +39,23 @@ private let dragFrame = DragFrameSample(
         acceptedPairs: 3
     ))),
 ])
-func fixtureRoundTrips(name: String, message: PeerMessage) throws {
+func controlFixtureRoundTrips(name: String, message: PeerMessage) throws {
     let bytes = try fixture(name)
-    #expect(DatagramCodec.decode(bytes) == message)
-    #expect(DatagramCodec.encode(message) == bytes)
+    #expect(WireCodec.decodeControl(bytes) == message)
+    #expect(WireCodec.encodeControl(message) == bytes)
+}
+
+@Test func dragFrameFixtureRoundTrips() throws {
+    let bytes = try fixture("datagram-drag-frame")
+    #expect(WireCodec.decodeDatagram(bytes) == .dragFrame(dragFrame))
+    #expect(WireCodec.encodeDatagram(dragFrame) == bytes)
 }
 
 @Test func helloFixtureCarriesTheCurrentVersion() throws {
-    #expect(try DatagramCodec.decode(fixture("datagram-hello")) == .hello(ProtocolVersion(rawValue: 1)))
+    #expect(try WireCodec.decodeDatagram(fixture("datagram-hello")) == .hello(ProtocolVersion(rawValue: 1)))
 }
 
 @Test func garbageDecodesToNothing() {
-    #expect(DatagramCodec.decode(Data([0xFF, 0xFF, 0xFF])) == nil)
+    #expect(WireCodec.decodeDatagram(Data([0xFF, 0xFF, 0xFF])) == nil)
+    #expect(WireCodec.decodeControl(Data([0xFF, 0xFF, 0xFF])) == nil)
 }

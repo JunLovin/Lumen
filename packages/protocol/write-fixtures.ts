@@ -1,6 +1,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { Datagram, Hello, ProtocolVersion } from './generated/lumen.ts';
+import {
+  ControlMessage,
+  Datagram,
+  Hello,
+  PairingMessage,
+  ProtocolVersion,
+} from './generated/lumen.ts';
 
 const directory = fileURLToPath(
   new URL('../../fixtures/protocol/', import.meta.url),
@@ -12,12 +18,10 @@ const hello = {
   deviceIdHash,
 };
 
+const bytes = (...values: number[]) => new Uint8Array(values);
+
 const datagrams = {
   'datagram-hello': { hello },
-  'datagram-clock-ping': { clockPing: { originNs: 1_000 } },
-  'datagram-clock-pong': {
-    clockPong: { originNs: 1_000, receiveNs: 2_000, transmitNs: 3_000 },
-  },
   'datagram-drag-frame': {
     dragFrame: {
       session: 7,
@@ -33,8 +37,23 @@ const datagrams = {
       rotationRad: 0.5,
     },
   },
-  'datagram-play-chirp-pair': { playChirpPair: { requestId: 9 } },
-  'datagram-acoustic-report': {
+};
+
+const controlMessages = {
+  'control-hello': { hello },
+  'control-session-key': {
+    sessionKey: { x25519Public: bytes(1, 2), signature: bytes(3, 4) },
+  },
+  'control-session-ready': { sessionReady: { realtimePort: 5000, filePort: 5001 } },
+  'control-incompatible-version': {
+    incompatibleVersion: { supported: ProtocolVersion.PROTOCOL_VERSION_CURRENT },
+  },
+  'control-clock-ping': { clockPing: { originNs: 1_000 } },
+  'control-clock-pong': {
+    clockPong: { originNs: 1_000, receiveNs: 2_000, transmitNs: 3_000 },
+  },
+  'control-play-chirp-pair': { playChirpPair: { requestId: 9 } },
+  'control-acoustic-report': {
     acousticReport: {
       requestId: 9,
       tauUs: -640.5,
@@ -45,8 +64,21 @@ const datagrams = {
   },
 };
 
+const pairingMessages = {
+  'pairing-commit': { commit: { commitment: bytes(1, 2, 3) } },
+  'pairing-key': { key: { x25519Public: bytes(4, 5), nonce: bytes(6, 7) } },
+  'pairing-sealed': { sealed: { sealedBox: bytes(8, 9) } },
+  'pairing-confirmed': { confirmed: { confirmation: bytes(10, 11) } },
+};
+
 mkdirSync(directory, { recursive: true });
 writeFileSync(`${directory}hello.bin`, Hello.encode(hello).finish());
-for (const [name, datagram] of Object.entries(datagrams)) {
-  writeFileSync(`${directory}${name}.bin`, Datagram.encode(datagram).finish());
+for (const [name, message] of Object.entries(datagrams)) {
+  writeFileSync(`${directory}${name}.bin`, Datagram.encode(message).finish());
+}
+for (const [name, message] of Object.entries(controlMessages)) {
+  writeFileSync(`${directory}${name}.bin`, ControlMessage.encode(message).finish());
+}
+for (const [name, message] of Object.entries(pairingMessages)) {
+  writeFileSync(`${directory}${name}.bin`, PairingMessage.encode(message).finish());
 }

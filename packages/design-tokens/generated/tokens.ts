@@ -51,5 +51,41 @@ export const tokens = {
   },
   "chirp": {
     "defaultAmplitude": 0.25
+  },
+  "pairing": {
+    "ringCycleSeconds": 1.6,
+    "ringCount": 3,
+    "verificationPalette": [
+      [
+        1,
+        0.35,
+        0.35
+      ],
+      [
+        1,
+        0.72,
+        0.2
+      ],
+      [
+        0.3,
+        0.85,
+        0.45
+      ],
+      [
+        0.25,
+        0.75,
+        1
+      ],
+      [
+        0.55,
+        0.45,
+        1
+      ],
+      [
+        1,
+        0.45,
+        0.8
+      ]
+    ]
   }
 } as const;
