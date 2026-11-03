@@ -69,6 +69,36 @@ message IncompatibleVersion {
   ProtocolVersion supported = 1;
 }
 
+message MotionSettled {}
+
+message BeginLocate {}
+
+enum PhoneEdge {
+  PHONE_EDGE_TOP = 0;
+  PHONE_EDGE_RIGHT = 1;
+  PHONE_EDGE_BOTTOM = 2;
+  PHONE_EDGE_LEFT = 3;
+}
+
+message EdgeExit {
+  PhoneEdge edge = 1;
+}
+
+enum PlacementSide {
+  PLACEMENT_SIDE_LEFT = 0;
+  PLACEMENT_SIDE_RIGHT = 1;
+  PLACEMENT_SIDE_BELOW = 2;
+  PLACEMENT_SIDE_ABOVE = 3;
+  PLACEMENT_SIDE_UNKNOWN = 4;
+}
+
+message PlacementUpdate {
+  PlacementSide side = 1;
+  float confidence = 2;
+  repeated float probabilities = 3;
+  bool is_detached = 4;
+}
+
 message ControlMessage {
   oneof message {
     Hello hello = 1;
@@ -79,6 +109,10 @@ message ControlMessage {
     ClockPong clock_pong = 6;
     PlayChirpPair play_chirp_pair = 7;
     AcousticReport acoustic_report = 8;
+    MotionSettled motion_settled = 9;
+    BeginLocate begin_locate = 10;
+    EdgeExit edge_exit = 11;
+    PlacementUpdate placement_update = 12;
   }
 }
 

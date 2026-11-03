@@ -5,6 +5,8 @@ import {
   Datagram,
   Hello,
   PairingMessage,
+  PhoneEdge,
+  PlacementSide,
   ProtocolVersion,
 } from './generated/lumen.ts';
 
@@ -40,6 +42,17 @@ const datagrams = {
 };
 
 const controlMessages = {
+  'control-motion-settled': { motionSettled: {} },
+  'control-begin-locate': { beginLocate: {} },
+  'control-edge-exit': { edgeExit: { edge: PhoneEdge.PHONE_EDGE_RIGHT } },
+  'control-placement-update': {
+    placementUpdate: {
+      side: PlacementSide.PLACEMENT_SIDE_RIGHT,
+      confidence: 0.75,
+      probabilities: [0.0625, 0.75, 0.0625, 0.0625, 0.0625],
+      isDetached: false,
+    },
+  },
   'control-hello': { hello },
   'control-session-key': {
     sessionKey: { x25519Public: bytes(1, 2), signature: bytes(3, 4) },
