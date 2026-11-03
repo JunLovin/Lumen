@@ -1,8 +1,12 @@
 import LumenDomain
 
 public actor PairNearbyDevice {
+    private static let retryDelay = Duration.seconds(3)
+
     public nonisolated let stages: AsyncStream<PairingStage>
+    public nonisolated let signalStrength: AsyncStream<Int>
     private let stagesContinuation: AsyncStream<PairingStage>.Continuation
+    private let signalContinuation: AsyncStream<Int>.Continuation
     private let trustStore: any TrustStorePort
     private let identityFactory: any IdentityFactoryPort
     private let pairing: any PairingPort
@@ -24,6 +28,7 @@ public actor PairNearbyDevice {
         detector: NearbyDetector
     ) {
         (stages, stagesContinuation) = AsyncStream.makeStream()
+        (signalStrength, signalContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
         self.trustStore = trustStore
         self.identityFactory = identityFactory
         self.pairing = pairing
@@ -50,6 +55,10 @@ public actor PairNearbyDevice {
         await pairing.confirm()
     }
 
+    public func reject() async {
+        await pairing.cancel()
+    }
+
     public func forget() async {
         task?.cancel()
         task = nil
@@ -61,11 +70,18 @@ public actor PairNearbyDevice {
     }
 
     private func pair(identity: LocalIdentity) async {
-        await waitUntilNear()
-        guard !Task.isCancelled else { return }
-        for await stage in await pairing.begin(identity: identity) {
+        while !Task.isCancelled {
+            await waitUntilNear()
             guard !Task.isCancelled else { return }
-            await handle(stage, identity: identity)
+            for await stage in await pairing.begin(identity: identity) {
+                guard !Task.isCancelled else { return }
+                await handle(stage, identity: identity)
+                if case .paired = stage {
+                    return
+                }
+            }
+            try? await Task.sleep(for: Self.retryDelay)
+            stagesContinuation.yield(.searching)
         }
     }
 
@@ -88,6 +104,7 @@ public actor PairNearbyDevice {
         guard let proximity else { return }
         var detector = detector
         for await rssi in await proximity.rssiReadings() {
+            signalContinuation.yield(rssi)
             if detector.observe(rssi: rssi, atNanoseconds: clock.nowNanoseconds()) {
                 return
             }

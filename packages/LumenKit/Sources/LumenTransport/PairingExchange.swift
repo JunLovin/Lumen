@@ -29,7 +29,13 @@ struct PairingExchange {
             $0.x25519Public = key.publicKey.rawRepresentation
             $0.nonce = nonce
         }))
-        let remote = try await exchangeKeys(role: role, key: key, nonce: nonce, keyMessage: keyMessage, channel: channel)
+        let remote = try await exchangeKeys(
+            role: role,
+            key: key,
+            nonce: nonce,
+            keyMessage: keyMessage,
+            channel: channel
+        )
 
         let remotePublic = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: remote.x25519Public)
         let shared = try key.sharedSecretFromKeyAgreement(with: remotePublic)

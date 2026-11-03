@@ -14,7 +14,7 @@ public enum FileProbe {
     static func answer(on channel: FramedConnection) async {
         defer { channel.cancel() }
         guard
-            (try? await channel.start()) != nil,
+            await (try? channel.start()) != nil,
             let received = try? await channel.receive()
         else { return }
         try? await channel.send(Data(SHA256.hash(data: received)))
@@ -24,8 +24,8 @@ public enum FileProbe {
         defer { channel.cancel() }
         let payload = block()
         guard
-            (try? await channel.start()) != nil,
-            (try? await channel.send(payload)) != nil,
+            await (try? channel.start()) != nil,
+            await (try? channel.send(payload)) != nil,
             let digest = try? await channel.receive()
         else { return false }
         return digest == Data(SHA256.hash(data: payload))
