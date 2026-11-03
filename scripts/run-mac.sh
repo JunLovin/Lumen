@@ -11,5 +11,9 @@ xcodebuild build \
   -derivedDataPath "$BUILD_DIR" \
   -quiet
 
-pkill -f "$BUILD_DIR/Build/Products/Debug/Lumen.app" || true
-open "$BUILD_DIR/Build/Products/Debug/Lumen.app"
+APP_PATH="$BUILD_DIR/Build/Products/Debug/Lumen.app"
+pkill -f "$APP_PATH" || true
+while pgrep -f "$APP_PATH" >/dev/null; do
+  sleep 0.1
+done
+open "$APP_PATH"
