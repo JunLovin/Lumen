@@ -10,8 +10,10 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_lumen._tcp</string>
-		<string>_lumen._udp</string>
+		<string>_lumen-pair._tcp</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Lumen detects when your iPhone is close so you can pair it.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Lumen connects to your iPhone over the local network.</string>
 	<key>LSUIElement</key>

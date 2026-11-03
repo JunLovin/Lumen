@@ -4,16 +4,18 @@
 
     public struct LabView: View {
         private let model: LabModel
+        private let pairing: PairingModel
 
-        public init(model: LabModel) {
+        public init(model: LabModel, pairing: PairingModel) {
             self.model = model
+            self.pairing = pairing
         }
 
         public var body: some View {
             HStack(alignment: .top, spacing: 16) {
                 DragPreview(model: model)
                 Form {
-                    ConnectionSection(model: model)
+                    ConnectionSection(model: model, pairing: pairing)
                     LatencySection(model: model)
                     AcousticSection(model: model)
                     OverlaySection(model: model)
@@ -52,11 +54,13 @@
 
     private struct ConnectionSection: View {
         let model: LabModel
+        let pairing: PairingModel
 
         var body: some View {
             Section {
                 LabRow("lab.listening", yesNo(model.isListening))
                 LabRow("lab.connected", yesNo(model.isConnected))
+                LabRow("lab.rssi", pairing.signalStrength.map { "\($0) dBm" } ?? "—")
                 LabRow("lab.clockRoundTrip", milliseconds(model.clockRoundTripMilliseconds))
             }
         }

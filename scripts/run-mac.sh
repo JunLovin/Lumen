@@ -9,6 +9,7 @@ xcodebuild build \
   -scheme Lumen \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$BUILD_DIR" \
+  -allowProvisioningUpdates \
   -quiet
 
 APP_PATH="$BUILD_DIR/Build/Products/Debug/Lumen.app"

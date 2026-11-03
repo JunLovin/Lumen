@@ -10,6 +10,8 @@
 		A10000000000000000000001 /* LumenApplication in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000011 /* LumenApplication */; };
 		A10000000000000000000002 /* LumenMacUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* LumenMacUI */; };
 		A10000000000000000000003 /* LumenTransport in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000013 /* LumenTransport */; };
+		A10000000000000000000004 /* LumenDomain in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000014 /* LumenDomain */; };
+		A10000000000000000000005 /* LumenProximity in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000015 /* LumenProximity */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +47,8 @@
 				A10000000000000000000001 /* LumenApplication in Frameworks */,
 				A10000000000000000000002 /* LumenMacUI in Frameworks */,
 				A10000000000000000000003 /* LumenTransport in Frameworks */,
+				A10000000000000000000004 /* LumenDomain in Frameworks */,
+				A10000000000000000000005 /* LumenProximity in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +94,8 @@
 				A10000000000000000000011 /* LumenApplication */,
 				A10000000000000000000012 /* LumenMacUI */,
 				A10000000000000000000013 /* LumenTransport */,
+				A10000000000000000000014 /* LumenDomain */,
+				A10000000000000000000015 /* LumenProximity */,
 			);
 			productName = Lumen;
 			productReference = A10000000000000000000020 /* Lumen.app */;
@@ -186,7 +192,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Lumen/Lumen.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -211,7 +217,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Lumen/Lumen.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -274,6 +280,14 @@
 		A10000000000000000000013 /* LumenTransport */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LumenTransport;
+		};
+		A10000000000000000000014 /* LumenDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LumenDomain;
+		};
+		A10000000000000000000015 /* LumenProximity */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LumenProximity;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
