@@ -11,7 +11,10 @@ export function assertValidTokens(tokens) {
     }
   }
   for (const [name, value] of Object.entries(tokens.glow.palette)) {
-    if (value.length !== 3 || value.some(channel => channel < 0 || channel > 1)) {
+    if (
+      value.length !== 3 ||
+      value.some(channel => channel < 0 || channel > 1)
+    ) {
       throw new Error(`Color "${name}" needs three channels between 0 and 1`);
     }
   }
@@ -37,7 +40,8 @@ export function renderSwift(tokens) {
       `        public static let ${name}Seconds: Double = ${seconds}`,
   );
   const { glow, chirp } = tokens;
-  const color = ([red, green, blue]) => `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
+  const color = ([red, green, blue]) =>
+    `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
   return [
     `// ${HEADER}`,
     'public struct SpringToken: Sendable, Equatable {',

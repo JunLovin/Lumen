@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { assertValidTokens, renderSwift, renderTypeScript } from './generate.mjs';
+import {
+  assertValidTokens,
+  renderSwift,
+  renderTypeScript,
+} from './generate.mjs';
 
 const tokens = {
   motion: {
@@ -13,16 +17,26 @@ const tokens = {
     intensity: 1,
     flowSpeed: 0.3,
     noiseScale: 3,
-    palette: { primary: [0, 0.5, 1], secondary: [1, 0, 0], highlight: [1, 1, 1] },
+    palette: {
+      primary: [0, 0.5, 1],
+      secondary: [1, 0, 0],
+      highlight: [1, 1, 1],
+    },
   },
   chirp: { defaultAmplitude: 0.25 },
 };
 
 test('renders the same values for both platforms', () => {
   assert.match(renderTypeScript(tokens), /"response": 0\.35/);
-  assert.match(renderSwift(tokens), /lift = SpringToken\(response: 0\.35, damping: 0\.8\)/);
+  assert.match(
+    renderSwift(tokens),
+    /lift = SpringToken\(response: 0\.35, damping: 0\.8\)/,
+  );
   assert.match(renderSwift(tokens), /glowBreathSeconds: Double = 3/);
-  assert.match(renderSwift(tokens), /primary = ColorToken\(red: 0, green: 0\.5, blue: 1\)/);
+  assert.match(
+    renderSwift(tokens),
+    /primary = ColorToken\(red: 0, green: 0\.5, blue: 1\)/,
+  );
 });
 
 test('rejects a spring without positive damping', () => {
