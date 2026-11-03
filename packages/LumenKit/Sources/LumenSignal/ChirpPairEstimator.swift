@@ -13,6 +13,12 @@ public struct ChirpPairArrival: Sendable, Equatable {
 }
 
 public enum ChirpPairEstimator {
+    private struct Candidate {
+        let left: Int
+        let right: Int
+        let score: Float
+    }
+
     public static func estimate(
         envelope: [Float],
         parameters: ChirpParameters,
@@ -22,7 +28,7 @@ public enum ChirpPairEstimator {
         let tolerance = Int((parameters.maximumTauSeconds * sampleRate).rounded())
         guard let strongest = envelope.max(), strongest > 0 else { return nil }
 
-        var best: (left: Int, right: Int, score: Float)?
+        var best: Candidate?
         for left in envelope.indices where envelope[left] > strongest / 4 {
             let lower = left + onsetInterval - tolerance
             let upper = min(left + onsetInterval + tolerance, envelope.count - 1)
@@ -30,7 +36,7 @@ public enum ChirpPairEstimator {
             let right = (lower ... upper).max { envelope[$0] < envelope[$1] } ?? lower
             let score = envelope[left] + envelope[right]
             if score > best?.score ?? 0 {
-                best = (left, right, score)
+                best = Candidate(left: left, right: right, score: score)
             }
         }
         guard let best else { return nil }

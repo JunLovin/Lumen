@@ -1,4 +1,6 @@
 strict: true
+disabled_rules:
+  - trailing_comma
 included:
   - packages/LumenKit/Sources
   - packages/LumenKit/Tests
