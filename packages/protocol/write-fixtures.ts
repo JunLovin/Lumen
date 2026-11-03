@@ -2,7 +2,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Datagram, Hello, ProtocolVersion } from './generated/lumen.ts';
 
-const directory = fileURLToPath(new URL('../../fixtures/protocol/', import.meta.url));
+const directory = fileURLToPath(
+  new URL('../../fixtures/protocol/', import.meta.url),
+);
 const deviceIdHash = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
 
 const hello = {
