@@ -7,6 +7,13 @@
 		<string>en</string>
 		<string>es</string>
 	</array>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_lumen._tcp</string>
+		<string>_lumen._udp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Lumen connects to your iPhone over the local network.</string>
 	<key>LSUIElement</key>
 	<true/>
 </dict>
