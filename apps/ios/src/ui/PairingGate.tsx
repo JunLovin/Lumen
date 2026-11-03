@@ -16,11 +16,15 @@ export function PairingGate({ useCases }: Props) {
   const [reconnectMilliseconds, setReconnectMilliseconds] = useState<
     number | null
   >(null);
-  const foregroundedAt = useRef<number | null>(null);
+  const foregroundedAt = useRef<number | null>(Date.now());
 
   useEffect(() => {
     const poll = async () => {
-      setStatus(await useCases.readPairingStatus());
+      const nextStatus = await useCases.readPairingStatus();
+      setStatus(nextStatus);
+      if (nextStatus.stage === 'searching') {
+        foregroundedAt.current = null;
+      }
       const startedAt = foregroundedAt.current;
       if (startedAt !== null && (await useCases.isPeerConnected())) {
         foregroundedAt.current = null;
