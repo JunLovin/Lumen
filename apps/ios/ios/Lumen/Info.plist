@@ -38,6 +38,15 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_lumen._tcp</string>
+		<string>_lumen._udp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Lumen finds your Mac and connects to it over the local network.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Lumen listens for about half a second to an ultrasonic signal from your Mac to work out where it is. Audio never leaves your iPhone.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

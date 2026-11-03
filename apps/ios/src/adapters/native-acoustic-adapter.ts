@@ -1,0 +1,28 @@
+import type { MeasuredSide, PlacementFailure } from '../domain/placement';
+import { err, ok } from '../domain/result';
+import type { AcousticPort } from '../ports/acoustic-port';
+import NativeLumenKit from './native/NativeLumenKit';
+
+const KNOWN_FAILURES: readonly PlacementFailure[] = [
+  'link_down',
+  'low_signal',
+  'microphone_denied',
+  'microphone_unavailable',
+];
+
+const failureFrom = (error: unknown): PlacementFailure => {
+  const code = (error as { readonly code?: unknown }).code;
+  return KNOWN_FAILURES.find(failure => failure === code) ?? 'unknown';
+};
+
+export const createNativeAcousticAdapter = (): AcousticPort => ({
+  measure: async () => {
+    try {
+      const measurement = await NativeLumenKit.measurePlacement();
+      return ok({ ...measurement, side: measurement.side as MeasuredSide });
+    } catch (error) {
+      return err(failureFrom(error));
+    }
+  },
+  exportLastRecording: () => NativeLumenKit.exportLastRecording(),
+});
