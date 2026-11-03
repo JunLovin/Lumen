@@ -49,6 +49,8 @@
 	<string>Lumen finds your Mac and connects to it over the local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Lumen listens for about half a second to an ultrasonic signal from your Mac to work out where it is. Audio never leaves your iPhone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Lumen shows your photos and videos so you can drag them to your Mac.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Lumen notices when you move or turn this iPhone so it can find your Mac again.</string>
 	<key>RCTNewArchEnabled</key>

@@ -1,5 +1,7 @@
 #import <LumenNativeSpec/LumenNativeSpec.h>
 #import <React/RCTBridgeModule.h>
+#import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
+#import <jsi/jsi.h>
 
 #if __has_include(<LumenNative/LumenNative-Swift.h>)
 #import <LumenNative/LumenNative-Swift.h>
@@ -7,7 +9,55 @@
 #import "LumenNative-Swift.h"
 #endif
 
-@interface LumenKitModule : NSObject <NativeLumenKitSpec>
+using namespace facebook;
+
+// A host object because Worklets can carry those to the UI runtime: drag frames and haptics then
+// leave directly from the gesture, without passing through the JS thread.
+class UIThreadChannel : public jsi::HostObject {
+public:
+  explicit UIThreadChannel(LumenKitBridge *bridge) : bridge_(bridge) {}
+
+  jsi::Value get(jsi::Runtime &runtime, const jsi::PropNameID &name) override {
+    auto property = name.utf8(runtime);
+    LumenKitBridge *bridge = bridge_;
+    if (property == "sendFrame") {
+      return jsi::Function::createFromHostFunction(
+          runtime, name, 10,
+          [bridge](jsi::Runtime &, const jsi::Value &, const jsi::Value *args, size_t count) {
+            if (count == 10) {
+              [bridge sendDragFrameWithSession:(int32_t)args[0].asNumber()
+                                      sequence:(int32_t)args[1].asNumber()
+                               ageMilliseconds:0
+                                  xMillimeters:(float)args[2].asNumber()
+                                  yMillimeters:(float)args[3].asNumber()
+                                     velocityX:(float)args[4].asNumber()
+                                     velocityY:(float)args[5].asNumber()
+                                 edgeProximity:(float)args[6].asNumber()
+                                   objectWidth:(float)args[7].asNumber()
+                                  objectHeight:(float)args[8].asNumber()
+                                      rotation:(float)args[9].asNumber()];
+            }
+            return jsi::Value::undefined();
+          });
+    }
+    if (property == "impact") {
+      return jsi::Function::createFromHostFunction(
+          runtime, name, 1,
+          [bridge](jsi::Runtime &, const jsi::Value &, const jsi::Value *args, size_t count) {
+            if (count == 1) {
+              [bridge impactWithStyle:(NSInteger)args[0].asNumber()];
+            }
+            return jsi::Value::undefined();
+          });
+    }
+    return jsi::Value::undefined();
+  }
+
+private:
+  LumenKitBridge *bridge_;
+};
+
+@interface LumenKitModule : NSObject <NativeLumenKitSpec, RCTTurboModuleWithJSIBindings>
 @end
 
 @implementation LumenKitModule {
@@ -21,6 +71,54 @@ RCT_EXPORT_MODULE(LumenKit)
     _bridge = [LumenKitBridge new];
   }
   return self;
+}
+
+- (void)installJSIBindingsWithRuntime:(jsi::Runtime &)runtime
+                          callInvoker:(const std::shared_ptr<react::CallInvoker> &)callInvoker {
+  runtime.global().setProperty(
+      runtime, "__lumenUIThreadChannel",
+      jsi::Object::createFromHostObject(runtime, std::make_shared<UIThreadChannel>(_bridge)));
+}
+
+- (NSString *)deviceModel {
+  return [LumenKitBridge deviceModel];
+}
+
+- (NSString *)libraryAccess {
+  return [_bridge libraryAccess];
+}
+
+- (void)requestLibraryAccess:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject {
+  [_bridge requestLibraryAccess:^(NSString *status) {
+    resolve(status);
+  }];
+}
+
+- (void)fetchLibraryAssets:(double)offset
+                     limit:(double)limit
+                   resolve:(RCTPromiseResolveBlock)resolve
+                    reject:(RCTPromiseRejectBlock)reject {
+  [_bridge fetchLibraryAssetsWithOffset:(NSInteger)offset
+                                  limit:(NSInteger)limit
+                             completion:^(NSArray *assets) {
+                               resolve(assets);
+                             }];
+}
+
+- (void)loadThumbnail:(NSString *)assetId
+                 size:(double)size
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
+  [_bridge loadThumbnailWithAssetId:assetId
+                               size:size
+                         completion:^(NSString *uri) {
+                           resolve(uri);
+                         }];
+}
+
+- (void)manageLimitedLibrary {
+  [_bridge manageLimitedLibrary];
 }
 
 - (NSNumber *)protocolVersion {
@@ -69,30 +167,6 @@ RCT_EXPORT_MODULE(LumenKit)
   [_bridge linkStatus:^(BOOL isConnected) {
     resolve(@(isConnected));
   }];
-}
-
-- (void)sendDragFrame:(double)session
-             sequence:(double)sequence
-      ageMilliseconds:(double)ageMilliseconds
-         xMillimeters:(double)xMillimeters
-         yMillimeters:(double)yMillimeters
-            velocityX:(double)velocityX
-            velocityY:(double)velocityY
-        edgeProximity:(double)edgeProximity
-          objectWidth:(double)objectWidth
-         objectHeight:(double)objectHeight
-             rotation:(double)rotation {
-  [_bridge sendDragFrameWithSession:(int32_t)session
-                           sequence:(int32_t)sequence
-                    ageMilliseconds:ageMilliseconds
-                       xMillimeters:(float)xMillimeters
-                       yMillimeters:(float)yMillimeters
-                          velocityX:(float)velocityX
-                          velocityY:(float)velocityY
-                      edgeProximity:(float)edgeProximity
-                        objectWidth:(float)objectWidth
-                       objectHeight:(float)objectHeight
-                           rotation:(float)rotation];
 }
 
 - (void)measurePlacement:(RCTPromiseResolveBlock)resolve

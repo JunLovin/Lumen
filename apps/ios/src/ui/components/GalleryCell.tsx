@@ -1,0 +1,171 @@
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet } from 'react-native';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, {
+  measure,
+  useAnimatedRef,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import type { MediaAsset } from '../../domain/media';
+import { horizontalExitEdge } from '../../domain/edge-proximity';
+import { sendDragFrame, updateGlow, updateTilt } from '../motion/drag-worklets';
+import { springs } from '../motion/spring';
+import type { DragController } from '../motion/use-drag-controller';
+
+type Props = {
+  readonly asset: MediaAsset;
+  readonly index: number;
+  readonly columns: number;
+  readonly size: number;
+  readonly drag: DragController;
+  readonly loadThumbnail: (
+    assetId: string,
+    size: number,
+  ) => Promise<string | null>;
+  readonly onLift: (uri: string | null) => void;
+};
+
+const LONG_PRESS_MILLISECONDS = 300;
+const THUMBNAIL_PIXELS = 400;
+const GAP_POINTS = 1;
+const REPULSION_RADIUS_POINTS = 170;
+const REPULSION_POINTS = 14;
+const EXIT_MARGIN_POINTS = 24;
+const HAPTIC_SOFT = 0;
+
+export function GalleryCell({
+  asset,
+  index,
+  columns,
+  size,
+  drag,
+  loadThumbnail,
+  onLift,
+}: Props) {
+  const [uri, setUri] = useState<string | null>(null);
+  const reference = useAnimatedRef<Animated.View>();
+
+  useEffect(() => {
+    let isCurrent = true;
+    loadThumbnail(asset.id, THUMBNAIL_PIXELS).then(loaded => {
+      if (isCurrent) {
+        setUri(loaded);
+      }
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, [asset.id, loadThumbnail]);
+
+  const pan = usePanGesture({
+    activateAfterLongPress: LONG_PRESS_MILLISECONDS,
+    onActivate: event => {
+      const frame = measure(reference);
+      if (frame !== null) {
+        const row = Math.floor(index / columns);
+        drag.gridOffsetY.value =
+          frame.pageY - (row * size - drag.scrollY.value);
+      }
+      const layer = measure(drag.layerRef);
+      if (layer !== null) {
+        drag.layerTop.value = layer.pageY;
+      }
+      drag.session.value += 1;
+      drag.sequence.value = 0;
+      drag.activeIndex.value = index;
+      drag.x.value = event.absoluteX;
+      drag.y.value = event.absoluteY;
+      drag.lift.value = withSpring(1, springs.lift);
+      drag.channel.impact(HAPTIC_SOFT);
+      scheduleOnRN(onLift, uri);
+    },
+    onUpdate: event => {
+      drag.x.value = withSpring(event.absoluteX, springs.follow);
+      drag.y.value = withSpring(event.absoluteY, springs.follow);
+      updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
+      const { edge, proximity } = updateGlow(drag, event.absoluteX);
+      sendDragFrame(
+        drag,
+        event.absoluteX,
+        event.absoluteY,
+        event.velocityX,
+        event.velocityY,
+        edge,
+        proximity,
+        size,
+      );
+    },
+    onDeactivate: event => {
+      const edge = horizontalExitEdge(
+        event.absoluteX,
+        drag.screenWidth,
+        EXIT_MARGIN_POINTS,
+      );
+      if (edge !== null) {
+        scheduleOnRN(drag.reportEdgeExit, edge);
+      }
+      const frame = measure(reference);
+      if (frame !== null) {
+        drag.x.value = withSpring(frame.pageX + size / 2, springs.snapBack);
+        drag.y.value = withSpring(frame.pageY + size / 2, springs.snapBack);
+      }
+      drag.rotation.value = withSpring(0, springs.snapBack);
+      drag.tiltX.value = withSpring(0, springs.snapBack);
+      drag.tiltY.value = withSpring(0, springs.snapBack);
+      drag.leftGlow.value = withSpring(0, springs.snapBack);
+      drag.rightGlow.value = withSpring(0, springs.snapBack);
+      drag.lift.value = withSpring(0, springs.snapBack, finished => {
+        if (finished) {
+          drag.activeIndex.value = -1;
+        }
+      });
+    },
+  });
+
+  const style = useAnimatedStyle(() => {
+    if (drag.activeIndex.value === index) {
+      return { opacity: 0, transform: [{ translateX: 0 }, { translateY: 0 }] };
+    }
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const centerX = column * size + size / 2;
+    const centerY =
+      row * size + size / 2 - drag.scrollY.value + drag.gridOffsetY.value;
+    const deltaX = centerX - drag.x.value;
+    const deltaY = centerY - drag.y.value;
+    const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
+    const strength =
+      Math.max(1 - distance / REPULSION_RADIUS_POINTS, 0) * drag.lift.value;
+    return {
+      opacity: 1,
+      transform: [
+        { translateX: (deltaX / distance) * strength * REPULSION_POINTS },
+        { translateY: (deltaY / distance) * strength * REPULSION_POINTS },
+      ],
+    };
+  });
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View
+        ref={reference}
+        style={[
+          {
+            width: size - GAP_POINTS,
+            height: size - GAP_POINTS,
+            margin: GAP_POINTS / 2,
+          },
+          style,
+        ]}
+      >
+        {uri !== null && <Image source={{ uri }} style={styles.image} />}
+      </Animated.View>
+    </GestureDetector>
+  );
+}
+
+const styles = StyleSheet.create({
+  image: { flex: 1 },
+});

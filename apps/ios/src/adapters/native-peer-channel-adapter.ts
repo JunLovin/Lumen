@@ -33,18 +33,4 @@ export const createNativePeerChannelAdapter = (): PeerChannelPort => ({
   readPlacement: async () =>
     toPlacement(await NativeLumenKit.placementStatus()),
   probeFileChannel: () => NativeLumenKit.probeFileChannel(),
-  sendDragFrame: frame =>
-    NativeLumenKit.sendDragFrame(
-      frame.session,
-      frame.sequence,
-      frame.ageMilliseconds,
-      frame.xMillimeters,
-      frame.yMillimeters,
-      frame.velocityX,
-      frame.velocityY,
-      frame.edgeProximity,
-      frame.objectWidthMillimeters,
-      frame.objectHeightMillimeters,
-      frame.rotationRadians,
-    ),
 });

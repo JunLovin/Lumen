@@ -5,8 +5,11 @@ import { createNativeAcousticAdapter } from '../adapters/native-acoustic-adapter
 import { createNativePairingAdapter } from '../adapters/native-pairing-adapter';
 import { createNativePeerChannelAdapter } from '../adapters/native-peer-channel-adapter';
 import { createRuntimeInfoAdapter } from '../adapters/runtime-info-adapter';
-import { createSystemClockAdapter } from '../adapters/system-clock-adapter';
-import { createDragFrameSender } from '../application/drag-frame-sender';
+import { readDeviceModel as NativeDeviceModel } from '../adapters/device-model-adapter';
+import { createNativeMediaLibraryAdapter } from '../adapters/native-media-library-adapter';
+import { createNativeUIThreadChannel } from '../adapters/native-ui-thread-channel';
+import { createLoadGalleryPage } from '../application/load-gallery-page';
+import { phoneMetricsFor } from '../domain/phone-metrics';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { createLoadDiagnostics } from '../application/load-diagnostics';
 import {
@@ -19,6 +22,7 @@ const composeUseCases = (): LabUseCases => {
   const peer = createNativePeerChannelAdapter();
   const acoustic = createNativeAcousticAdapter();
   const pairing = createNativePairingAdapter();
+  const media = createNativeMediaLibraryAdapter();
   peer.start();
   return {
     loadDiagnostics: createLoadDiagnostics(createRuntimeInfoAdapter()),
@@ -32,7 +36,13 @@ const composeUseCases = (): LabUseCases => {
     reportEdgeExit: edge => peer.reportEdgeExit(edge),
     readPlacement: () => peer.readPlacement(),
     probeFileChannel: () => peer.probeFileChannel(),
-    dragFrameSender: createDragFrameSender(peer, createSystemClockAdapter()),
+    uiThreadChannel: createNativeUIThreadChannel(),
+    phoneMetrics: phoneMetricsFor(NativeDeviceModel()),
+    readLibraryAccess: () => media.readAccess(),
+    requestLibraryAccess: () => media.requestAccess(),
+    loadGalleryPage: createLoadGalleryPage(media),
+    loadThumbnail: (assetId, size) => media.loadThumbnail(assetId, size),
+    manageLimitedAccess: () => media.manageLimitedAccess(),
   };
 };
 

@@ -77,6 +77,20 @@ export const en = {
   'side.above': 'Behind',
   'side.unknown': 'Unknown',
   'live.locateTime': 'Time to locate after settling',
+  'gallery.title': 'Photos',
+  'gallery.labs': 'Labs',
+  'gallery.primerTitle': 'Your photos, one drag from your Mac',
+  'gallery.primerBody':
+    'Lumen shows your library here so you can drag photos and videos to your Mac. Nothing leaves your devices.',
+  'gallery.allow': 'Allow access',
+  'gallery.denied':
+    'Lumen cannot see your photos. You can allow access in Settings.',
+  'gallery.manage': 'Choose more photos',
+  'gallery.empty': 'No photos to show yet.',
+  'latency.block': 'Block the JS thread for 5 s',
+  'latency.blocked': 'JS thread blocked. Keep dragging.',
+  'latency.proof':
+    'If the dot and the Mac keep moving, JS is out of the gesture.',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

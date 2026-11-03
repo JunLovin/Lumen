@@ -5,7 +5,7 @@ import { DiagnosticRow } from '../components/DiagnosticRow';
 import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
-import { springs } from '../motion/springs';
+import { tokens } from '@lumen/design-tokens';
 
 type Props = {
   readonly loadDiagnostics: LoadDiagnostics;
@@ -86,7 +86,7 @@ export function DiagnosticsScreen({
       />
       <DiagnosticRow
         label={translate('diagnostics.liftSpring')}
-        value={`${springs.lift.response} s`}
+        value={`${tokens.motion.springs.lift.response} s`}
       />
       <LabButton
         title={translate('pairing.probeFileChannel')}
