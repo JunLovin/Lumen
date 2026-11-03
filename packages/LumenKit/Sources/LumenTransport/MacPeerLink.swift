@@ -7,13 +7,16 @@ public actor MacPeerLink: PeerLinkPort {
     private var listener: NWListener?
     private var connection: NWConnection?
 
-    public init() {
+    private let serviceType: String
+
+    public init(serviceType: String = DatagramService.bonjourType) {
         (events, continuation) = AsyncStream.makeStream()
+        self.serviceType = serviceType
     }
 
     public func start() -> Bool {
         guard let listener = try? NWListener(using: .udp) else { return false }
-        listener.service = NWListener.Service(type: DatagramService.bonjourType)
+        listener.service = NWListener.Service(type: serviceType)
         listener.newConnectionHandler = { [weak self] connection in
             Task { await self?.adopt(connection) }
         }

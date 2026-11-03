@@ -2,8 +2,8 @@ import Foundation
 import LumenApplication
 import Network
 
-enum DatagramService {
-    static let bonjourType = "_lumen._udp"
+public enum DatagramService {
+    public static let bonjourType = "_lumen._udp"
     static let queue = DispatchQueue(label: "lumen.transport", qos: .userInteractive)
 }
 

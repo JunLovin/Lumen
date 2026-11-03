@@ -9,14 +9,17 @@ public actor PhonePeerLink: PeerLinkPort {
     private var browser: NWBrowser?
     private var connection: NWConnection?
 
-    public init(protocolVersion: ProtocolVersion) {
+    private let serviceType: String
+
+    public init(protocolVersion: ProtocolVersion, serviceType: String = DatagramService.bonjourType) {
         (events, continuation) = AsyncStream.makeStream()
+        self.serviceType = serviceType
         self.protocolVersion = protocolVersion
     }
 
     public func start() -> Bool {
         guard browser == nil else { return true }
-        let browser = NWBrowser(for: .bonjour(type: DatagramService.bonjourType, domain: nil), using: .udp)
+        let browser = NWBrowser(for: .bonjour(type: serviceType, domain: nil), using: .udp)
         browser.browseResultsChangedHandler = { [weak self] results, _ in
             let endpoint = results.first?.endpoint
             Task { await self?.connect(to: endpoint) }
