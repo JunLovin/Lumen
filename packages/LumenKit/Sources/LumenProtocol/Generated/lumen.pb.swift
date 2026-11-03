@@ -73,6 +73,168 @@ public nonisolated struct Lumen_Hello: Sendable {
   public init() {}
 }
 
+public nonisolated struct Lumen_ClockPing: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var originNs: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_ClockPong: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var originNs: UInt64 = 0
+
+  public var receiveNs: UInt64 = 0
+
+  public var transmitNs: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_DragFrame: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var session: UInt32 = 0
+
+  public var sequence: UInt32 = 0
+
+  public var timestampNs: UInt64 = 0
+
+  public var xMm: Float = 0
+
+  public var yMm: Float = 0
+
+  public var velocityXMmS: Float = 0
+
+  public var velocityYMmS: Float = 0
+
+  public var edgeProximity: Float = 0
+
+  public var objectWidthMm: Float = 0
+
+  public var objectHeightMm: Float = 0
+
+  public var rotationRad: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PlayChirpPair: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var requestID: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_AcousticReport: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var requestID: UInt32 = 0
+
+  public var tauUs: Float = 0
+
+  public var levelDifferenceDb: Float = 0
+
+  public var snrDb: Float = 0
+
+  public var acceptedPairs: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_Datagram: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var message: Lumen_Datagram.OneOf_Message? = nil
+
+  public var hello: Lumen_Hello {
+    get {
+      if case .hello(let v)? = message {return v}
+      return Lumen_Hello()
+    }
+    set {message = .hello(newValue)}
+  }
+
+  public var clockPing: Lumen_ClockPing {
+    get {
+      if case .clockPing(let v)? = message {return v}
+      return Lumen_ClockPing()
+    }
+    set {message = .clockPing(newValue)}
+  }
+
+  public var clockPong: Lumen_ClockPong {
+    get {
+      if case .clockPong(let v)? = message {return v}
+      return Lumen_ClockPong()
+    }
+    set {message = .clockPong(newValue)}
+  }
+
+  public var dragFrame: Lumen_DragFrame {
+    get {
+      if case .dragFrame(let v)? = message {return v}
+      return Lumen_DragFrame()
+    }
+    set {message = .dragFrame(newValue)}
+  }
+
+  public var playChirpPair: Lumen_PlayChirpPair {
+    get {
+      if case .playChirpPair(let v)? = message {return v}
+      return Lumen_PlayChirpPair()
+    }
+    set {message = .playChirpPair(newValue)}
+  }
+
+  public var acousticReport: Lumen_AcousticReport {
+    get {
+      if case .acousticReport(let v)? = message {return v}
+      return Lumen_AcousticReport()
+    }
+    set {message = .acousticReport(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public nonisolated enum OneOf_Message: Equatable, Sendable {
+    case hello(Lumen_Hello)
+    case clockPing(Lumen_ClockPing)
+    case clockPong(Lumen_ClockPong)
+    case dragFrame(Lumen_DragFrame)
+    case playChirpPair(Lumen_PlayChirpPair)
+    case acousticReport(Lumen_AcousticReport)
+
+  }
+
+  public init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "lumen"
@@ -111,6 +273,371 @@ nonisolated extension Lumen_Hello: SwiftProtobuf.Message, SwiftProtobuf._Message
   public static func ==(lhs: Lumen_Hello, rhs: Lumen_Hello) -> Bool {
     if lhs.protocolVersion != rhs.protocolVersion {return false}
     if lhs.deviceIDHash != rhs.deviceIDHash {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_ClockPing: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ClockPing"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}origin_ns\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.originNs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.originNs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.originNs, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_ClockPing, rhs: Lumen_ClockPing) -> Bool {
+    if lhs.originNs != rhs.originNs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_ClockPong: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ClockPong"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}origin_ns\0\u{3}receive_ns\0\u{3}transmit_ns\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.originNs) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.receiveNs) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.transmitNs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.originNs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.originNs, fieldNumber: 1)
+    }
+    if self.receiveNs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.receiveNs, fieldNumber: 2)
+    }
+    if self.transmitNs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.transmitNs, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_ClockPong, rhs: Lumen_ClockPong) -> Bool {
+    if lhs.originNs != rhs.originNs {return false}
+    if lhs.receiveNs != rhs.receiveNs {return false}
+    if lhs.transmitNs != rhs.transmitNs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_DragFrame: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DragFrame"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{1}sequence\0\u{3}timestamp_ns\0\u{3}x_mm\0\u{3}y_mm\0\u{3}velocity_x_mm_s\0\u{3}velocity_y_mm_s\0\u{3}edge_proximity\0\u{3}object_width_mm\0\u{3}object_height_mm\0\u{3}rotation_rad\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.session) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.sequence) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.timestampNs) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.xMm) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.yMm) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.velocityXMmS) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.velocityYMmS) }()
+      case 8: try { try decoder.decodeSingularFloatField(value: &self.edgeProximity) }()
+      case 9: try { try decoder.decodeSingularFloatField(value: &self.objectWidthMm) }()
+      case 10: try { try decoder.decodeSingularFloatField(value: &self.objectHeightMm) }()
+      case 11: try { try decoder.decodeSingularFloatField(value: &self.rotationRad) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.session != 0 {
+      try visitor.visitSingularUInt32Field(value: self.session, fieldNumber: 1)
+    }
+    if self.sequence != 0 {
+      try visitor.visitSingularUInt32Field(value: self.sequence, fieldNumber: 2)
+    }
+    if self.timestampNs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.timestampNs, fieldNumber: 3)
+    }
+    if self.xMm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.xMm, fieldNumber: 4)
+    }
+    if self.yMm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.yMm, fieldNumber: 5)
+    }
+    if self.velocityXMmS.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.velocityXMmS, fieldNumber: 6)
+    }
+    if self.velocityYMmS.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.velocityYMmS, fieldNumber: 7)
+    }
+    if self.edgeProximity.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.edgeProximity, fieldNumber: 8)
+    }
+    if self.objectWidthMm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.objectWidthMm, fieldNumber: 9)
+    }
+    if self.objectHeightMm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.objectHeightMm, fieldNumber: 10)
+    }
+    if self.rotationRad.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.rotationRad, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_DragFrame, rhs: Lumen_DragFrame) -> Bool {
+    if lhs.session != rhs.session {return false}
+    if lhs.sequence != rhs.sequence {return false}
+    if lhs.timestampNs != rhs.timestampNs {return false}
+    if lhs.xMm != rhs.xMm {return false}
+    if lhs.yMm != rhs.yMm {return false}
+    if lhs.velocityXMmS != rhs.velocityXMmS {return false}
+    if lhs.velocityYMmS != rhs.velocityYMmS {return false}
+    if lhs.edgeProximity != rhs.edgeProximity {return false}
+    if lhs.objectWidthMm != rhs.objectWidthMm {return false}
+    if lhs.objectHeightMm != rhs.objectHeightMm {return false}
+    if lhs.rotationRad != rhs.rotationRad {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PlayChirpPair: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PlayChirpPair"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}request_id\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.requestID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.requestID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.requestID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PlayChirpPair, rhs: Lumen_PlayChirpPair) -> Bool {
+    if lhs.requestID != rhs.requestID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_AcousticReport: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AcousticReport"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}request_id\0\u{3}tau_us\0\u{3}level_difference_db\0\u{3}snr_db\0\u{3}accepted_pairs\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.requestID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.tauUs) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.levelDifferenceDb) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.snrDb) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self.acceptedPairs) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.requestID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.requestID, fieldNumber: 1)
+    }
+    if self.tauUs.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.tauUs, fieldNumber: 2)
+    }
+    if self.levelDifferenceDb.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.levelDifferenceDb, fieldNumber: 3)
+    }
+    if self.snrDb.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.snrDb, fieldNumber: 4)
+    }
+    if self.acceptedPairs != 0 {
+      try visitor.visitSingularInt32Field(value: self.acceptedPairs, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_AcousticReport, rhs: Lumen_AcousticReport) -> Bool {
+    if lhs.requestID != rhs.requestID {return false}
+    if lhs.tauUs != rhs.tauUs {return false}
+    if lhs.levelDifferenceDb != rhs.levelDifferenceDb {return false}
+    if lhs.snrDb != rhs.snrDb {return false}
+    if lhs.acceptedPairs != rhs.acceptedPairs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_Datagram: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Datagram"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}drag_frame\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Lumen_Hello?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .hello(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .hello(v)
+        }
+      }()
+      case 2: try {
+        var v: Lumen_ClockPing?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .clockPing(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .clockPing(v)
+        }
+      }()
+      case 3: try {
+        var v: Lumen_ClockPong?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .clockPong(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .clockPong(v)
+        }
+      }()
+      case 4: try {
+        var v: Lumen_DragFrame?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .dragFrame(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .dragFrame(v)
+        }
+      }()
+      case 5: try {
+        var v: Lumen_PlayChirpPair?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .playChirpPair(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .playChirpPair(v)
+        }
+      }()
+      case 6: try {
+        var v: Lumen_AcousticReport?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .acousticReport(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .acousticReport(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.message {
+    case .hello?: try {
+      guard case .hello(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .clockPing?: try {
+      guard case .clockPing(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .clockPong?: try {
+      guard case .clockPong(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .dragFrame?: try {
+      guard case .dragFrame(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .playChirpPair?: try {
+      guard case .playChirpPair(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case .acousticReport?: try {
+      guard case .acousticReport(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_Datagram, rhs: Lumen_Datagram) -> Bool {
+    if lhs.message != rhs.message {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

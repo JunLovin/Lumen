@@ -11,3 +11,50 @@ message Hello {
   ProtocolVersion protocol_version = 1;
   bytes device_id_hash = 2;
 }
+
+message ClockPing {
+  uint64 origin_ns = 1;
+}
+
+message ClockPong {
+  uint64 origin_ns = 1;
+  uint64 receive_ns = 2;
+  uint64 transmit_ns = 3;
+}
+
+message DragFrame {
+  uint32 session = 1;
+  uint32 sequence = 2;
+  uint64 timestamp_ns = 3;
+  float x_mm = 4;
+  float y_mm = 5;
+  float velocity_x_mm_s = 6;
+  float velocity_y_mm_s = 7;
+  float edge_proximity = 8;
+  float object_width_mm = 9;
+  float object_height_mm = 10;
+  float rotation_rad = 11;
+}
+
+message PlayChirpPair {
+  uint32 request_id = 1;
+}
+
+message AcousticReport {
+  uint32 request_id = 1;
+  float tau_us = 2;
+  float level_difference_db = 3;
+  float snr_db = 4;
+  int32 accepted_pairs = 5;
+}
+
+message Datagram {
+  oneof message {
+    Hello hello = 1;
+    ClockPing clock_ping = 2;
+    ClockPong clock_pong = 3;
+    DragFrame drag_frame = 4;
+    PlayChirpPair play_chirp_pair = 5;
+    AcousticReport acoustic_report = 6;
+  }
+}

@@ -4,7 +4,7 @@
   "private": true,
   "main": "generated/lumen.ts",
   "scripts": {
-    "generate": "./generate.sh"
+    "generate": "./generate.sh && node --experimental-transform-types --no-warnings write-fixtures.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "2.16.0"

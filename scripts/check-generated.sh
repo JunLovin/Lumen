@@ -6,4 +6,4 @@ cd "$REPO_ROOT"
 
 pnpm --filter @lumen/design-tokens test
 pnpm generate
-git diff --exit-code -- packages/design-tokens/generated packages/protocol/generated packages/LumenKit/Sources/LumenProtocol/Generated packages/LumenKit/Sources/LumenMacUI/Generated
+git diff --exit-code -- packages/design-tokens/generated packages/protocol/generated fixtures/protocol packages/LumenKit/Sources/LumenProtocol/Generated packages/LumenKit/Sources/LumenMacUI/Generated

@@ -42,6 +42,51 @@ export interface Hello {
   deviceIdHash: Uint8Array;
 }
 
+export interface ClockPing {
+  originNs: number;
+}
+
+export interface ClockPong {
+  originNs: number;
+  receiveNs: number;
+  transmitNs: number;
+}
+
+export interface DragFrame {
+  session: number;
+  sequence: number;
+  timestampNs: number;
+  xMm: number;
+  yMm: number;
+  velocityXMmS: number;
+  velocityYMmS: number;
+  edgeProximity: number;
+  objectWidthMm: number;
+  objectHeightMm: number;
+  rotationRad: number;
+}
+
+export interface PlayChirpPair {
+  requestId: number;
+}
+
+export interface AcousticReport {
+  requestId: number;
+  tauUs: number;
+  levelDifferenceDb: number;
+  snrDb: number;
+  acceptedPairs: number;
+}
+
+export interface Datagram {
+  hello?: Hello | undefined;
+  clockPing?: ClockPing | undefined;
+  clockPong?: ClockPong | undefined;
+  dragFrame?: DragFrame | undefined;
+  playChirpPair?: PlayChirpPair | undefined;
+  acousticReport?: AcousticReport | undefined;
+}
+
 function createBaseHello(): Hello {
   return { protocolVersion: 0, deviceIdHash: new Uint8Array(0) };
 }
@@ -135,6 +180,873 @@ export const Hello: MessageFns<Hello> = {
   },
 };
 
+function createBaseClockPing(): ClockPing {
+  return { originNs: 0 };
+}
+
+export const ClockPing: MessageFns<ClockPing> = {
+  encode(message: ClockPing, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.originNs !== 0) {
+      writer.uint32(8).uint64(message.originNs);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ClockPing {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseClockPing();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.originNs = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): ClockPing {
+    return {
+      originNs: isSet(object.originNs)
+        ? globalThis.Number(object.originNs)
+        : isSet(object.origin_ns)
+        ? globalThis.Number(object.origin_ns)
+        : 0,
+    };
+  },
+
+  toJSON(message: ClockPing): unknown {
+    const obj: any = {};
+    if (message.originNs !== 0) {
+      obj.originNs = Math.round(message.originNs);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ClockPing>, I>>(base?: I): ClockPing {
+    return ClockPing.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ClockPing>, I>>(object: I): ClockPing {
+    const message = createBaseClockPing();
+    message.originNs = object.originNs ?? 0;
+    return message;
+  },
+};
+
+function createBaseClockPong(): ClockPong {
+  return { originNs: 0, receiveNs: 0, transmitNs: 0 };
+}
+
+export const ClockPong: MessageFns<ClockPong> = {
+  encode(message: ClockPong, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.originNs !== 0) {
+      writer.uint32(8).uint64(message.originNs);
+    }
+    if (message.receiveNs !== 0) {
+      writer.uint32(16).uint64(message.receiveNs);
+    }
+    if (message.transmitNs !== 0) {
+      writer.uint32(24).uint64(message.transmitNs);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ClockPong {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseClockPong();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.originNs = longToNumber(reader.uint64());
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.receiveNs = longToNumber(reader.uint64());
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.transmitNs = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): ClockPong {
+    return {
+      originNs: isSet(object.originNs)
+        ? globalThis.Number(object.originNs)
+        : isSet(object.origin_ns)
+        ? globalThis.Number(object.origin_ns)
+        : 0,
+      receiveNs: isSet(object.receiveNs)
+        ? globalThis.Number(object.receiveNs)
+        : isSet(object.receive_ns)
+        ? globalThis.Number(object.receive_ns)
+        : 0,
+      transmitNs: isSet(object.transmitNs)
+        ? globalThis.Number(object.transmitNs)
+        : isSet(object.transmit_ns)
+        ? globalThis.Number(object.transmit_ns)
+        : 0,
+    };
+  },
+
+  toJSON(message: ClockPong): unknown {
+    const obj: any = {};
+    if (message.originNs !== 0) {
+      obj.originNs = Math.round(message.originNs);
+    }
+    if (message.receiveNs !== 0) {
+      obj.receiveNs = Math.round(message.receiveNs);
+    }
+    if (message.transmitNs !== 0) {
+      obj.transmitNs = Math.round(message.transmitNs);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ClockPong>, I>>(base?: I): ClockPong {
+    return ClockPong.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ClockPong>, I>>(object: I): ClockPong {
+    const message = createBaseClockPong();
+    message.originNs = object.originNs ?? 0;
+    message.receiveNs = object.receiveNs ?? 0;
+    message.transmitNs = object.transmitNs ?? 0;
+    return message;
+  },
+};
+
+function createBaseDragFrame(): DragFrame {
+  return {
+    session: 0,
+    sequence: 0,
+    timestampNs: 0,
+    xMm: 0,
+    yMm: 0,
+    velocityXMmS: 0,
+    velocityYMmS: 0,
+    edgeProximity: 0,
+    objectWidthMm: 0,
+    objectHeightMm: 0,
+    rotationRad: 0,
+  };
+}
+
+export const DragFrame: MessageFns<DragFrame> = {
+  encode(message: DragFrame, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== 0) {
+      writer.uint32(8).uint32(message.session);
+    }
+    if (message.sequence !== 0) {
+      writer.uint32(16).uint32(message.sequence);
+    }
+    if (message.timestampNs !== 0) {
+      writer.uint32(24).uint64(message.timestampNs);
+    }
+    if (message.xMm !== 0) {
+      writer.uint32(37).float(message.xMm);
+    }
+    if (message.yMm !== 0) {
+      writer.uint32(45).float(message.yMm);
+    }
+    if (message.velocityXMmS !== 0) {
+      writer.uint32(53).float(message.velocityXMmS);
+    }
+    if (message.velocityYMmS !== 0) {
+      writer.uint32(61).float(message.velocityYMmS);
+    }
+    if (message.edgeProximity !== 0) {
+      writer.uint32(69).float(message.edgeProximity);
+    }
+    if (message.objectWidthMm !== 0) {
+      writer.uint32(77).float(message.objectWidthMm);
+    }
+    if (message.objectHeightMm !== 0) {
+      writer.uint32(85).float(message.objectHeightMm);
+    }
+    if (message.rotationRad !== 0) {
+      writer.uint32(93).float(message.rotationRad);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DragFrame {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseDragFrame();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.session = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.sequence = reader.uint32();
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.timestampNs = longToNumber(reader.uint64());
+            continue;
+          }
+          case 4: {
+            if (tag !== 37) {
+              break;
+            }
+
+            message.xMm = reader.float();
+            continue;
+          }
+          case 5: {
+            if (tag !== 45) {
+              break;
+            }
+
+            message.yMm = reader.float();
+            continue;
+          }
+          case 6: {
+            if (tag !== 53) {
+              break;
+            }
+
+            message.velocityXMmS = reader.float();
+            continue;
+          }
+          case 7: {
+            if (tag !== 61) {
+              break;
+            }
+
+            message.velocityYMmS = reader.float();
+            continue;
+          }
+          case 8: {
+            if (tag !== 69) {
+              break;
+            }
+
+            message.edgeProximity = reader.float();
+            continue;
+          }
+          case 9: {
+            if (tag !== 77) {
+              break;
+            }
+
+            message.objectWidthMm = reader.float();
+            continue;
+          }
+          case 10: {
+            if (tag !== 85) {
+              break;
+            }
+
+            message.objectHeightMm = reader.float();
+            continue;
+          }
+          case 11: {
+            if (tag !== 93) {
+              break;
+            }
+
+            message.rotationRad = reader.float();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): DragFrame {
+    return {
+      session: isSet(object.session) ? globalThis.Number(object.session) : 0,
+      sequence: isSet(object.sequence) ? globalThis.Number(object.sequence) : 0,
+      timestampNs: isSet(object.timestampNs)
+        ? globalThis.Number(object.timestampNs)
+        : isSet(object.timestamp_ns)
+        ? globalThis.Number(object.timestamp_ns)
+        : 0,
+      xMm: isSet(object.xMm) ? globalThis.Number(object.xMm) : isSet(object.x_mm) ? globalThis.Number(object.x_mm) : 0,
+      yMm: isSet(object.yMm) ? globalThis.Number(object.yMm) : isSet(object.y_mm) ? globalThis.Number(object.y_mm) : 0,
+      velocityXMmS: isSet(object.velocityXMmS)
+        ? globalThis.Number(object.velocityXMmS)
+        : isSet(object.velocity_x_mm_s)
+        ? globalThis.Number(object.velocity_x_mm_s)
+        : 0,
+      velocityYMmS: isSet(object.velocityYMmS)
+        ? globalThis.Number(object.velocityYMmS)
+        : isSet(object.velocity_y_mm_s)
+        ? globalThis.Number(object.velocity_y_mm_s)
+        : 0,
+      edgeProximity: isSet(object.edgeProximity)
+        ? globalThis.Number(object.edgeProximity)
+        : isSet(object.edge_proximity)
+        ? globalThis.Number(object.edge_proximity)
+        : 0,
+      objectWidthMm: isSet(object.objectWidthMm)
+        ? globalThis.Number(object.objectWidthMm)
+        : isSet(object.object_width_mm)
+        ? globalThis.Number(object.object_width_mm)
+        : 0,
+      objectHeightMm: isSet(object.objectHeightMm)
+        ? globalThis.Number(object.objectHeightMm)
+        : isSet(object.object_height_mm)
+        ? globalThis.Number(object.object_height_mm)
+        : 0,
+      rotationRad: isSet(object.rotationRad)
+        ? globalThis.Number(object.rotationRad)
+        : isSet(object.rotation_rad)
+        ? globalThis.Number(object.rotation_rad)
+        : 0,
+    };
+  },
+
+  toJSON(message: DragFrame): unknown {
+    const obj: any = {};
+    if (message.session !== 0) {
+      obj.session = Math.round(message.session);
+    }
+    if (message.sequence !== 0) {
+      obj.sequence = Math.round(message.sequence);
+    }
+    if (message.timestampNs !== 0) {
+      obj.timestampNs = Math.round(message.timestampNs);
+    }
+    if (message.xMm !== 0) {
+      obj.xMm = floatToJson(message.xMm);
+    }
+    if (message.yMm !== 0) {
+      obj.yMm = floatToJson(message.yMm);
+    }
+    if (message.velocityXMmS !== 0) {
+      obj.velocityXMmS = floatToJson(message.velocityXMmS);
+    }
+    if (message.velocityYMmS !== 0) {
+      obj.velocityYMmS = floatToJson(message.velocityYMmS);
+    }
+    if (message.edgeProximity !== 0) {
+      obj.edgeProximity = floatToJson(message.edgeProximity);
+    }
+    if (message.objectWidthMm !== 0) {
+      obj.objectWidthMm = floatToJson(message.objectWidthMm);
+    }
+    if (message.objectHeightMm !== 0) {
+      obj.objectHeightMm = floatToJson(message.objectHeightMm);
+    }
+    if (message.rotationRad !== 0) {
+      obj.rotationRad = floatToJson(message.rotationRad);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DragFrame>, I>>(base?: I): DragFrame {
+    return DragFrame.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DragFrame>, I>>(object: I): DragFrame {
+    const message = createBaseDragFrame();
+    message.session = object.session ?? 0;
+    message.sequence = object.sequence ?? 0;
+    message.timestampNs = object.timestampNs ?? 0;
+    message.xMm = object.xMm ?? 0;
+    message.yMm = object.yMm ?? 0;
+    message.velocityXMmS = object.velocityXMmS ?? 0;
+    message.velocityYMmS = object.velocityYMmS ?? 0;
+    message.edgeProximity = object.edgeProximity ?? 0;
+    message.objectWidthMm = object.objectWidthMm ?? 0;
+    message.objectHeightMm = object.objectHeightMm ?? 0;
+    message.rotationRad = object.rotationRad ?? 0;
+    return message;
+  },
+};
+
+function createBasePlayChirpPair(): PlayChirpPair {
+  return { requestId: 0 };
+}
+
+export const PlayChirpPair: MessageFns<PlayChirpPair> = {
+  encode(message: PlayChirpPair, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.requestId !== 0) {
+      writer.uint32(8).uint32(message.requestId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PlayChirpPair {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePlayChirpPair();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.requestId = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PlayChirpPair {
+    return {
+      requestId: isSet(object.requestId)
+        ? globalThis.Number(object.requestId)
+        : isSet(object.request_id)
+        ? globalThis.Number(object.request_id)
+        : 0,
+    };
+  },
+
+  toJSON(message: PlayChirpPair): unknown {
+    const obj: any = {};
+    if (message.requestId !== 0) {
+      obj.requestId = Math.round(message.requestId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PlayChirpPair>, I>>(base?: I): PlayChirpPair {
+    return PlayChirpPair.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PlayChirpPair>, I>>(object: I): PlayChirpPair {
+    const message = createBasePlayChirpPair();
+    message.requestId = object.requestId ?? 0;
+    return message;
+  },
+};
+
+function createBaseAcousticReport(): AcousticReport {
+  return { requestId: 0, tauUs: 0, levelDifferenceDb: 0, snrDb: 0, acceptedPairs: 0 };
+}
+
+export const AcousticReport: MessageFns<AcousticReport> = {
+  encode(message: AcousticReport, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.requestId !== 0) {
+      writer.uint32(8).uint32(message.requestId);
+    }
+    if (message.tauUs !== 0) {
+      writer.uint32(21).float(message.tauUs);
+    }
+    if (message.levelDifferenceDb !== 0) {
+      writer.uint32(29).float(message.levelDifferenceDb);
+    }
+    if (message.snrDb !== 0) {
+      writer.uint32(37).float(message.snrDb);
+    }
+    if (message.acceptedPairs !== 0) {
+      writer.uint32(40).int32(message.acceptedPairs);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AcousticReport {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseAcousticReport();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.requestId = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 21) {
+              break;
+            }
+
+            message.tauUs = reader.float();
+            continue;
+          }
+          case 3: {
+            if (tag !== 29) {
+              break;
+            }
+
+            message.levelDifferenceDb = reader.float();
+            continue;
+          }
+          case 4: {
+            if (tag !== 37) {
+              break;
+            }
+
+            message.snrDb = reader.float();
+            continue;
+          }
+          case 5: {
+            if (tag !== 40) {
+              break;
+            }
+
+            message.acceptedPairs = reader.int32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): AcousticReport {
+    return {
+      requestId: isSet(object.requestId)
+        ? globalThis.Number(object.requestId)
+        : isSet(object.request_id)
+        ? globalThis.Number(object.request_id)
+        : 0,
+      tauUs: isSet(object.tauUs)
+        ? globalThis.Number(object.tauUs)
+        : isSet(object.tau_us)
+        ? globalThis.Number(object.tau_us)
+        : 0,
+      levelDifferenceDb: isSet(object.levelDifferenceDb)
+        ? globalThis.Number(object.levelDifferenceDb)
+        : isSet(object.level_difference_db)
+        ? globalThis.Number(object.level_difference_db)
+        : 0,
+      snrDb: isSet(object.snrDb)
+        ? globalThis.Number(object.snrDb)
+        : isSet(object.snr_db)
+        ? globalThis.Number(object.snr_db)
+        : 0,
+      acceptedPairs: isSet(object.acceptedPairs)
+        ? globalThis.Number(object.acceptedPairs)
+        : isSet(object.accepted_pairs)
+        ? globalThis.Number(object.accepted_pairs)
+        : 0,
+    };
+  },
+
+  toJSON(message: AcousticReport): unknown {
+    const obj: any = {};
+    if (message.requestId !== 0) {
+      obj.requestId = Math.round(message.requestId);
+    }
+    if (message.tauUs !== 0) {
+      obj.tauUs = floatToJson(message.tauUs);
+    }
+    if (message.levelDifferenceDb !== 0) {
+      obj.levelDifferenceDb = floatToJson(message.levelDifferenceDb);
+    }
+    if (message.snrDb !== 0) {
+      obj.snrDb = floatToJson(message.snrDb);
+    }
+    if (message.acceptedPairs !== 0) {
+      obj.acceptedPairs = Math.round(message.acceptedPairs);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AcousticReport>, I>>(base?: I): AcousticReport {
+    return AcousticReport.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AcousticReport>, I>>(object: I): AcousticReport {
+    const message = createBaseAcousticReport();
+    message.requestId = object.requestId ?? 0;
+    message.tauUs = object.tauUs ?? 0;
+    message.levelDifferenceDb = object.levelDifferenceDb ?? 0;
+    message.snrDb = object.snrDb ?? 0;
+    message.acceptedPairs = object.acceptedPairs ?? 0;
+    return message;
+  },
+};
+
+function createBaseDatagram(): Datagram {
+  return {
+    hello: undefined,
+    clockPing: undefined,
+    clockPong: undefined,
+    dragFrame: undefined,
+    playChirpPair: undefined,
+    acousticReport: undefined,
+  };
+}
+
+export const Datagram: MessageFns<Datagram> = {
+  encode(message: Datagram, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.hello !== undefined) {
+      Hello.encode(message.hello, writer.uint32(10).fork()).join();
+    }
+    if (message.clockPing !== undefined) {
+      ClockPing.encode(message.clockPing, writer.uint32(18).fork()).join();
+    }
+    if (message.clockPong !== undefined) {
+      ClockPong.encode(message.clockPong, writer.uint32(26).fork()).join();
+    }
+    if (message.dragFrame !== undefined) {
+      DragFrame.encode(message.dragFrame, writer.uint32(34).fork()).join();
+    }
+    if (message.playChirpPair !== undefined) {
+      PlayChirpPair.encode(message.playChirpPair, writer.uint32(42).fork()).join();
+    }
+    if (message.acousticReport !== undefined) {
+      AcousticReport.encode(message.acousticReport, writer.uint32(50).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Datagram {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseDatagram();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.hello = Hello.decode(reader, reader.uint32());
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.clockPing = ClockPing.decode(reader, reader.uint32());
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.clockPong = ClockPong.decode(reader, reader.uint32());
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.dragFrame = DragFrame.decode(reader, reader.uint32());
+            continue;
+          }
+          case 5: {
+            if (tag !== 42) {
+              break;
+            }
+
+            message.playChirpPair = PlayChirpPair.decode(reader, reader.uint32());
+            continue;
+          }
+          case 6: {
+            if (tag !== 50) {
+              break;
+            }
+
+            message.acousticReport = AcousticReport.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Datagram {
+    return {
+      hello: isSet(object.hello) ? Hello.fromJSON(object.hello) : undefined,
+      clockPing: isSet(object.clockPing)
+        ? ClockPing.fromJSON(object.clockPing)
+        : isSet(object.clock_ping)
+        ? ClockPing.fromJSON(object.clock_ping)
+        : undefined,
+      clockPong: isSet(object.clockPong)
+        ? ClockPong.fromJSON(object.clockPong)
+        : isSet(object.clock_pong)
+        ? ClockPong.fromJSON(object.clock_pong)
+        : undefined,
+      dragFrame: isSet(object.dragFrame)
+        ? DragFrame.fromJSON(object.dragFrame)
+        : isSet(object.drag_frame)
+        ? DragFrame.fromJSON(object.drag_frame)
+        : undefined,
+      playChirpPair: isSet(object.playChirpPair)
+        ? PlayChirpPair.fromJSON(object.playChirpPair)
+        : isSet(object.play_chirp_pair)
+        ? PlayChirpPair.fromJSON(object.play_chirp_pair)
+        : undefined,
+      acousticReport: isSet(object.acousticReport)
+        ? AcousticReport.fromJSON(object.acousticReport)
+        : isSet(object.acoustic_report)
+        ? AcousticReport.fromJSON(object.acoustic_report)
+        : undefined,
+    };
+  },
+
+  toJSON(message: Datagram): unknown {
+    const obj: any = {};
+    if (message.hello !== undefined) {
+      obj.hello = Hello.toJSON(message.hello);
+    }
+    if (message.clockPing !== undefined) {
+      obj.clockPing = ClockPing.toJSON(message.clockPing);
+    }
+    if (message.clockPong !== undefined) {
+      obj.clockPong = ClockPong.toJSON(message.clockPong);
+    }
+    if (message.dragFrame !== undefined) {
+      obj.dragFrame = DragFrame.toJSON(message.dragFrame);
+    }
+    if (message.playChirpPair !== undefined) {
+      obj.playChirpPair = PlayChirpPair.toJSON(message.playChirpPair);
+    }
+    if (message.acousticReport !== undefined) {
+      obj.acousticReport = AcousticReport.toJSON(message.acousticReport);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Datagram>, I>>(base?: I): Datagram {
+    return Datagram.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Datagram>, I>>(object: I): Datagram {
+    const message = createBaseDatagram();
+    message.hello = (object.hello !== undefined && object.hello !== null) ? Hello.fromPartial(object.hello) : undefined;
+    message.clockPing = (object.clockPing !== undefined && object.clockPing !== null)
+      ? ClockPing.fromPartial(object.clockPing)
+      : undefined;
+    message.clockPong = (object.clockPong !== undefined && object.clockPong !== null)
+      ? ClockPong.fromPartial(object.clockPong)
+      : undefined;
+    message.dragFrame = (object.dragFrame !== undefined && object.dragFrame !== null)
+      ? DragFrame.fromPartial(object.dragFrame)
+      : undefined;
+    message.playChirpPair = (object.playChirpPair !== undefined && object.playChirpPair !== null)
+      ? PlayChirpPair.fromPartial(object.playChirpPair)
+      : undefined;
+    message.acousticReport = (object.acousticReport !== undefined && object.acousticReport !== null)
+      ? AcousticReport.fromPartial(object.acousticReport)
+      : undefined;
+    return message;
+  },
+};
+
 function bytesFromBase64(b64: string): Uint8Array {
   if ((globalThis as any).Buffer) {
     return Uint8Array.from((globalThis as any).Buffer.from(b64, "base64"));
@@ -160,6 +1072,10 @@ function base64FromBytes(arr: Uint8Array): string {
   }
 }
 
+function floatToJson(value: number | null | undefined): number | string | null | undefined {
+  return typeof value === "number" && !globalThis.Number.isFinite(value) ? globalThis.String(value) : value;
+}
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
@@ -174,6 +1090,17 @@ type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
