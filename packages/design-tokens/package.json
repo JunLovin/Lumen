@@ -1,0 +1,11 @@
+{
+  "name": "@lumen/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "generated/tokens.ts",
+  "scripts": {
+    "generate": "node generate.mjs",
+    "test": "node --test"
+  }
+}
