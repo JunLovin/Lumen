@@ -1,0 +1,15 @@
+{
+  "name": "@lumen/protocol",
+  "version": "0.0.0",
+  "private": true,
+  "main": "generated/lumen.ts",
+  "scripts": {
+    "generate": "./generate.sh"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.16.0"
+  },
+  "devDependencies": {
+    "ts-proto": "2.18.3"
+  }
+}
