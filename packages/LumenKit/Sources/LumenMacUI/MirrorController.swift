@@ -19,6 +19,7 @@
         private var tuning = MotionTuning()
         private var glowHideTask: Task<Void, Never>?
         private var ghost: GhostOverlay?
+        private var hasSwept = false
         private var leftGlow: EdgeOverlayPanel?
         private var rightGlow: EdgeOverlayPanel?
         private var interpolator = FrameInterpolator(
@@ -90,6 +91,7 @@
                 currentSession = frame.sample.session
                 interpolator.reset()
                 landing = nil
+                hasSwept = false
                 prepare()
                 show()
             }
@@ -98,8 +100,10 @@
                 localTimestampNs: frame.localTimestampNs ?? receivedAtNs
             ))
             lastEdge = frame.sample.edge
-            glow(for: frame.sample.edge)?.show()
-            glow(for: frame.sample.edge)?.setProximity(frame.sample.edgeProximity)
+            playSweepIfLit(frame.sample)
+            let glow = frame.sample.edge == .right ? leftGlow : rightGlow
+            glow?.show()
+            glow?.setProximity(frame.sample.edgeProximity)
         }
 
         func end(_ end: DragEnd) {
@@ -118,6 +122,14 @@
             }
             landing = GhostOverlay.landing(from: pose, end: end, edge: lastEdge, shelf: shelf, tuning: tuning)
             lastTickTime = CACurrentMediaTime()
+        }
+
+        private func playSweepIfLit(_ sample: DragFrameSample) {
+            guard !hasSwept, sample.edgeProximity >= tuning.sweepTrigger else { return }
+            hasSwept = true
+            if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                ghost?.playSweep(fromLeft: sample.edge == .right)
+            }
         }
 
         private func nextPose() -> GhostPose? {
@@ -141,24 +153,14 @@
             lastTickTime = now
             landing = current
             if current.isSettled {
-                finishLanding(at: pose)
+                finishLanding()
             }
             return pose
         }
 
-        private func finishLanding(at pose: GhostPose) {
+        private func finishLanding() {
             landing = nil
-            interpolator.reset()
-            let landedSession = currentSession
-            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                hide()
-            } else {
-                ghost?.playRipple(at: pose.center) { [weak self] in
-                    if self?.currentSession == landedSession {
-                        self?.hide()
-                    }
-                }
-            }
+            hide()
             if let start {
                 shelf.add(jpeg: start.thumbnailJPEG, edge: lastEdge, session: start.session)
                 reportLanded(start.session)
@@ -166,10 +168,6 @@
                     sound.play(edge: lastEdge)
                 }
             }
-        }
-
-        private func glow(for edge: PhoneEdge) -> EdgeOverlayPanel? {
-            edge == .right ? leftGlow : rightGlow
         }
 
         private func show() {
@@ -181,6 +179,7 @@
 
         private func hide() {
             ghost?.hide()
+            interpolator.reset()
             lens.stop()
             lastPose = nil
         }

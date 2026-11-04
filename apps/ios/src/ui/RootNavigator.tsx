@@ -7,6 +7,8 @@ import { StyleSheet, Text } from 'react-native';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { translate } from './i18n/translate';
 import { labTheme } from './lab-theme';
+import { SweepProvider } from './motion/SweepContext';
+import { EdgeSweep } from './effects/EdgeSweep';
 import { PlacementPulse } from './effects/PlacementPulse';
 import { PresenceAura } from './effects/PresenceAura';
 import { GalleryScreen } from './screens/GalleryScreen';
@@ -58,7 +60,7 @@ export function RootNavigator({
   );
 
   return (
-    <>
+    <SweepProvider>
       <NavigationContainer theme={DarkTheme}>
         <Stack.Navigator>
           <Stack.Screen
@@ -128,7 +130,8 @@ export function RootNavigator({
         readPlacement={useCases.readPlacement}
         isPeerConnected={useCases.isPeerConnected}
       />
-    </>
+      <EdgeSweep />
+    </SweepProvider>
   );
 }
 

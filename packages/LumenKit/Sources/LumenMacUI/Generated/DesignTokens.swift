@@ -51,11 +51,11 @@ public enum DesignTokens {
         public static let glowFadeSeconds: Double = 0.4
     }
 
-    public enum Ripple {
-        public static let seconds: Float = 1.1
-        public static let wavelengthPoints: Float = 36
-        public static let intensity: Float = 0.75
-        public static let macRadiusPoints: Float = 520
+    public enum Sweep {
+        public static let seconds: Float = 0.7
+        public static let bandPoints: Float = 80
+        public static let intensity: Float = 0.85
+        public static let triggerProximity: Float = 0.35
     }
 
     public enum Sound {

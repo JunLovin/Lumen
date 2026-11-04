@@ -40,7 +40,7 @@ export function renderSwift(tokens) {
       `        public static let ${name}Seconds: Double = ${seconds}`,
   );
   const { glow, chirp, pairing, placement, mirror, shelf } = tokens;
-  const { effects, presence, landing, sound, lens, ripple } = tokens;
+  const { effects, presence, landing, sound, lens, sweep } = tokens;
   const color = ([red, green, blue]) =>
     `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
   return [
@@ -94,11 +94,11 @@ export function renderSwift(tokens) {
     `        public static let glowFadeSeconds: Double = ${landing.glowFadeSeconds}`,
     '    }',
     '',
-    '    public enum Ripple {',
-    `        public static let seconds: Float = ${ripple.seconds}`,
-    `        public static let wavelengthPoints: Float = ${ripple.wavelengthPoints}`,
-    `        public static let intensity: Float = ${ripple.intensity}`,
-    `        public static let macRadiusPoints: Float = ${ripple.macRadiusPoints}`,
+    '    public enum Sweep {',
+    `        public static let seconds: Float = ${sweep.seconds}`,
+    `        public static let bandPoints: Float = ${sweep.bandPoints}`,
+    `        public static let intensity: Float = ${sweep.intensity}`,
+    `        public static let triggerProximity: Float = ${sweep.triggerProximity}`,
     '    }',
     '',
     '    public enum Sound {',

@@ -42,12 +42,11 @@ const tokens = {
     sheenSeconds: 0.8,
     glowFadeSeconds: 0.4,
   },
-  ripple: {
-    seconds: 1,
-    wavelengthPoints: 36,
-    intensity: 0.7,
-    phoneRadiusPoints: 340,
-    macRadiusPoints: 520,
+  sweep: {
+    seconds: 0.7,
+    bandPoints: 80,
+    intensity: 0.8,
+    triggerProximity: 0.35,
   },
   sound: { frequencyHz: 740, seconds: 0.2, gain: 0.1, pan: 0.7 },
   lens: { refractionPoints: 22, radiusFraction: 1.3 },

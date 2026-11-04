@@ -4,7 +4,6 @@ import Animated, {
   useDerivedValue,
   useReducedMotion,
 } from 'react-native-reanimated';
-import { DropRipple } from '../effects/DropRipple';
 import { EdgeGlow } from '../effects/EdgeGlow';
 import { PhotoDissolve } from '../effects/PhotoDissolve';
 import { labTheme } from '../lab-theme';
@@ -64,14 +63,6 @@ export function DragLayer({ drag, uri, size }: Props) {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Animated.View style={[styles.dim, dimStyle]} />
-      {!reduceMotion && (
-        <DropRipple
-          progress={drag.ripple}
-          x={drag.rippleX}
-          y={drag.rippleY}
-          palette={drag.palette}
-        />
-      )}
       <EdgeGlow
         width={drag.screenWidth}
         height={drag.screenHeight}

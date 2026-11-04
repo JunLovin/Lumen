@@ -18,6 +18,7 @@
             float progress;
             float wavelength;
             float intensity;
+            float fromLeft;
         };
 
         struct Varyings {
@@ -66,28 +67,30 @@
             return float4(color * alpha, alpha);
         }
 
-        fragment float4 rippleFragment(
+        fragment float4 sweepFragment(
             Varyings in [[stage_in]],
             constant Uniforms &u [[buffer(0)]],
             texture2d<float> screen [[texture(0)]]
         ) {
             constexpr sampler linear(filter::linear, address::clamp_to_edge);
-            float2 offset = (in.uv - 0.5) * u.size;
-            float reach = length(offset);
-            float edgeFade = 1 - smoothstep(0.35 * u.size, 0.5 * u.size, reach);
-            float phase = (reach - u.progress * 0.5 * u.size) / u.wavelength;
-            float packet = exp(-phase * phase * 0.22);
-            float crest = pow(0.5 + 0.5 * cos(phase * 6.2832), 3.0);
-            float decay = (1 - u.progress) * (1 - u.progress);
-            float light = saturate(u.intensity * packet * crest * decay * edgeFade);
-            float3 color = mix(u.glow.rgb, float3(1), crest * 0.5);
+            float x = u.fromLeft > 0.5 ? in.position.x : u.viewport.x - in.position.x;
+            float y = in.position.y / u.viewport.y;
+            float eased = 1 - pow(1 - u.progress, 2.2);
+            float sway = (noise(float2(y * 3, u.progress * 2)) - 0.5) * u.wavelength * 3;
+            float behind = eased * u.viewport.x * 1.25 + sway - x;
+            float crest = exp(-behind * behind / (u.wavelength * u.wavelength * 0.6));
+            float ripples = pow(0.5 + 0.5 * cos(behind / u.wavelength * 6.2832), 2.0);
+            float wake = behind > 0 ? exp(-behind / (u.wavelength * 5)) * ripples * 0.45 : 0;
+            float fade = 1 - smoothstep(0.72, 1.0, u.progress);
+            float light = saturate(u.intensity * (crest + wake) * fade);
+            float3 color = mix(u.glow.rgb, float3(1), crest * 0.6);
             if (u.hasTexture < 0.5) {
                 return float4(color * light, light);
             }
-            float2 direction = reach > 0 ? offset / reach : float2(0);
-            float bend = sin(phase * 6.2832) * packet * decay * u.refraction;
-            float3 water = screen.sample(linear, (in.position.xy - direction * bend) / u.viewport).rgb;
-            float waterAlpha = saturate(packet * decay * 2) * edgeFade;
+            float direction = u.fromLeft > 0.5 ? 1 : -1;
+            float bend = sin(behind / u.wavelength * 3.1416) * (crest + wake) * fade * u.refraction;
+            float3 water = screen.sample(linear, (in.position.xy - float2(direction * bend, 0)) / u.viewport).rgb;
+            float waterAlpha = saturate((crest + wake) * fade * 2);
             return float4(water * waterAlpha * (1 - light) + color * light, waterAlpha + light * (1 - waterAlpha));
         }
 

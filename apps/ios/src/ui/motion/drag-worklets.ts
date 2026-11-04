@@ -113,15 +113,25 @@ export const sendDragFrame = (
   );
 };
 
-export const startRipple = (drag: DragController, x: number, y: number) => {
+export const playSweepOnce = (
+  drag: DragController,
+  edge: FacingSide,
+  proximity: number,
+) => {
   'worklet';
-  const seconds = drag.tuning.value['ripple.seconds'] ?? tokens.ripple.seconds;
-  drag.rippleX.value = x;
-  drag.rippleY.value = y;
-  drag.ripple.value = 0;
-  drag.ripple.value = withTiming(1, {
-    duration: seconds * 1000,
-    easing: Easing.linear,
+  const tuned = drag.tuning.value;
+  const trigger =
+    tuned['sweep.triggerProximity'] ?? tokens.sweep.triggerProximity;
+  if (drag.hasSwept.value || proximity < trigger) {
+    return;
+  }
+  drag.hasSwept.value = true;
+  drag.sweep.fromLeft.value = edge === 'left';
+  drag.sweep.palette.value = drag.palette.value;
+  drag.sweep.progress.value = 0;
+  drag.sweep.progress.value = withTiming(1, {
+    duration: (tuned['sweep.seconds'] ?? tokens.sweep.seconds) * 1000,
+    easing: Easing.out(Easing.poly(2.2)),
   });
 };
 

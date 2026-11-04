@@ -18,12 +18,12 @@
         var progress: Float = 0
         var wavelength: Float = 0
         var intensity: Float = 0
+        var fromLeft: Float = 0
     }
 
-    private struct Ripple {
-        let center: MacPoint
+    private struct Sweep {
+        let fromLeft: Bool
         let startedAt: CFTimeInterval
-        let onFinished: () -> Void
     }
 
     @MainActor
@@ -36,8 +36,9 @@
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
         private let lensPipeline: MTLRenderPipelineState
-        private let ripplePipeline: MTLRenderPipelineState
-        private var ripple: Ripple?
+        private let sweepPipeline: MTLRenderPipelineState
+        private var sweep: Sweep?
+        var onSweepFinished: (() -> Void)?
         private let fallbackTexture: MTLTexture?
 
         init?(device: MTLDevice, pixelFormat: MTLPixelFormat) {
@@ -58,9 +59,9 @@
             guard let pipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
             descriptor.fragmentFunction = library.makeFunction(name: "lensFragment")
             guard let lensPipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
-            descriptor.fragmentFunction = library.makeFunction(name: "rippleFragment")
-            guard let ripplePipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
-            self.ripplePipeline = ripplePipeline
+            descriptor.fragmentFunction = library.makeFunction(name: "sweepFragment")
+            guard let sweepPipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
+            self.sweepPipeline = sweepPipeline
             self.queue = queue
             self.pipeline = pipeline
             self.lensPipeline = lensPipeline
@@ -72,8 +73,12 @@
             ))
         }
 
-        func playRipple(at center: MacPoint, onFinished: @escaping () -> Void) {
-            ripple = Ripple(center: center, startedAt: CACurrentMediaTime(), onFinished: onFinished)
+        var isSweeping: Bool {
+            sweep != nil
+        }
+
+        func playSweep(fromLeft: Bool) {
+            sweep = Sweep(fromLeft: fromLeft, startedAt: CACurrentMediaTime())
         }
 
         func mtkView(_: MTKView, drawableSizeWillChange _: CGSize) {}
@@ -86,7 +91,7 @@
                 let buffer = queue.makeCommandBuffer(),
                 let encoder = buffer.makeRenderCommandEncoder(descriptor: pass)
             else { return }
-            drawRipple(in: view, with: encoder)
+            drawSweep(in: view, with: encoder)
             if let pose {
                 draw(pose, in: view, with: encoder)
             }
@@ -124,20 +129,22 @@
                 ?? SIMD4(token.red, token.green, token.blue, 1)
         }
 
-        private func drawRipple(in view: MTKView, with encoder: MTLRenderCommandEncoder) {
-            guard let ripple else { return }
-            let progress = Float(CACurrentMediaTime() - ripple.startedAt) / tuning.rippleSeconds
+        private func drawSweep(in view: MTKView, with encoder: MTLRenderCommandEncoder) {
+            guard let sweep else { return }
+            let progress = Float(CACurrentMediaTime() - sweep.startedAt) / tuning.sweepSeconds
             guard progress < 1 else {
-                self.ripple = nil
-                ripple.onFinished()
+                self.sweep = nil
+                onSweepFinished?()
+                onSweepFinished = nil
                 return
             }
             let scale = Float(view.drawableSize.width / max(view.bounds.width, 1))
+            let viewport = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
             let screen = screenTexture(of: view)
             var uniforms = GhostUniforms(
-                center: SIMD2(Float(ripple.center.x), Float(ripple.center.y)) * scale,
-                viewport: SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height)),
-                size: tuning.rippleMacRadius * 2 * scale,
+                center: viewport / 2,
+                viewport: viewport,
+                size: viewport.max() * 2,
                 rotation: 0,
                 condensation: 0,
                 hasTexture: screen == nil ? 0 : 1,
@@ -146,11 +153,12 @@
                 bloom: 0,
                 refraction: DesignTokens.Lens.refractionPoints * scale,
                 progress: progress,
-                wavelength: tuning.rippleWavelength * scale,
-                intensity: tuning.rippleIntensity
+                wavelength: tuning.sweepBand * scale,
+                intensity: tuning.sweepIntensity,
+                fromLeft: sweep.fromLeft ? 1 : 0
             )
             let length = MemoryLayout<GhostUniforms>.stride
-            encoder.setRenderPipelineState(ripplePipeline)
+            encoder.setRenderPipelineState(sweepPipeline)
             encoder.setVertexBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentTexture(screen ?? fallbackTexture, index: 0)

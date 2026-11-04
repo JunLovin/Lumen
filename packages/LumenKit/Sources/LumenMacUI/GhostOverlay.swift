@@ -66,8 +66,8 @@
             )
         }
 
-        func playRipple(at center: MacPoint, onFinished: @escaping () -> Void) {
-            renderer.playRipple(at: center, onFinished: onFinished)
+        func playSweep(fromLeft: Bool) {
+            renderer.playSweep(fromLeft: fromLeft)
         }
 
         func setTuning(_ tuning: MotionTuning) {
@@ -88,11 +88,16 @@
         }
 
         func show() {
+            renderer.onSweepFinished = nil
             panel.orderFrontRegardless()
             view.isPaused = false
         }
 
         func hide() {
+            guard !renderer.isSweeping else {
+                renderer.onSweepFinished = { [weak self] in self?.hide() }
+                return
+            }
             panel.orderOut(nil)
             view.isPaused = true
             renderer.texture = nil

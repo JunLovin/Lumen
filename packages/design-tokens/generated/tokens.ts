@@ -144,11 +144,10 @@ export const tokens = {
     "activationPoints": 140,
     "curve": 1
   },
-  "ripple": {
-    "seconds": 1.1,
-    "wavelengthPoints": 36,
-    "intensity": 0.75,
-    "phoneRadiusPoints": 340,
-    "macRadiusPoints": 520
+  "sweep": {
+    "seconds": 0.7,
+    "bandPoints": 80,
+    "intensity": 0.85,
+    "triggerProximity": 0.35
   }
 } as const;
