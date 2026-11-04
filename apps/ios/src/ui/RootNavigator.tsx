@@ -14,6 +14,7 @@ import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
 import { InboxScreen } from './screens/InboxScreen';
 import { LatencyLabScreen } from './screens/LatencyLabScreen';
+import { MotionLabScreen } from './screens/MotionLabScreen';
 import { PlacementLabScreen } from './screens/PlacementLabScreen';
 
 type Routes = {
@@ -23,6 +24,7 @@ type Routes = {
   Placement: undefined;
   Latency: undefined;
   Glow: undefined;
+  Motion: undefined;
 };
 
 const Stack = createNativeStackNavigator<Routes>();
@@ -51,6 +53,7 @@ export function RootNavigator({
       onOpenPlacement={() => navigation.navigate('Placement')}
       onOpenLatency={() => navigation.navigate('Latency')}
       onOpenGlow={() => navigation.navigate('Glow')}
+      onOpenMotion={() => navigation.navigate('Motion')}
     />
   );
 
@@ -63,14 +66,15 @@ export function RootNavigator({
             options={({ navigation }) => ({
               title: translate('gallery.title'),
               gestureEnabled: false,
-              headerRight: () => (
-                <Text
-                  style={styles.headerLink}
-                  onPress={() => navigation.navigate('Diagnostics')}
-                >
-                  {translate('gallery.labs')}
-                </Text>
-              ),
+              headerRight: () =>
+                __DEV__ && (
+                  <Text
+                    style={styles.headerLink}
+                    onPress={() => navigation.navigate('Diagnostics')}
+                  >
+                    {translate('gallery.labs')}
+                  </Text>
+                ),
             })}
           >
             {() => <GalleryScreen useCases={useCases} />}
@@ -110,6 +114,12 @@ export function RootNavigator({
             options={{ title: translate('lab.glow'), gestureEnabled: false }}
           >
             {() => <GlowLabScreen />}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Motion"
+            options={{ title: translate('lab.motion') }}
+          >
+            {() => <MotionLabScreen useCases={useCases} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>

@@ -23,6 +23,10 @@ export type LabUseCases = {
   readonly reportEdgeExit: (edge: PhoneEdge) => void;
   readonly readPlacement: () => Promise<PeerPlacement>;
   readonly probeFileChannel: () => Promise<boolean>;
+  readonly tune: (name: string, value: number) => void;
+  readonly readTuning: () => Promise<Readonly<Record<string, number>>>;
+  readonly hasSeenOnboarding: () => boolean;
+  readonly markOnboardingSeen: () => void;
   readonly uiThreadChannel: UIThreadChannelPort;
   readonly phoneMetrics: PhoneMetrics;
   readonly readLibraryAccess: () => Promise<LibraryAccess>;

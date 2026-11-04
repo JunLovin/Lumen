@@ -17,6 +17,7 @@ type Props = {
   readonly onOpenPlacement: () => void;
   readonly onOpenLatency: () => void;
   readonly onOpenGlow: () => void;
+  readonly onOpenMotion: () => void;
 };
 
 const STATUS_POLL_MILLISECONDS = 1000;
@@ -33,6 +34,7 @@ export function DiagnosticsScreen({
   onOpenPlacement,
   onOpenLatency,
   onOpenGlow,
+  onOpenMotion,
 }: Props) {
   const diagnostics = loadDiagnostics();
   const [isConnected, setIsConnected] = useState(false);
@@ -98,6 +100,7 @@ export function DiagnosticsScreen({
       <LabButton title={translate('lab.placement')} onPress={onOpenPlacement} />
       <LabButton title={translate('lab.latency')} onPress={onOpenLatency} />
       <LabButton title={translate('lab.glow')} onPress={onOpenGlow} />
+      <LabButton title={translate('lab.motion')} onPress={onOpenMotion} />
     </View>
   );
 }

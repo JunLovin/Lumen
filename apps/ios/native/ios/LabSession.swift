@@ -39,6 +39,7 @@ actor LabSession {
     private var referenceEdge: PhoneEdge?
     var currentYawRadians: Double?
     private var nextRequestID: UInt32 = 1
+    var tuning: [String: Double] = [:]
 
     init() {
         let link = PhoneSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
@@ -170,6 +171,8 @@ actor LabSession {
                 await incoming.accept(offer)
             case let .received(.transferCancel(transferID)):
                 await incoming.cancel(transferID: transferID)
+            case let .received(.tuneToken(name, value)):
+                tuning[name] = Double(value)
             case .received(.landed):
                 haptics.impact(style: Self.landingHapticStyle)
             case .received(.beginLocate):

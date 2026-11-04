@@ -102,6 +102,18 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'inbox.share': 'Compartir',
   'inbox.delete': 'Eliminar',
   'inbox.folder': 'Carpeta',
+  'lab.motion': 'Motion Lab',
+  'motion.export': 'Exportar a tokens.json',
+  'motion.reset': 'Volver a los tokens',
+  'connection.lost':
+    'Tu Mac no está conectada. Abre Lumen en ella y usa el mismo Wi-Fi.',
+  'onboarding.title': 'Todo lo que cruza se convierte en luz',
+  'onboarding.body':
+    'Tu iPhone sabe dónde está tu Mac. Mantén presionada una foto y arrástrala más allá del borde que mira a la Mac.',
+  'onboarding.try': 'Pruébalo: arrastra esta tarjeta a cualquier borde.',
+  'onboarding.success': 'Ese es todo el gesto.',
+  'onboarding.start': 'Empezar',
+  'onboarding.skip': 'Omitir',
   'common.yes': 'Sí',
   'common.no': 'No',
 };

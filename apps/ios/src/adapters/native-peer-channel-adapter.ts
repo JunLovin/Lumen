@@ -33,4 +33,9 @@ export const createNativePeerChannelAdapter = (): PeerChannelPort => ({
   readPlacement: async () =>
     toPlacement(await NativeLumenKit.placementStatus()),
   probeFileChannel: () => NativeLumenKit.probeFileChannel(),
+  sendTuning: (name, value) => NativeLumenKit.sendTuning(name, value),
+  readTuning: async () =>
+    (await NativeLumenKit.readTuning()) as Readonly<Record<string, number>>,
+  hasSeenOnboarding: () => NativeLumenKit.hasSeenOnboarding(),
+  markOnboardingSeen: () => NativeLumenKit.markOnboardingSeen(),
 });

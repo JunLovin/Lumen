@@ -69,6 +69,12 @@ export interface Spec extends TurboModule {
     assetId: string,
     phoneHeightMillimeters: number,
   ): Promise<number[]>;
+  sendTuning(name: string, value: number): void;
+  // Codegen accepts a free-form map only under this spelling.
+  // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+  readTuning(): Promise<Object>;
+  hasSeenOnboarding(): boolean;
+  markOnboardingSeen(): void;
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;

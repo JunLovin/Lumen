@@ -9,6 +9,7 @@ import type { PeerPlacement } from '../../domain/peer-placement';
 import type { DragSession } from '../../domain/drag-session';
 import type { FacingSide } from '../../domain/shared-space';
 import { DEFAULT_PALETTE, usablePalette } from '../effects/glow-palette';
+import { useTuning } from './TuningContext';
 
 const PLACEMENT_POLL_MILLISECONDS = 500;
 const SESSION_BASE_RANGE = 2 ** 30;
@@ -43,6 +44,7 @@ export const useDragController = (useCases: LabUseCases) => {
   const lastEdge = useSharedValue<FacingSide>('right');
   const uploadStarted = useSharedValue(false);
   const layerRef = useAnimatedRef<Animated.View>();
+  const tuning = useTuning();
   const palette = useSharedValue<readonly number[]>(DEFAULT_PALETTE);
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export const useDragController = (useCases: LabUseCases) => {
       lastEdge,
       uploadStarted,
       palette,
+      tuning,
       beginTransfer: async (session: number, assetId: string) => {
         palette.value = DEFAULT_PALETTE;
         palette.value = usablePalette(
@@ -98,6 +101,7 @@ export const useDragController = (useCases: LabUseCases) => {
     }),
     [
       palette,
+      tuning,
       dragSession,
       lastEdge,
       uploadStarted,

@@ -9,6 +9,7 @@ import {
 } from '@shopify/react-native-skia';
 import { Image, StyleSheet } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
+import { useTuning } from '../motion/TuningContext';
 import { NOISE_SKSL } from './noise-sksl';
 
 type Props = {
@@ -68,16 +69,17 @@ export function PhotoDissolve({
   palette,
 }: Props) {
   const image = useImage(uri);
+  const tuning = useTuning();
   const uniforms = useDerivedValue(() => ({
     size: [size, size],
     dissolve: Math.min(dissolve.value, 1),
     edgeIsLeft: edgeIsLeft.value ? 1 : 0,
     tilt: tilt.value / MAX_TILT_DEGREES,
     glow: palette.value.slice(0, 3),
-    dissolveEdge,
-    aberration: aberrationPoints,
-    bloom,
-    specular,
+    dissolveEdge: tuning.value['effects.dissolveEdge'] ?? dissolveEdge,
+    aberration: tuning.value['effects.aberrationPoints'] ?? aberrationPoints,
+    bloom: tuning.value['effects.bloom'] ?? bloom,
+    specular: tuning.value['effects.specular'] ?? specular,
   }));
 
   if (effect === null || image === null) {

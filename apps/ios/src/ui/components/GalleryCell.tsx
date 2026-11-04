@@ -1,4 +1,3 @@
-import { tokens } from '@lumen/design-tokens';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
@@ -7,7 +6,6 @@ import Animated, {
   useAnimatedRef,
   useAnimatedStyle,
   useReducedMotion,
-  withSequence,
   withSpring,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -18,10 +16,11 @@ import { HAPTIC } from '../../domain/haptics';
 import {
   playStageHaptic,
   sendDragFrame,
+  settleDrag,
   updateGlow,
   updateTilt,
 } from '../motion/drag-worklets';
-import { springs } from '../motion/spring';
+import { tunedSpring } from '../motion/spring';
 import type { DragController } from '../motion/use-drag-controller';
 
 type Props = {
@@ -44,7 +43,6 @@ const REPULSION_RADIUS_POINTS = 170;
 const REPULSION_POINTS = 14;
 // A photo must be clearly past the edge to cross; an accidental graze returns to the gallery.
 const CROSSING_DEAD_ZONE = 0.25;
-const { flashPeak } = tokens.effects;
 const SPECULATIVE_UPLOAD_PROXIMITY = 0.5;
 
 export function GalleryCell({
@@ -90,7 +88,7 @@ export function GalleryCell({
       drag.activeIndex.value = index;
       drag.x.value = event.absoluteX;
       drag.y.value = event.absoluteY;
-      drag.lift.value = withSpring(1, springs.lift);
+      drag.lift.value = withSpring(1, tunedSpring(drag.tuning.value, 'lift'));
       drag.channel.impact(HAPTIC.soft);
       drag.dragSession.value = advanceDragSession(
         { stage: 'idle' },
@@ -100,8 +98,14 @@ export function GalleryCell({
       scheduleOnRN(onLift, uri);
     },
     onUpdate: event => {
-      drag.x.value = withSpring(event.absoluteX, springs.follow);
-      drag.y.value = withSpring(event.absoluteY, springs.follow);
+      drag.x.value = withSpring(
+        event.absoluteX,
+        tunedSpring(drag.tuning.value, 'follow'),
+      );
+      drag.y.value = withSpring(
+        event.absoluteY,
+        tunedSpring(drag.tuning.value, 'follow'),
+      );
       if (!reduceMotion) {
         updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
       }
@@ -153,34 +157,16 @@ export function GalleryCell({
       );
       if (crossed) {
         scheduleOnRN(drag.reportEdgeExit, edge);
-        drag.x.value = withSpring(
-          edge === 'right' ? drag.screenWidth + size : -size,
-          { ...springs.land, velocity: event.velocityX },
-        );
       } else {
         drag.channel.impact(HAPTIC.soft);
-        const frame = measure(reference);
-        if (frame !== null) {
-          drag.x.value = withSpring(frame.pageX + size / 2, springs.snapBack);
-          drag.y.value = withSpring(frame.pageY + size / 2, springs.snapBack);
-        }
       }
-      drag.rotation.value = withSpring(0, springs.snapBack);
-      drag.tiltX.value = withSpring(0, springs.snapBack);
-      drag.tiltY.value = withSpring(0, springs.snapBack);
-      const glow =
-        drag.lastEdge.value === 'left' ? drag.leftGlow : drag.rightGlow;
-      glow.value =
-        crossed && !reduceMotion
-          ? withSequence(
-              withSpring(flashPeak, springs.follow),
-              withSpring(0, springs.snapBack),
-            )
-          : withSpring(0, springs.snapBack);
-      drag.lift.value = withSpring(0, springs.snapBack, finished => {
-        if (finished) {
-          drag.activeIndex.value = -1;
-        }
+      settleDrag(drag, {
+        crossed,
+        edge,
+        velocityX: event.velocityX,
+        home: crossed ? null : measure(reference),
+        size,
+        reduceMotion,
       });
     },
   });
