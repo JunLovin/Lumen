@@ -56,7 +56,8 @@ public enum WireCodec {
             return .dragBegan(DragStart(
                 session: began.session,
                 thumbnailJPEG: Array(began.thumbnailJpeg),
-                phoneHeightMillimeters: began.phoneHeightMm
+                phoneHeightMillimeters: began.phoneHeightMm,
+                palette: GlowPalette(flat: began.glowPalette)
             ))
         case let .dragEnded(ended):
             return .dragEnded(DragEnd(
@@ -127,6 +128,7 @@ public enum WireCodec {
                 $0.session = start.session
                 $0.thumbnailJpeg = Data(start.thumbnailJPEG)
                 $0.phoneHeightMm = start.phoneHeightMillimeters
+                $0.glowPalette = start.palette?.flat ?? []
             })
         case let .dragEnded(end):
             .dragEnded(.with {

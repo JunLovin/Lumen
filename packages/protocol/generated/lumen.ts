@@ -215,6 +215,7 @@ export interface DragBegan {
   session: number;
   thumbnailJpeg: Uint8Array;
   phoneHeightMm: number;
+  glowPalette: number[];
 }
 
 export interface DragEnded {
@@ -1769,7 +1770,7 @@ export const PlacementUpdate: MessageFns<PlacementUpdate> = {
 };
 
 function createBaseDragBegan(): DragBegan {
-  return { session: 0, thumbnailJpeg: new Uint8Array(0), phoneHeightMm: 0 };
+  return { session: 0, thumbnailJpeg: new Uint8Array(0), phoneHeightMm: 0, glowPalette: [] };
 }
 
 export const DragBegan: MessageFns<DragBegan> = {
@@ -1782,6 +1783,13 @@ export const DragBegan: MessageFns<DragBegan> = {
     }
     if (message.phoneHeightMm !== 0) {
       writer.uint32(29).float(message.phoneHeightMm);
+    }
+    if (message.glowPalette.length !== 0) {
+      writer.uint32(34).fork();
+      for (const v of message.glowPalette) {
+        writer.float(v);
+      }
+      writer.join();
     }
     return writer;
   },
@@ -1823,6 +1831,24 @@ export const DragBegan: MessageFns<DragBegan> = {
             message.phoneHeightMm = reader.float();
             continue;
           }
+          case 4: {
+            if (tag === 37) {
+              message.glowPalette.push(reader.float());
+
+              continue;
+            }
+
+            if (tag === 34) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.glowPalette.push(reader.float());
+              }
+
+              continue;
+            }
+
+            break;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -1848,6 +1874,11 @@ export const DragBegan: MessageFns<DragBegan> = {
         : isSet(object.phone_height_mm)
         ? globalThis.Number(object.phone_height_mm)
         : 0,
+      glowPalette: globalThis.Array.isArray(object?.glowPalette)
+        ? object.glowPalette.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.glow_palette)
+        ? object.glow_palette.map((e: any) => globalThis.Number(e))
+        : [],
     };
   },
 
@@ -1862,6 +1893,9 @@ export const DragBegan: MessageFns<DragBegan> = {
     if (message.phoneHeightMm !== 0) {
       obj.phoneHeightMm = floatToJson(message.phoneHeightMm);
     }
+    if (message.glowPalette?.length) {
+      obj.glowPalette = message.glowPalette.map((e) => floatToJson(e));
+    }
     return obj;
   },
 
@@ -1873,6 +1907,7 @@ export const DragBegan: MessageFns<DragBegan> = {
     message.session = object.session ?? 0;
     message.thumbnailJpeg = object.thumbnailJpeg ?? new Uint8Array(0);
     message.phoneHeightMm = object.phoneHeightMm ?? 0;
+    message.glowPalette = object.glowPalette?.map((e) => e) || [];
     return message;
   },
 };

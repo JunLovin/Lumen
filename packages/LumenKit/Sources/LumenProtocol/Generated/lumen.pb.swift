@@ -390,6 +390,8 @@ public nonisolated struct Lumen_DragBegan: Sendable {
 
   public var phoneHeightMm: Float = 0
 
+  public var glowPalette: [Float] = []
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1473,7 +1475,7 @@ nonisolated extension Lumen_PlacementUpdate: SwiftProtobuf.Message, SwiftProtobu
 
 nonisolated extension Lumen_DragBegan: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".DragBegan"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{3}thumbnail_jpeg\0\u{3}phone_height_mm\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{3}thumbnail_jpeg\0\u{3}phone_height_mm\0\u{3}glow_palette\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1484,6 +1486,7 @@ nonisolated extension Lumen_DragBegan: SwiftProtobuf.Message, SwiftProtobuf._Mes
       case 1: try { try decoder.decodeSingularUInt32Field(value: &self.session) }()
       case 2: try { try decoder.decodeSingularBytesField(value: &self.thumbnailJpeg) }()
       case 3: try { try decoder.decodeSingularFloatField(value: &self.phoneHeightMm) }()
+      case 4: try { try decoder.decodeRepeatedFloatField(value: &self.glowPalette) }()
       default: break
       }
     }
@@ -1499,6 +1502,9 @@ nonisolated extension Lumen_DragBegan: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if self.phoneHeightMm.bitPattern != 0 {
       try visitor.visitSingularFloatField(value: self.phoneHeightMm, fieldNumber: 3)
     }
+    if !self.glowPalette.isEmpty {
+      try visitor.visitPackedFloatField(value: self.glowPalette, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1506,6 +1512,7 @@ nonisolated extension Lumen_DragBegan: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if lhs.session != rhs.session {return false}
     if lhs.thumbnailJpeg != rhs.thumbnailJpeg {return false}
     if lhs.phoneHeightMm != rhs.phoneHeightMm {return false}
+    if lhs.glowPalette != rhs.glowPalette {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

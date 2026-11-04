@@ -104,6 +104,7 @@ message DragBegan {
   uint32 session = 1;
   bytes thumbnail_jpeg = 2;
   float phone_height_mm = 3;
+  repeated float glow_palette = 4;
 }
 
 message DragEnded {

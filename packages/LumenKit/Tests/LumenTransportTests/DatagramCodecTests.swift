@@ -32,7 +32,8 @@ private let dragFrame = DragFrameSample(
     ("control-drag-began", PeerMessage.dragBegan(DragStart(
         session: 7,
         thumbnailJPEG: [1, 2],
-        phoneHeightMillimeters: 150.5
+        phoneHeightMillimeters: 150.5,
+        palette: GlowPalette(flat: [1, 0.5, 0, 0, 0.5, 1, 1, 1, 0.5])
     ))),
     ("control-drag-ended", PeerMessage.dragEnded(DragEnd(
         session: 7,
