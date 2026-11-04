@@ -68,7 +68,7 @@ export interface Spec extends TurboModule {
     session: number,
     assetId: string,
     phoneHeightMillimeters: number,
-  ): void;
+  ): Promise<number[]>;
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;

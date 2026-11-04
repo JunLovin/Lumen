@@ -1,4 +1,5 @@
 #if os(macOS)
+    import AppKit
     import LumenDomain
     import MetalKit
 
@@ -10,11 +11,13 @@
         var condensation: Float
         var hasTexture: Float
         var glow: SIMD4<Float>
+        var grainAmount: Float
     }
 
     @MainActor
     final class GhostRenderer: NSObject, MTKViewDelegate {
         var texture: MTLTexture?
+        var palette: GlowPalette?
         var nextPose: (() -> GhostPose?)?
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
@@ -67,6 +70,8 @@
         private func draw(_ pose: GhostPose, in view: MTKView, with encoder: MTLRenderCommandEncoder) {
             let scale = Float(view.drawableSize.width / max(view.bounds.width, 1))
             let token = DesignTokens.Glow.primary
+            let glow = palette.map { SIMD4($0.primary.red, $0.primary.green, $0.primary.blue, 1) }
+                ?? SIMD4(token.red, token.green, token.blue, 1)
             var uniforms = GhostUniforms(
                 center: SIMD2(Float(pose.center.x), Float(pose.center.y)) * scale,
                 viewport: SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height)),
@@ -74,7 +79,8 @@
                 rotation: Float(pose.rotation),
                 condensation: Float(pose.condensation),
                 hasTexture: texture == nil ? 0 : 1,
-                glow: SIMD4(token.red, token.green, token.blue, 1)
+                glow: glow,
+                grainAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : 1
             )
             let length = MemoryLayout<GhostUniforms>.stride
             encoder.setRenderPipelineState(pipeline)

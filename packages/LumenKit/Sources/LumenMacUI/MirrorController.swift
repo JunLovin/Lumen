@@ -13,6 +13,8 @@
         private let shelf: ShelfPanel
         private let comet = CometPanel()
         private let finderDrag: FinderDragMonitor
+        private let presence = PresenceAuraPanel()
+        private var glowHideTask: Task<Void, Never>?
         private var panel: NSPanel?
         private var metalView: MTKView?
         private var renderer: GhostRenderer?
@@ -47,9 +49,14 @@
 
         func placementChanged(from previous: PlacementSide?, to current: PlacementSide) {
             finderDrag.placement = current
-            if let previous, previous != current, current != .unknown {
+            let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            if let previous, previous != current, current != .unknown, !reduceMotion {
                 comet?.play(from: previous, to: current)
             }
+        }
+
+        func presenceChanged(_ placement: Placement?, isConnected: Bool) {
+            presence.update(placement: placement, isConnected: isConnected)
         }
 
         func transfer(_ update: TransferUpdate) {
@@ -59,6 +66,11 @@
         func begin(_ newStart: DragStart) {
             start = newStart
             prepare()
+            presence.setLifted(true)
+            glowHideTask?.cancel()
+            renderer?.palette = newStart.palette
+            leftGlow?.setPalette(newStart.palette)
+            rightGlow?.setPalette(newStart.palette)
             guard !newStart.thumbnailJPEG.isEmpty else { return }
             renderer?.texture = (metalView?.device).flatMap { device in
                 try? MTKTextureLoader(device: device).newTexture(
@@ -87,10 +99,15 @@
         }
 
         func end(_ end: DragEnd) {
+            presence.setLifted(false)
             leftGlow?.setProximity(0)
             rightGlow?.setProximity(0)
-            leftGlow?.hide()
-            rightGlow?.hide()
+            glowHideTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(DesignTokens.Landing.glowFadeSeconds))
+                guard !Task.isCancelled else { return }
+                self?.leftGlow?.hide()
+                self?.rightGlow?.hide()
+            }
             guard end.crossed, let pose = lastPose else {
                 hide()
                 return

@@ -30,6 +30,39 @@ public enum DesignTokens {
         public static let highlight = ColorToken(red: 1, green: 0.86, blue: 0.72)
     }
 
+    public enum Effects {
+        public static let particleAmount: Float = 0.8
+        public static let particleCells: Float = 26
+        public static let particleSpeed: Float = 0.55
+        public static let bloom: Float = 1.4
+    }
+
+    public enum Presence {
+        public static let minConfidence: Double = 0.8
+        public static let macWidthPoints: Double = 2
+        public static let restOpacity: Float = 0.35
+        public static let peakOpacity: Float = 0.7
+        public static let liftOpacity: Float = 1
+    }
+
+    public enum Landing {
+        public static let waveScale: Double = 1.3
+        public static let waveSeconds: Double = 0.7
+        public static let sheenSeconds: Double = 0.8
+        public static let glowFadeSeconds: Double = 0.4
+    }
+
+    public enum Sound {
+        public static let frequencyHz: Double = 740
+        public static let seconds: Double = 0.22
+        public static let gain: Float = 0.12
+    }
+
+    public enum Lens {
+        public static let refractionPoints: Float = 22
+        public static let radiusFraction: Float = 1.3
+    }
+
     public enum Pairing {
         public static let ringCycleSeconds: Double = 1.6
         public static let ringCount = 3

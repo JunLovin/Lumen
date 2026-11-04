@@ -143,10 +143,15 @@ RCT_EXPORT_MODULE(LumenKit)
 
 - (void)beginDrag:(double)session
            assetId:(NSString *)assetId
- phoneHeightMillimeters:(double)phoneHeightMillimeters {
+ phoneHeightMillimeters:(double)phoneHeightMillimeters
+                   resolve:(RCTPromiseResolveBlock)resolve
+                    reject:(RCTPromiseRejectBlock)reject {
   [_bridge beginDragWithSession:(int32_t)session
                         assetId:assetId
-         phoneHeightMillimeters:(float)phoneHeightMillimeters];
+         phoneHeightMillimeters:(float)phoneHeightMillimeters
+                     completion:^(NSArray<NSNumber *> *palette) {
+                       resolve(palette);
+                     }];
 }
 
 - (void)pickFilesToSend {

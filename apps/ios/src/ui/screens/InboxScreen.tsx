@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { FlatList, Image, Share, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
 import type { LabUseCases } from '../../application/lab-use-cases';
 import {
   formatByteCount,
@@ -9,6 +8,7 @@ import {
   type Inbox,
   type ReceivedFile,
 } from '../../domain/inbox';
+import { CondenseIn } from '../effects/CondenseIn';
 import { DiagnosticRow } from '../components/DiagnosticRow';
 import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
@@ -34,7 +34,7 @@ export function InboxScreen({ useCases }: Props) {
   }, [useCases]);
 
   const renderFile = ({ item }: { readonly item: ReceivedFile }) => (
-    <Animated.View entering={FadeInRight} style={styles.row}>
+    <CondenseIn style={styles.row}>
       {isPreviewableImage(item) && (
         <Image source={{ uri: item.uri }} style={styles.preview} />
       )}
@@ -60,7 +60,7 @@ export function InboxScreen({ useCases }: Props) {
       >
         {translate('inbox.delete')}
       </Text>
-    </Animated.View>
+    </CondenseIn>
   );
 
   return (

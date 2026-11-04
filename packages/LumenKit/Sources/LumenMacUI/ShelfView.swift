@@ -46,6 +46,8 @@
                 .frame(width: DesignTokens.Shelf.itemPoints, height: DesignTokens.Shelf.itemPoints)
                 .clipShape(.rect(cornerRadius: 10))
                 .overlay { outline }
+                .overlay { sheen }
+                .background { LandingWave() }
                 .overlay(alignment: .topTrailing) { removeButton }
                 .shadow(radius: 8)
                 .opacity(item.hasFailed ? 0.4 : 1)
@@ -53,6 +55,12 @@
                 .onTapGesture { model.onSave(item.id) }
                 .onDrag { item.fileURL.flatMap(NSItemProvider.init(contentsOf:)) ?? NSItemProvider() }
                 .help(item.savedName.map { String(localized: "shelf.saved \($0)", bundle: .module) } ?? "")
+        }
+
+        @ViewBuilder private var sheen: some View {
+            if item.fileURL != nil {
+                DeliveredSheen().clipShape(.rect(cornerRadius: 10))
+            }
         }
 
         @ViewBuilder private var removeButton: some View {

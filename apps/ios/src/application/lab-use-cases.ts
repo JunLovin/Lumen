@@ -40,7 +40,7 @@ export type LabUseCases = {
     session: number,
     assetId: string,
     phoneHeightMillimeters: number,
-  ) => void;
+  ) => Promise<readonly number[]>;
 };
 
 export type { UIThreadChannelPort };

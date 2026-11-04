@@ -111,6 +111,7 @@
             switch update {
             case let .connection(isConnected):
                 self.isConnected = isConnected
+                mirror.presenceChanged(placement, isConnected: isConnected)
             case let .bestClockRoundTrip(milliseconds):
                 clockRoundTripMilliseconds = milliseconds
             case let .frame(frame, receivedAtNs):
@@ -140,6 +141,7 @@
         private func apply(_ newPlacement: Placement, evidence: String) {
             mirror.placementChanged(from: placement?.side, to: newPlacement.side)
             placement = newPlacement
+            mirror.presenceChanged(newPlacement, isConnected: isConnected)
             placementHistory = Array(([evidence] + placementHistory).prefix(Self.historyLength))
         }
 

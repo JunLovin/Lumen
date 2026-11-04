@@ -12,6 +12,7 @@
             float condensation;
             float hasTexture;
             float4 glow;
+            float grainAmount;
         };
 
         struct Varyings {
@@ -51,7 +52,7 @@
             constexpr sampler linear(filter::linear);
             float2 fromCenter = abs(in.uv - 0.5) * 2;
             float corner = 1 - smoothstep(0.86, 1.0, length(max(fromCenter - 0.86, 0.0)) / 0.14);
-            float grain = noise(in.uv * 18) * 0.6 + noise(in.uv * 41) * 0.4;
+            float grain = mix(0.5, noise(in.uv * 18) * 0.6 + noise(in.uv * 41) * 0.4, u.grainAmount);
             float solid = smoothstep(grain - 0.12, grain + 0.12, u.condensation);
             float3 photo = u.hasTexture > 0.5 ? image.sample(linear, in.uv).rgb : u.glow.rgb;
             float rim = solid * (1 - solid) * 4;

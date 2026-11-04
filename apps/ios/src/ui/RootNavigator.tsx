@@ -8,6 +8,7 @@ import type { LabUseCases } from '../application/lab-use-cases';
 import { translate } from './i18n/translate';
 import { labTheme } from './lab-theme';
 import { PlacementPulse } from './effects/PlacementPulse';
+import { PresenceAura } from './effects/PresenceAura';
 import { GalleryScreen } from './screens/GalleryScreen';
 import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
@@ -113,6 +114,10 @@ export function RootNavigator({
         </Stack.Navigator>
       </NavigationContainer>
       <PlacementPulse readPlacement={useCases.readPlacement} />
+      <PresenceAura
+        readPlacement={useCases.readPlacement}
+        isPeerConnected={useCases.isPeerConnected}
+      />
     </>
   );
 }

@@ -1,6 +1,8 @@
 import { edgeProximity } from '../../domain/edge-proximity';
 import { activeEdge } from '../../domain/glow-edge';
+import type { DragSession } from '../../domain/drag-session';
 import { phoneToWorld, type FacingSide } from '../../domain/shared-space';
+import { HAPTIC } from '../../domain/haptics';
 import type { DragController } from './use-drag-controller';
 
 // Positions of PhoneEdge in the protocol.
@@ -35,6 +37,22 @@ export const updateGlow = (drag: DragController, fingerX: number) => {
   drag.leftGlow.value = edge === 'left' ? proximity : 0;
   drag.rightGlow.value = edge === 'right' ? proximity : 0;
   return { edge: edge ?? nearest, proximity };
+};
+
+export const playStageHaptic = (
+  drag: DragController,
+  previous: DragSession,
+  next: DragSession,
+) => {
+  'worklet';
+  if (previous.stage === next.stage) {
+    return;
+  }
+  if (next.stage === 'approaching' && previous.stage !== 'crossing') {
+    drag.channel.impact(HAPTIC.light);
+  } else if (next.stage === 'crossing') {
+    drag.channel.impact(HAPTIC.rigid);
+  }
 };
 
 export const updateTilt = (

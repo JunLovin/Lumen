@@ -106,5 +106,38 @@ export const tokens = {
     "itemPoints": 140,
     "fanDegrees": 6,
     "hideSeconds": 30
+  },
+  "effects": {
+    "particleAmount": 0.8,
+    "particleCells": 26,
+    "particleSpeed": 0.55,
+    "dissolveEdge": 0.12,
+    "aberrationPoints": 3,
+    "bloom": 1.4,
+    "specular": 0.28,
+    "flashPeak": 1.35
+  },
+  "presence": {
+    "minConfidence": 0.8,
+    "phoneWidthPoints": 2,
+    "macWidthPoints": 2,
+    "restOpacity": 0.35,
+    "peakOpacity": 0.7,
+    "liftOpacity": 1
+  },
+  "landing": {
+    "waveScale": 1.3,
+    "waveSeconds": 0.7,
+    "sheenSeconds": 0.8,
+    "glowFadeSeconds": 0.4
+  },
+  "sound": {
+    "frequencyHz": 740,
+    "seconds": 0.22,
+    "gain": 0.12
+  },
+  "lens": {
+    "refractionPoints": 22,
+    "radiusFraction": 1.3
   }
 } as const;

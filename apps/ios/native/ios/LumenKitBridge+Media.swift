@@ -7,7 +7,12 @@ public extension LumenKitBridge {
         512
     }
 
-    @objc func beginDrag(session frameSession: Int32, assetId: String, phoneHeightMillimeters: Float) {
+    @objc func beginDrag(
+        session frameSession: Int32,
+        assetId: String,
+        phoneHeightMillimeters: Float,
+        completion: @escaping @Sendable ([NSNumber]) -> Void
+    ) {
         let session = session
         let identifier = UInt32(bitPattern: frameSession)
         let transfers = session.transfers
@@ -21,11 +26,14 @@ public extension LumenKitBridge {
         }
         media.loadThumbnail(assetID: assetId, size: Self.dragThumbnailPixels) { uri in
             let bytes = uri.flatMap(URL.init(string:)).flatMap { try? Data(contentsOf: $0) } ?? Data()
+            let palette = PhotoPixels.rgb(ofJPEG: bytes).flatMap(GlowPalette.dominant(inRGB:))
+            completion((palette?.flat ?? []).map { NSNumber(value: $0) })
             Task {
                 await session.send(.dragBegan(DragStart(
                     session: identifier,
                     thumbnailJPEG: Array(bytes),
-                    phoneHeightMillimeters: phoneHeightMillimeters
+                    phoneHeightMillimeters: phoneHeightMillimeters,
+                    palette: palette
                 )))
             }
         }
