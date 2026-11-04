@@ -113,24 +113,14 @@ export const sendDragFrame = (
   );
 };
 
-export const playSweepOnce = (
-  drag: DragController,
-  edge: FacingSide,
-  proximity: number,
-) => {
+const playSweep = (drag: DragController, edge: FacingSide) => {
   'worklet';
-  const tuned = drag.tuning.value;
-  const trigger =
-    tuned['sweep.triggerProximity'] ?? tokens.sweep.triggerProximity;
-  if (drag.hasSwept.value || proximity < trigger) {
-    return;
-  }
-  drag.hasSwept.value = true;
+  const seconds = drag.tuning.value['sweep.seconds'] ?? tokens.sweep.seconds;
   drag.sweep.fromLeft.value = edge === 'left';
   drag.sweep.palette.value = drag.palette.value;
   drag.sweep.progress.value = 0;
   drag.sweep.progress.value = withTiming(1, {
-    duration: (tuned['sweep.seconds'] ?? tokens.sweep.seconds) * 1000,
+    duration: seconds * 1000,
     easing: Easing.out(Easing.poly(2.2)),
   });
 };
@@ -151,6 +141,9 @@ export const settleDrag = (
   'worklet';
   const tuned = drag.tuning.value;
   const snapBack = tunedSpring(tuned, 'snapBack');
+  if (crossed && !reduceMotion) {
+    playSweep(drag, edge);
+  }
   if (crossed) {
     drag.x.value = withSpring(
       edge === 'right' ? drag.screenWidth + size : -size,

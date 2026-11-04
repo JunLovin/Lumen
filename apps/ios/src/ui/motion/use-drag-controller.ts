@@ -47,7 +47,6 @@ export const useDragController = (useCases: LabUseCases) => {
   const layerRef = useAnimatedRef<Animated.View>();
   const tuning = useTuning();
   const sweep = useSweep();
-  const hasSwept = useSharedValue(false);
   const palette = useSharedValue<readonly number[]>(DEFAULT_PALETTE);
 
   useEffect(() => {
@@ -92,7 +91,6 @@ export const useDragController = (useCases: LabUseCases) => {
       palette,
       tuning,
       sweep,
-      hasSwept,
       beginTransfer: async (session: number, assetId: string) => {
         palette.value = DEFAULT_PALETTE;
         palette.value = usablePalette(
@@ -108,7 +106,6 @@ export const useDragController = (useCases: LabUseCases) => {
       palette,
       tuning,
       sweep,
-      hasSwept,
       dragSession,
       lastEdge,
       uploadStarted,

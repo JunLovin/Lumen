@@ -46,7 +46,6 @@ const tokens = {
     seconds: 0.7,
     bandPoints: 80,
     intensity: 0.8,
-    triggerProximity: 0.35,
   },
   sound: { frequencyHz: 740, seconds: 0.2, gain: 0.1, pan: 0.7 },
   lens: { refractionPoints: 22, radiusFraction: 1.3 },

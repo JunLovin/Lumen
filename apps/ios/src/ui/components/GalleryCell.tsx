@@ -17,7 +17,6 @@ import {
   playStageHaptic,
   sendDragFrame,
   settleDrag,
-  playSweepOnce,
   updateGlow,
   updateTilt,
 } from '../motion/drag-worklets';
@@ -90,7 +89,6 @@ export function GalleryCell({
       drag.x.value = event.absoluteX;
       drag.y.value = event.absoluteY;
       drag.lift.value = withSpring(1, tunedSpring(drag.tuning.value, 'lift'));
-      drag.hasSwept.value = false;
       drag.channel.impact(HAPTIC.soft);
       drag.dragSession.value = advanceDragSession(
         { stage: 'idle' },
@@ -113,9 +111,6 @@ export function GalleryCell({
       }
       const { edge, proximity } = updateGlow(drag, event.absoluteX);
       drag.lastEdge.value = edge;
-      if (!reduceMotion) {
-        playSweepOnce(drag, edge, proximity);
-      }
       if (
         proximity > SPECULATIVE_UPLOAD_PROXIMITY &&
         !drag.uploadStarted.value

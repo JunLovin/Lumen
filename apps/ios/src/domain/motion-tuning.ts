@@ -20,7 +20,6 @@ export const TUNABLES: readonly Tunable[] = [
   { path: 'sweep.seconds', min: 0.2, max: 2 },
   { path: 'sweep.bandPoints', min: 20, max: 240 },
   { path: 'sweep.intensity', min: 0, max: 2 },
-  { path: 'sweep.triggerProximity', min: 0.05, max: 1 },
   { path: 'proximity.activationPoints', min: 40, max: 300 },
   { path: 'proximity.curve', min: 0.4, max: 3 },
   { path: 'motion.springs.lift.response', min: 0.1, max: 1 },

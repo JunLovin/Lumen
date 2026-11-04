@@ -98,7 +98,6 @@ export function renderSwift(tokens) {
     `        public static let seconds: Float = ${sweep.seconds}`,
     `        public static let bandPoints: Float = ${sweep.bandPoints}`,
     `        public static let intensity: Float = ${sweep.intensity}`,
-    `        public static let triggerProximity: Float = ${sweep.triggerProximity}`,
     '    }',
     '',
     '    public enum Sound {',

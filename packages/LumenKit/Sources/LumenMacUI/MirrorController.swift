@@ -19,7 +19,6 @@
         private var tuning = MotionTuning()
         private var glowHideTask: Task<Void, Never>?
         private var ghost: GhostOverlay?
-        private var hasSwept = false
         private var leftGlow: EdgeOverlayPanel?
         private var rightGlow: EdgeOverlayPanel?
         private var interpolator = FrameInterpolator(
@@ -55,6 +54,10 @@
 
         func direct(_ offer: TransferOffer) {
             shelf.addDirect(offer, edge: lastEdge)
+            prepare()
+            show()
+            playArrivalSweep()
+            hide()
         }
 
         func placementChanged(from previous: PlacementSide?, to current: PlacementSide) {
@@ -91,7 +94,6 @@
                 currentSession = frame.sample.session
                 interpolator.reset()
                 landing = nil
-                hasSwept = false
                 prepare()
                 show()
             }
@@ -100,7 +102,6 @@
                 localTimestampNs: frame.localTimestampNs ?? receivedAtNs
             ))
             lastEdge = frame.sample.edge
-            playSweepIfLit(frame.sample)
             let glow = frame.sample.edge == .right ? leftGlow : rightGlow
             glow?.show()
             glow?.setProximity(frame.sample.edgeProximity)
@@ -124,11 +125,9 @@
             lastTickTime = CACurrentMediaTime()
         }
 
-        private func playSweepIfLit(_ sample: DragFrameSample) {
-            guard !hasSwept, sample.edgeProximity >= tuning.sweepTrigger else { return }
-            hasSwept = true
+        private func playArrivalSweep() {
             if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                ghost?.playSweep(fromLeft: sample.edge == .right)
+                ghost?.playSweep(fromLeft: lastEdge == .right)
             }
         }
 
@@ -160,6 +159,7 @@
 
         private func finishLanding() {
             landing = nil
+            playArrivalSweep()
             hide()
             if let start {
                 shelf.add(jpeg: start.thumbnailJPEG, edge: lastEdge, session: start.session)
@@ -178,9 +178,8 @@
         }
 
         private func hide() {
-            ghost?.hide()
+            ghost?.hide { [weak self] in self?.lens.stop() }
             interpolator.reset()
-            lens.stop()
             lastPose = nil
         }
 

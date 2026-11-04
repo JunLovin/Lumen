@@ -19,7 +19,6 @@
         Tunable(name: "sweep.seconds", initial: DesignTokens.Sweep.seconds, range: 0.2 ... 2),
         Tunable(name: "sweep.bandPoints", initial: DesignTokens.Sweep.bandPoints, range: 20 ... 240),
         Tunable(name: "sweep.intensity", initial: DesignTokens.Sweep.intensity, range: 0 ... 2),
-        Tunable(name: "sweep.triggerProximity", initial: DesignTokens.Sweep.triggerProximity, range: 0.05 ... 1),
         Tunable(
             name: "motion.springs.land.response",
             initial: Float(DesignTokens.Motion.land.response),

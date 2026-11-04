@@ -147,7 +147,6 @@ export const tokens = {
   "sweep": {
     "seconds": 0.7,
     "bandPoints": 80,
-    "intensity": 0.85,
-    "triggerProximity": 0.35
+    "intensity": 0.85
   }
 } as const;

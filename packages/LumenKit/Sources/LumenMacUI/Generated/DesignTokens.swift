@@ -55,7 +55,6 @@ public enum DesignTokens {
         public static let seconds: Float = 0.7
         public static let bandPoints: Float = 80
         public static let intensity: Float = 0.85
-        public static let triggerProximity: Float = 0.35
     }
 
     public enum Sound {

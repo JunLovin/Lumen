@@ -93,11 +93,13 @@
             view.isPaused = false
         }
 
-        func hide() {
+        /// A sweep in flight finishes before the panel goes away.
+        func hide(onHidden: @escaping () -> Void) {
             guard !renderer.isSweeping else {
-                renderer.onSweepFinished = { [weak self] in self?.hide() }
+                renderer.onSweepFinished = { [weak self] in self?.hide(onHidden: onHidden) }
                 return
             }
+            onHidden()
             panel.orderOut(nil)
             view.isPaused = true
             renderer.texture = nil

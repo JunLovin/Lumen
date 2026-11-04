@@ -11,7 +11,6 @@
         var sweepSeconds = DesignTokens.Sweep.seconds
         var sweepBand = DesignTokens.Sweep.bandPoints
         var sweepIntensity = DesignTokens.Sweep.intensity
-        var sweepTrigger = DesignTokens.Sweep.triggerProximity
         var landResponse = DesignTokens.Motion.land.response
         var landDamping = DesignTokens.Motion.land.damping
 
@@ -29,7 +28,6 @@
             case "sweep.seconds": sweepSeconds = value
             case "sweep.bandPoints": sweepBand = value
             case "sweep.intensity": sweepIntensity = value
-            case "sweep.triggerProximity": sweepTrigger = value
             case "motion.springs.land.response": landResponse = Double(value)
             case "motion.springs.land.damping": landDamping = Double(value)
             default: break
