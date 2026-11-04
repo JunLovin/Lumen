@@ -1,3 +1,4 @@
+import type { Inbox } from '../domain/inbox';
 import type { LibraryAccess } from '../domain/media';
 import type { PairingStatus } from '../domain/pairing';
 import type { PhoneMetrics } from '../domain/phone-metrics';
@@ -32,6 +33,9 @@ export type LabUseCases = {
     size: number,
   ) => Promise<string | null>;
   readonly manageLimitedAccess: () => void;
+  readonly readInbox: () => Promise<Inbox>;
+  readonly deleteReceivedFile: (name: string) => void;
+  readonly pickFilesToSend: () => void;
   readonly beginDragTransfer: (
     session: number,
     assetId: string,

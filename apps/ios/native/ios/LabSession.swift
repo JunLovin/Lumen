@@ -14,6 +14,7 @@ actor LabSession {
 
     let link: PhoneSecureLink
     nonisolated let transfers: TransferSender
+    nonisolated let incoming: IncomingFiles
     private let pairing: PairNearbyDevice
     private let advertiser = PhoneProximityAdvertiser()
     private let haptics = Haptics()
@@ -43,6 +44,7 @@ actor LabSession {
         let link = PhoneSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
         self.link = link
         transfers = TransferSender(link: link)
+        incoming = IncomingFiles(link: link)
         pairing = PairNearbyDevice(
             trustStore: KeychainTrustStore(service: "com.junlovin.lumen"),
             identityFactory: IdentityFactoryAdapter(),
@@ -158,11 +160,16 @@ actor LabSession {
             switch event {
             case .connected:
                 isConnected = true
+                await SharedOutbox.flush(using: transfers)
             case .disconnected, .incompatible:
                 isConnected = false
             case let .received(.clockPing(originNs)):
                 let now = clock.nowNanoseconds()
                 await link.send(.clockPong(originNs: originNs, receiveNs: now, transmitNs: now))
+            case let .received(.transferOffer(offer)):
+                await incoming.accept(offer)
+            case let .received(.transferCancel(transferID)):
+                await incoming.cancel(transferID: transferID)
             case .received(.landed):
                 haptics.impact(style: Self.landingHapticStyle)
             case .received(.beginLocate):

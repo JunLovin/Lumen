@@ -11,11 +11,13 @@ import { PlacementPulse } from './effects/PlacementPulse';
 import { GalleryScreen } from './screens/GalleryScreen';
 import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
+import { InboxScreen } from './screens/InboxScreen';
 import { LatencyLabScreen } from './screens/LatencyLabScreen';
 import { PlacementLabScreen } from './screens/PlacementLabScreen';
 
 type Routes = {
   Gallery: undefined;
+  Inbox: undefined;
   Diagnostics: undefined;
   Placement: undefined;
   Latency: undefined;
@@ -71,6 +73,12 @@ export function RootNavigator({
             })}
           >
             {() => <GalleryScreen useCases={useCases} />}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Inbox"
+            options={{ title: translate('inbox.title') }}
+          >
+            {() => <InboxScreen useCases={useCases} />}
           </Stack.Screen>
           <Stack.Screen
             name="Diagnostics"

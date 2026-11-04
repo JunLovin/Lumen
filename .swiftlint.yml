@@ -6,6 +6,7 @@ included:
   - packages/LumenKit/Tests
   - apps/macos/Lumen
   - apps/ios/native
+  - apps/ios/ios/LumenShare
 excluded:
   - packages/LumenKit/Sources/LumenProtocol/Generated
   - packages/LumenKit/Sources/LumenMacUI/Generated

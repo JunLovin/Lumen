@@ -38,6 +38,19 @@ export type NativeLibraryAsset = {
   readonly mediaType: string;
 };
 
+export type NativeReceivedFile = {
+  readonly name: string;
+  readonly uri: string;
+  readonly isDirectory: boolean;
+  readonly byteCount: number;
+};
+
+export type NativeInbox = {
+  readonly files: readonly NativeReceivedFile[];
+  readonly receivedBytes: number;
+  readonly totalBytes: number;
+};
+
 export interface Spec extends TurboModule {
   deviceModel(): string;
   libraryAccess(): string;
@@ -48,6 +61,9 @@ export interface Spec extends TurboModule {
   ): Promise<readonly NativeLibraryAsset[]>;
   loadThumbnail(assetId: string, size: number): Promise<string | null>;
   manageLimitedLibrary(): void;
+  pickFilesToSend(): void;
+  listReceivedFiles(): Promise<NativeInbox>;
+  deleteReceivedFile(name: string): void;
   beginDrag(
     session: number,
     assetId: string,

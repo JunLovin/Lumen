@@ -149,6 +149,21 @@ RCT_EXPORT_MODULE(LumenKit)
          phoneHeightMillimeters:(float)phoneHeightMillimeters];
 }
 
+- (void)pickFilesToSend {
+  [_bridge pickFilesToSend];
+}
+
+- (void)listReceivedFiles:(RCTPromiseResolveBlock)resolve
+                   reject:(RCTPromiseRejectBlock)reject {
+  [_bridge listReceivedFiles:^(NSDictionary *inbox) {
+    resolve(inbox);
+  }];
+}
+
+- (void)deleteReceivedFile:(NSString *)name {
+  [_bridge deleteReceivedFile:name];
+}
+
 - (void)manageLimitedLibrary {
   [_bridge manageLimitedLibrary];
 }

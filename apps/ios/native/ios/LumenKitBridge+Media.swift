@@ -59,4 +59,43 @@ public extension LumenKitBridge {
     @objc func manageLimitedLibrary() {
         media.presentLimitedPicker()
     }
+
+    @objc func pickFilesToSend() {
+        let transfers = session.transfers
+        Task { @MainActor in
+            let picker = FilePicker { urls in
+                Task {
+                    let accessible = urls.filter { $0.startAccessingSecurityScopedResource() }
+                    await transfers.sendDirect(files: urls)
+                    accessible.forEach { $0.stopAccessingSecurityScopedResource() }
+                }
+            }
+            LumenKitBridge.activePicker = picker
+            picker.present()
+        }
+    }
+
+    @objc func listReceivedFiles(_ completion: @escaping @Sendable (NSDictionary) -> Void) {
+        let incoming = session.incoming
+        Task {
+            let snapshot = await incoming.snapshot()
+            completion([
+                "files": snapshot.files.map { file in
+                    [
+                        "name": file.name,
+                        "uri": file.uri,
+                        "isDirectory": file.isDirectory,
+                        "byteCount": file.byteCount,
+                    ] as [String: Any]
+                },
+                "receivedBytes": snapshot.receivedBytes,
+                "totalBytes": snapshot.totalBytes,
+            ])
+        }
+    }
+
+    @objc func deleteReceivedFile(_ name: String) {
+        let incoming = session.incoming
+        Task { await incoming.delete(name: name) }
+    }
 }
