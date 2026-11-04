@@ -2,7 +2,6 @@
     import AppKit
     import LumenApplication
     import LumenDomain
-    import MetalKit
     import QuartzCore
 
     @MainActor
@@ -19,9 +18,7 @@
         private let lens = LensCapture()
         private var tuning = MotionTuning()
         private var glowHideTask: Task<Void, Never>?
-        private var panel: NSPanel?
-        private var metalView: MTKView?
-        private var renderer: GhostRenderer?
+        private var ghost: GhostOverlay?
         private var leftGlow: EdgeOverlayPanel?
         private var rightGlow: EdgeOverlayPanel?
         private var interpolator = FrameInterpolator(
@@ -51,7 +48,7 @@
 
         func tune(name: String, value: Float) {
             tuning.set(name: name, value: value)
-            renderer?.tuning = tuning
+            ghost?.setTuning(tuning)
             leftGlow?.setTuning(tuning)
             rightGlow?.setTuning(tuning)
         }
@@ -81,16 +78,11 @@
             prepare()
             presence.setLifted(true)
             glowHideTask?.cancel()
-            renderer?.palette = newStart.palette
+            ghost?.setPalette(newStart.palette)
             leftGlow?.setPalette(newStart.palette)
             rightGlow?.setPalette(newStart.palette)
             guard !newStart.thumbnailJPEG.isEmpty else { return }
-            renderer?.texture = (metalView?.device).flatMap { device in
-                try? MTKTextureLoader(device: device).newTexture(
-                    data: Data(newStart.thumbnailJPEG),
-                    options: [.origin: MTKTextureLoader.Origin.topLeft, .SRGB: false]
-                )
-            }
+            ghost?.setThumbnail(newStart.thumbnailJPEG)
         }
 
         func add(_ frame: LocalizedDragFrame, receivedAtNs: UInt64) {
@@ -125,21 +117,7 @@
                 hide()
                 return
             }
-            let space = BuiltInScreen.space
-            let sign = space.depthSign(edge: lastEdge)
-            let perMillimeter = space.pointsPerMillimeter
-            landing = GhostLanding(
-                from: pose,
-                velocity: MacPoint(
-                    x: Double(end.velocityXMillimetersPerSecond) * perMillimeter * sign,
-                    y: Double(end.velocityYMillimetersPerSecond) * perMillimeter
-                ),
-                target: shelf.slot(forEdge: lastEdge, in: space, objectSize: pose.size),
-                parameters: SpringParameters(
-                    response: tuning.landResponse,
-                    damping: tuning.landDamping
-                )
-            )
+            landing = GhostOverlay.landing(from: pose, end: end, edge: lastEdge, shelf: shelf, tuning: tuning)
             lastTickTime = CACurrentMediaTime()
         }
 
@@ -186,50 +164,25 @@
         }
 
         private func show() {
-            panel?.orderFrontRegardless()
-            metalView?.isPaused = false
+            ghost?.show()
             if settings.isLensEnabled, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
                 lens.start()
             }
         }
 
         private func hide() {
-            panel?.orderOut(nil)
-            metalView?.isPaused = true
+            ghost?.hide()
             lens.stop()
-            renderer?.texture = nil
             lastPose = nil
         }
 
         private func prepare() {
-            guard panel == nil, let device = MTLCreateSystemDefaultDevice() else { return }
-            let frame = BuiltInScreen.current.frame
-            let view = MTKView(frame: NSRect(origin: .zero, size: frame.size), device: device)
-            view.colorPixelFormat = .bgra8Unorm
-            view.clearColor = MTLClearColorMake(0, 0, 0, 0)
-            view.layer?.isOpaque = false
-            view.isPaused = true
-            guard let renderer = GhostRenderer(device: device, pixelFormat: view.colorPixelFormat) else { return }
-            renderer.nextPose = { [weak self] in self?.nextPose() }
-            renderer.lensSurface = { [weak self] in self?.lens.latestSurface }
-            renderer.tuning = tuning
-            view.delegate = renderer
-            let panel = NSPanel(
-                contentRect: frame,
-                styleMask: [.borderless, .nonactivatingPanel],
-                backing: .buffered,
-                defer: false
+            guard ghost == nil else { return }
+            ghost = GhostOverlay(
+                nextPose: { [weak self] in self?.nextPose() },
+                lensSurface: { [weak self] in self?.lens.latestSurface },
+                tuning: tuning
             )
-            panel.isOpaque = false
-            panel.backgroundColor = .clear
-            panel.hasShadow = false
-            panel.ignoresMouseEvents = true
-            panel.level = .statusBar
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-            panel.contentView = view
-            self.panel = panel
-            metalView = view
-            self.renderer = renderer
             leftGlow = EdgeOverlayPanel(onLeftEdge: true) { _ in }
             rightGlow = EdgeOverlayPanel { _ in }
             leftGlow?.setTuning(tuning)

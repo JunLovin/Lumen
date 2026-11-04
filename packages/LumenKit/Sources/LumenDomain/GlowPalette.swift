@@ -18,8 +18,8 @@ public struct PaletteColor: Sendable, Equatable {
     }
 
     func distanceSquared(to other: PaletteColor) -> Float {
-        let (dr, dg, db) = (red - other.red, green - other.green, blue - other.blue)
-        return dr * dr + dg * dg + db * db
+        let (deltaRed, deltaGreen, deltaBlue) = (red - other.red, green - other.green, blue - other.blue)
+        return deltaRed * deltaRed + deltaGreen * deltaGreen + deltaBlue * deltaBlue
     }
 
     /// A dark photo still has to read as light on a screen edge.
