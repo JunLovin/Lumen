@@ -17,6 +17,7 @@ import {
   playStageHaptic,
   sendDragFrame,
   settleDrag,
+  startRipple,
   updateGlow,
   updateTilt,
 } from '../motion/drag-worklets';
@@ -89,6 +90,13 @@ export function GalleryCell({
       drag.x.value = event.absoluteX;
       drag.y.value = event.absoluteY;
       drag.lift.value = withSpring(1, tunedSpring(drag.tuning.value, 'lift'));
+      if (!reduceMotion) {
+        startRipple(
+          drag,
+          event.absoluteX,
+          event.absoluteY - drag.layerTop.value,
+        );
+      }
       drag.channel.impact(HAPTIC.soft);
       drag.dragSession.value = advanceDragSession(
         { stage: 'idle' },

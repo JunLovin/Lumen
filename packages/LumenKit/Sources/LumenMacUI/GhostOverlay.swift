@@ -66,6 +66,10 @@
             )
         }
 
+        func playRipple(at center: MacPoint, onFinished: @escaping () -> Void) {
+            renderer.playRipple(at: center, onFinished: onFinished)
+        }
+
         func setTuning(_ tuning: MotionTuning) {
             renderer.tuning = tuning
         }

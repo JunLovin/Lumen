@@ -4,7 +4,12 @@ import { activeEdge } from '../../domain/glow-edge';
 import type { DragSession } from '../../domain/drag-session';
 import { phoneToWorld, type FacingSide } from '../../domain/shared-space';
 import { HAPTIC } from '../../domain/haptics';
-import { withSequence, withSpring } from 'react-native-reanimated';
+import {
+  Easing,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { tunedSpring } from './spring';
 import type { DragController } from './use-drag-controller';
 
@@ -106,6 +111,18 @@ export const sendDragFrame = (
     drag.rotation.value,
     edge === 'right' ? EDGE_INDEX_RIGHT : EDGE_INDEX_LEFT,
   );
+};
+
+export const startRipple = (drag: DragController, x: number, y: number) => {
+  'worklet';
+  const seconds = drag.tuning.value['ripple.seconds'] ?? tokens.ripple.seconds;
+  drag.rippleX.value = x;
+  drag.rippleY.value = y;
+  drag.ripple.value = 0;
+  drag.ripple.value = withTiming(1, {
+    duration: seconds * 1000,
+    easing: Easing.linear,
+  });
 };
 
 type Settle = {

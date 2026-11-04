@@ -16,6 +16,10 @@
         Tunable(name: "effects.particleCells", initial: DesignTokens.Effects.particleCells, range: 5 ... 60),
         Tunable(name: "effects.particleSpeed", initial: DesignTokens.Effects.particleSpeed, range: 0 ... 2),
         Tunable(name: "effects.bloom", initial: DesignTokens.Effects.bloom, range: 0 ... 4),
+        Tunable(name: "ripple.seconds", initial: DesignTokens.Ripple.seconds, range: 0.3 ... 3),
+        Tunable(name: "ripple.wavelengthPoints", initial: DesignTokens.Ripple.wavelengthPoints, range: 10 ... 120),
+        Tunable(name: "ripple.intensity", initial: DesignTokens.Ripple.intensity, range: 0 ... 2),
+        Tunable(name: "ripple.macRadiusPoints", initial: DesignTokens.Ripple.macRadiusPoints, range: 100 ... 1200),
         Tunable(
             name: "motion.springs.land.response",
             initial: Float(DesignTokens.Motion.land.response),

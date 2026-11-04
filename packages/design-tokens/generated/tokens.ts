@@ -126,10 +126,9 @@ export const tokens = {
     "liftOpacity": 1
   },
   "landing": {
-    "waveScale": 1.3,
-    "waveSeconds": 0.7,
     "sheenSeconds": 0.8,
-    "glowFadeSeconds": 0.4
+    "glowFadeSeconds": 0.4,
+    "popScale": 1.12
   },
   "sound": {
     "frequencyHz": 740,
@@ -144,5 +143,12 @@ export const tokens = {
   "proximity": {
     "activationPoints": 140,
     "curve": 1
+  },
+  "ripple": {
+    "seconds": 1.1,
+    "wavelengthPoints": 36,
+    "intensity": 0.75,
+    "phoneRadiusPoints": 340,
+    "macRadiusPoints": 520
   }
 } as const;

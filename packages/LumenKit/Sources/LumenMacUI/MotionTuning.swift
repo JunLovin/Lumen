@@ -8,6 +8,10 @@
         var particleCells = DesignTokens.Effects.particleCells
         var particleSpeed = DesignTokens.Effects.particleSpeed
         var bloom = DesignTokens.Effects.bloom
+        var rippleSeconds = DesignTokens.Ripple.seconds
+        var rippleWavelength = DesignTokens.Ripple.wavelengthPoints
+        var rippleIntensity = DesignTokens.Ripple.intensity
+        var rippleMacRadius = DesignTokens.Ripple.macRadiusPoints
         var landResponse = DesignTokens.Motion.land.response
         var landDamping = DesignTokens.Motion.land.damping
 
@@ -22,6 +26,10 @@
             case "effects.particleCells": particleCells = value
             case "effects.particleSpeed": particleSpeed = value
             case "effects.bloom": bloom = value
+            case "ripple.seconds": rippleSeconds = value
+            case "ripple.wavelengthPoints": rippleWavelength = value
+            case "ripple.intensity": rippleIntensity = value
+            case "ripple.macRadiusPoints": rippleMacRadius = value
             case "motion.springs.land.response": landResponse = Double(value)
             case "motion.springs.land.damping": landDamping = Double(value)
             default: break

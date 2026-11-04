@@ -49,8 +49,7 @@
         func tune(name: String, value: Float) {
             tuning.set(name: name, value: value)
             ghost?.setTuning(tuning)
-            leftGlow?.setTuning(tuning)
-            rightGlow?.setTuning(tuning)
+            [leftGlow, rightGlow].forEach { $0?.setTuning(tuning) }
         }
 
         func direct(_ offer: TransferOffer) {
@@ -142,14 +141,24 @@
             lastTickTime = now
             landing = current
             if current.isSettled {
-                finishLanding()
+                finishLanding(at: pose)
             }
             return pose
         }
 
-        private func finishLanding() {
+        private func finishLanding(at pose: GhostPose) {
             landing = nil
-            hide()
+            interpolator.reset()
+            let landedSession = currentSession
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                hide()
+            } else {
+                ghost?.playRipple(at: pose.center) { [weak self] in
+                    if self?.currentSession == landedSession {
+                        self?.hide()
+                    }
+                }
+            }
             if let start {
                 shelf.add(jpeg: start.thumbnailJPEG, edge: lastEdge, session: start.session)
                 reportLanded(start.session)
@@ -185,8 +194,7 @@
             )
             leftGlow = EdgeOverlayPanel(onLeftEdge: true) { _ in }
             rightGlow = EdgeOverlayPanel { _ in }
-            leftGlow?.setTuning(tuning)
-            rightGlow?.setTuning(tuning)
+            [leftGlow, rightGlow].forEach { $0?.setTuning(tuning) }
         }
     }
 #endif

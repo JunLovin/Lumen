@@ -46,10 +46,16 @@ public enum DesignTokens {
     }
 
     public enum Landing {
-        public static let waveScale: Double = 1.3
-        public static let waveSeconds: Double = 0.7
+        public static let popScale: Double = 1.12
         public static let sheenSeconds: Double = 0.8
         public static let glowFadeSeconds: Double = 0.4
+    }
+
+    public enum Ripple {
+        public static let seconds: Float = 1.1
+        public static let wavelengthPoints: Float = 36
+        public static let intensity: Float = 0.75
+        public static let macRadiusPoints: Float = 520
     }
 
     public enum Sound {

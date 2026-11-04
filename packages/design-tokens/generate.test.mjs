@@ -38,10 +38,16 @@ const tokens = {
     liftOpacity: 1,
   },
   landing: {
-    waveScale: 1.3,
-    waveSeconds: 0.7,
+    popScale: 1.1,
     sheenSeconds: 0.8,
     glowFadeSeconds: 0.4,
+  },
+  ripple: {
+    seconds: 1,
+    wavelengthPoints: 36,
+    intensity: 0.7,
+    phoneRadiusPoints: 340,
+    macRadiusPoints: 520,
   },
   sound: { frequencyHz: 740, seconds: 0.2, gain: 0.1, pan: 0.7 },
   lens: { refractionPoints: 22, radiusFraction: 1.3 },

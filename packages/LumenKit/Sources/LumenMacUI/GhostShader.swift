@@ -15,6 +15,9 @@
             float grainAmount;
             float bloom;
             float refraction;
+            float progress;
+            float wavelength;
+            float intensity;
         };
 
         struct Varyings {
@@ -61,6 +64,31 @@
             float3 color = mix(u.glow.rgb, photo, solid) + u.glow.rgb * rim * u.bloom;
             float alpha = corner * max(solid, 0.45 * (1 - solid));
             return float4(color * alpha, alpha);
+        }
+
+        fragment float4 rippleFragment(
+            Varyings in [[stage_in]],
+            constant Uniforms &u [[buffer(0)]],
+            texture2d<float> screen [[texture(0)]]
+        ) {
+            constexpr sampler linear(filter::linear, address::clamp_to_edge);
+            float2 offset = (in.uv - 0.5) * u.size;
+            float reach = length(offset);
+            float edgeFade = 1 - smoothstep(0.35 * u.size, 0.5 * u.size, reach);
+            float phase = (reach - u.progress * 0.5 * u.size) / u.wavelength;
+            float packet = exp(-phase * phase * 0.22);
+            float crest = pow(0.5 + 0.5 * cos(phase * 6.2832), 3.0);
+            float decay = (1 - u.progress) * (1 - u.progress);
+            float light = saturate(u.intensity * packet * crest * decay * edgeFade);
+            float3 color = mix(u.glow.rgb, float3(1), crest * 0.5);
+            if (u.hasTexture < 0.5) {
+                return float4(color * light, light);
+            }
+            float2 direction = reach > 0 ? offset / reach : float2(0);
+            float bend = sin(phase * 6.2832) * packet * decay * u.refraction;
+            float3 water = screen.sample(linear, (in.position.xy - direction * bend) / u.viewport).rgb;
+            float waterAlpha = saturate(packet * decay * 2) * edgeFade;
+            return float4(water * waterAlpha * (1 - light) + color * light, waterAlpha + light * (1 - waterAlpha));
         }
 
         fragment float4 lensFragment(

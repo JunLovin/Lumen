@@ -2,19 +2,18 @@
     import AppKit
     import SwiftUI
 
-    struct LandingWave: View {
-        @State private var hasPlayed = false
+    struct LandingPop: ViewModifier {
+        @State private var scale = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            ? 1
+            : DesignTokens.Landing.popScale
 
-        var body: some View {
-            if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(.white, lineWidth: 2)
-                    .scaleEffect(hasPlayed ? DesignTokens.Landing.waveScale : 0.9)
-                    .opacity(hasPlayed ? 0 : 0.8)
-                    .onAppear {
-                        withAnimation(.spring(duration: DesignTokens.Landing.waveSeconds)) { hasPlayed = true }
-                    }
-            }
+        func body(content: Content) -> some View {
+            content
+                .scaleEffect(scale)
+                .onAppear {
+                    let spring = DesignTokens.Motion.land
+                    withAnimation(.spring(response: spring.response, dampingFraction: spring.damping)) { scale = 1 }
+                }
         }
     }
 

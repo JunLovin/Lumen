@@ -45,6 +45,9 @@ export const useDragController = (useCases: LabUseCases) => {
   const uploadStarted = useSharedValue(false);
   const layerRef = useAnimatedRef<Animated.View>();
   const tuning = useTuning();
+  const ripple = useSharedValue(0);
+  const rippleX = useSharedValue(0);
+  const rippleY = useSharedValue(0);
   const palette = useSharedValue<readonly number[]>(DEFAULT_PALETTE);
 
   useEffect(() => {
@@ -88,6 +91,9 @@ export const useDragController = (useCases: LabUseCases) => {
       uploadStarted,
       palette,
       tuning,
+      ripple,
+      rippleX,
+      rippleY,
       beginTransfer: async (session: number, assetId: string) => {
         palette.value = DEFAULT_PALETTE;
         palette.value = usablePalette(
@@ -102,6 +108,9 @@ export const useDragController = (useCases: LabUseCases) => {
     [
       palette,
       tuning,
+      ripple,
+      rippleX,
+      rippleY,
       dragSession,
       lastEdge,
       uploadStarted,
