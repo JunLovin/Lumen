@@ -12,6 +12,7 @@
         private let reportLanded: (UInt32) -> Void
         private let shelf: ShelfPanel
         private let comet = CometPanel()
+        private let finderDrag: FinderDragMonitor
         private var panel: NSPanel?
         private var metalView: MTKView?
         private var renderer: GhostRenderer?
@@ -28,13 +29,24 @@
         private var landing: GhostLanding?
         private var lastTickTime = CACurrentMediaTime()
 
-        init(clock: any ClockPort, destination: DestinationFolder, reportLanded: @escaping (UInt32) -> Void) {
+        init(
+            clock: any ClockPort,
+            destination: DestinationFolder,
+            reportLanded: @escaping (UInt32) -> Void,
+            sendFiles: @escaping ([String]) -> Void
+        ) {
             shelf = ShelfPanel(destination: destination)
+            finderDrag = FinderDragMonitor(onDrop: sendFiles)
             self.clock = clock
             self.reportLanded = reportLanded
         }
 
+        func direct(_ offer: TransferOffer) {
+            shelf.addDirect(offer, edge: lastEdge)
+        }
+
         func placementChanged(from previous: PlacementSide?, to current: PlacementSide) {
+            finderDrag.placement = current
             if let previous, previous != current, current != .unknown {
                 comet?.play(from: previous, to: current)
             }

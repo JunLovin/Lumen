@@ -62,6 +62,8 @@
             self.clock = clock
             mirror = MirrorController(clock: clock, destination: destination) { landed in
                 Task { await session.reportLanded(session: landed) }
+            } sendFiles: { paths in
+                Task { await session.sendFiles(paths: paths) }
             }
             self.chirpAmplitude = chirpAmplitude
         }
@@ -123,6 +125,10 @@
                 mirror.begin(start)
             case let .dragEnded(end):
                 mirror.end(end)
+            case let .directTransfer(offer):
+                mirror.direct(offer)
+            case .sendingFiles:
+                break
             case let .transfer(update):
                 mirror.transfer(update)
                 if case let .completed(_, sha256Hex) = update.stage {

@@ -3,6 +3,7 @@
     import LumenDomain
     import Observation
     import SwiftUI
+    import UniformTypeIdentifiers
 
     struct ShelfItem: Identifiable {
         let id: UInt32
@@ -68,6 +69,17 @@
             model.items.append(ShelfItem(id: session, image: image))
             if let stage = earlyStages.removeValue(forKey: session) {
                 apply(stage, to: session)
+            }
+            show(edge: edge)
+        }
+
+        func addDirect(_ offer: TransferOffer, edge: PhoneEdge) {
+            let name = offer.resources.first?.fileName ?? ""
+            let icon = NSWorkspace.shared
+                .icon(for: UTType(filenameExtension: (name as NSString).pathExtension) ?? .data)
+            model.items.append(ShelfItem(id: offer.transferID, image: icon))
+            if let stage = earlyStages.removeValue(forKey: offer.transferID) {
+                apply(stage, to: offer.transferID)
             }
             show(edge: edge)
         }
