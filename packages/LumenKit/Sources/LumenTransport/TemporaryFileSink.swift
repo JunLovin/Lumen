@@ -9,7 +9,7 @@ public actor TemporaryFileSink: FileSinkPort {
         let directory: URL
         var receivedByResource: [UInt32: UInt64] = [:]
         var verified: Set<UInt32> = []
-        var names: [UInt32: String] = [:]
+        var paths: [UInt32: [String]] = [:]
         var lastDigest = ""
     }
 
@@ -25,6 +25,10 @@ public actor TemporaryFileSink: FileSinkPort {
         try? FileManager.default.removeItem(at: root)
     }
 
+    public nonisolated func directory(transferID: UInt32) -> URL {
+        root.appending(path: String(transferID))
+    }
+
     public func register(_ offer: TransferOffer) {
         guard incoming[offer.transferID] == nil else { return }
         let directory = root.appending(path: String(offer.transferID))
@@ -32,10 +36,17 @@ public actor TemporaryFileSink: FileSinkPort {
         else { return }
         var transfer = Incoming(offer: offer, directory: directory)
         for resource in offer.resources {
-            transfer.names[resource.index] = SafeFileName.sanitize(resource.fileName)
+            guard let components = SafeRelativePath.components(of: resource.fileName) else { continue }
+            transfer.paths[resource.index] = components
+            if resource.isDirectory {
+                let folder = components.reduce(directory) { $0.appending(path: $1) }
+                try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                transfer.verified.insert(resource.index)
+            }
         }
         incoming[offer.transferID] = transfer
         publishProgress(transfer)
+        completeIfReady(offer.transferID)
     }
 
     public func resumeOffset(transferID: UInt32, resourceIndex: UInt32) -> UInt64? {
@@ -66,7 +77,7 @@ public actor TemporaryFileSink: FileSinkPort {
         guard
             let transfer = incoming[transferID],
             let partial = partialURL(transfer, resourceIndex),
-            let name = transfer.names[resourceIndex],
+            let components = transfer.paths[resourceIndex],
             let digest = try? FileUploader.sha256(of: partial)
         else { return false }
         guard Array(digest) == sha256 else {
@@ -74,8 +85,10 @@ public actor TemporaryFileSink: FileSinkPort {
             incoming[transferID]?.receivedByResource[resourceIndex] = 0
             return false
         }
-        let final = transfer.directory.appending(path: name)
-        guard (try? FileManager.default.moveItem(at: partial, to: final)) != nil else { return false }
+        let final = components.reduce(transfer.directory) { $0.appending(path: $1) }
+        let manager = FileManager.default
+        try? manager.createDirectory(at: final.deletingLastPathComponent(), withIntermediateDirectories: true)
+        guard (try? manager.moveItem(at: partial, to: final)) != nil else { return false }
         incoming[transferID]?.verified.insert(resourceIndex)
         incoming[transferID]?.lastDigest = digest.map { String(format: "%02x", $0) }.joined()
         completeIfReady(transferID)
@@ -91,15 +104,19 @@ public actor TemporaryFileSink: FileSinkPort {
         continuation.yield(TransferUpdate(transferID: transferID, stage: .cancelled))
     }
 
+    public func forget(transferID: UInt32) {
+        incoming[transferID] = nil
+    }
+
     private func completeIfReady(_ transferID: UInt32) {
         guard
             let transfer = incoming[transferID],
             transfer.verified.count == transfer.offer.resources.count
         else { return }
-        let single = transfer.offer.resources.count == 1
-            ? transfer.offer.resources.first.flatMap { transfer.names[$0.index] }
-            : nil
-        let delivered = single.map { transfer.directory.appending(path: $0) } ?? transfer.directory
+        let topLevel = Set(transfer.paths.values.compactMap(\.first))
+        let delivered = topLevel.count == 1
+            ? topLevel.first.map { transfer.directory.appending(path: $0) } ?? transfer.directory
+            : transfer.directory
         continuation.yield(TransferUpdate(
             transferID: transferID,
             stage: .completed(path: delivered.path, sha256Hex: transfer.lastDigest)
@@ -115,7 +132,7 @@ public actor TemporaryFileSink: FileSinkPort {
     }
 
     private func partialURL(_ transfer: Incoming, _ resourceIndex: UInt32) -> URL? {
-        guard transfer.names[resourceIndex] != nil else { return nil }
+        guard transfer.paths[resourceIndex] != nil else { return nil }
         return transfer.directory.appending(path: "\(resourceIndex).partial")
     }
 

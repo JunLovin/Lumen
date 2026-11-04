@@ -82,16 +82,27 @@ private func completedPath(in sink: TemporaryFileSink) async -> String? {
     #expect(await sink.resumeOffset(transferID: 1, resourceIndex: 0) == nil)
 }
 
-@Test func aPathTraversalNameStaysInsideTheTransferFolder() async throws {
-    let root = makeRoot()
-    let sink = TemporaryFileSink(root: root)
+@Test func aPathTraversalNameIsRejected() async {
+    let sink = TemporaryFileSink(root: makeRoot())
     await sink.register(offer(names: ["../../../evil.txt"]))
+    #expect(await sink.resumeOffset(transferID: 1, resourceIndex: 0) == nil)
+}
+
+@Test func nestedPathsKeepTheirFoldersIncludingEmptyOnes() async throws {
+    let sink = TemporaryFileSink(root: makeRoot())
+    await sink.register(TransferOffer(transferID: 1, resources: [
+        TransferResource(index: 0, fileName: "Proyecto/docs/a.txt", byteCount: 1),
+        TransferResource(index: 1, fileName: "Proyecto/vacia", byteCount: 0, isDirectory: true),
+    ]))
     _ = await sink.resumeOffset(transferID: 1, resourceIndex: 0)
-    _ = await sink.append([1], transferID: 1, resourceIndex: 0)
-    _ = await sink.finish(transferID: 1, resourceIndex: 0, sha256: digest([1]))
+    _ = await sink.append([7], transferID: 1, resourceIndex: 0)
+    #expect(await sink.finish(transferID: 1, resourceIndex: 0, sha256: digest([7])))
     let path = try #require(await completedPath(in: sink))
-    #expect(URL(filePath: path).standardized.path.hasPrefix(root.standardized.path))
-    #expect(path.hasSuffix("evil.txt"))
+    #expect(path.hasSuffix("Proyecto"))
+    let manager = FileManager.default
+    #expect(manager.fileExists(atPath: path + "/docs/a.txt"))
+    var isDirectory: ObjCBool = false
+    #expect(manager.fileExists(atPath: path + "/vacia", isDirectory: &isDirectory) && isDirectory.boolValue)
 }
 
 @Test func anUnsafeNameIsRejected() async {

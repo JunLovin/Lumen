@@ -2,19 +2,21 @@ import LumenDomain
 import Testing
 
 @Test(arguments: [
-    ("IMG_0001.HEIC", "IMG_0001.HEIC"),
-    ("../../etc/passwd", "passwd"),
-    ("/etc/passwd", "passwd"),
-    ("..\\..\\secret.txt", "secret.txt"),
-    ("foto de mamá.jpg", "foto de mamá.jpg"),
+    ("IMG_0001.HEIC", ["IMG_0001.HEIC"]),
+    ("Proyecto/docs/a.pdf", ["Proyecto", "docs", "a.pdf"]),
+    ("foto de mamá.jpg", ["foto de mamá.jpg"]),
+    (".git/config", [".git", "config"]),
 ])
-func keepsOnlyASafeLastComponent(input: String, expected: String) {
-    #expect(SafeFileName.sanitize(input) == expected)
+func keepsSafePaths(input: String, expected: [String]) {
+    #expect(SafeRelativePath.components(of: input) == expected)
 }
 
-@Test(arguments: ["", "..", ".", "/", "../", ".hidden", "a\u{0}b", "a\nb", String(repeating: "x", count: 300)])
-func rejectsDangerousNames(input: String) {
-    #expect(SafeFileName.sanitize(input) == nil)
+@Test(arguments: [
+    "", "..", ".", "/", "/etc/passwd", "../evil", "a/../../evil", "a/./b", "a//b", "a/",
+    "..\\evil", "a\u{0}b", "a\nb", "C:evil", String(repeating: "x", count: 300),
+])
+func rejectsDangerousPaths(input: String) {
+    #expect(SafeRelativePath.components(of: input) == nil)
 }
 
 @Test func anOfferAddsUpItsResources() {

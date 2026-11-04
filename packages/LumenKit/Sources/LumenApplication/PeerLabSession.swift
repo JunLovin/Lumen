@@ -1,22 +1,5 @@
 import LumenDomain
 
-public struct LocalizedDragFrame: Sendable, Equatable {
-    public let sample: DragFrameSample
-    public let localTimestampNs: UInt64?
-}
-
-public enum PeerLabUpdate: Sendable, Equatable {
-    case connection(isConnected: Bool)
-    case bestClockRoundTrip(milliseconds: Double)
-    case frame(LocalizedDragFrame, receivedAtNs: UInt64)
-    case acousticReport(AcousticReading)
-    case placement(Placement, evidence: String)
-    case audioRoute(canPlayUltrasound: Bool)
-    case dragBegan(DragStart)
-    case dragEnded(DragEnd)
-    case transfer(TransferUpdate)
-}
-
 public actor PeerLabSession {
     private static let burstPingCount = 8
     private static let burstPingInterval = Duration.milliseconds(100)
@@ -30,6 +13,7 @@ public actor PeerLabSession {
     private let audioRoute: any AudioRoutePort
     private let placementStore: any PlacementStorePort
     private let fileSink: any FileSinkPort
+    private let fileSource: any FileSourcePort
     private var resolver = PlacementResolver()
     private var detachment = DetachmentDetector(farRSSI: -75, nearRSSI: -65, requiredReadings: 5)
     private var estimator = ClockOffsetEstimator()
@@ -43,6 +27,7 @@ public actor PeerLabSession {
         audioRoute: any AudioRoutePort,
         placementStore: any PlacementStorePort,
         fileSink: any FileSinkPort,
+        fileSource: any FileSourcePort,
         chirpAmplitude: Float
     ) {
         (updates, updatesContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(256))
@@ -52,6 +37,7 @@ public actor PeerLabSession {
         self.audioRoute = audioRoute
         self.placementStore = placementStore
         self.fileSink = fileSink
+        self.fileSource = fileSource
         self.chirpAmplitude = chirpAmplitude
     }
 
@@ -73,6 +59,12 @@ public actor PeerLabSession {
 
     public func setChirpAmplitude(_ amplitude: Float) {
         chirpAmplitude = amplitude
+    }
+
+    public func sendFiles(paths: [String]) async {
+        guard let offer = await fileSource.prepareBatch(paths: paths, isDirect: true) else { return }
+        updatesContinuation.yield(.sendingFiles(offer))
+        await link.send(.transferOffer(offer))
     }
 
     public func reportLanded(session: UInt32) async {
@@ -148,8 +140,12 @@ public actor PeerLabSession {
             updatesContinuation.yield(.dragEnded(end))
         case let .transferOffer(offer):
             await fileSink.register(offer)
+            if offer.isDirect {
+                updatesContinuation.yield(.directTransfer(offer))
+            }
         case let .transferCancel(transferID):
             await fileSink.cancel(transferID: transferID)
+            await fileSource.discard(transferID: transferID)
         case let .transferPreparing(transferID, fraction):
             updatesContinuation.yield(.transfer(TransferUpdate(
                 transferID: transferID,
