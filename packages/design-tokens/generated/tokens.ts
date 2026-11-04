@@ -102,7 +102,7 @@ export const tokens = {
   "shelf": {
     "insetPoints": 24,
     "widthPoints": 200,
-    "heightPoints": 260,
+    "heightPoints": 460,
     "itemPoints": 140,
     "fanDegrees": 6,
     "hideSeconds": 30

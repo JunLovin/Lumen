@@ -42,6 +42,18 @@
 
         func deliver(_ source: URL) -> URL {
             guard let folder else { return source }
+            return copy(source, into: folder) ?? source
+        }
+
+        func save(_ source: URL) -> URL? {
+            if let folder, source.path.hasPrefix(folder.path) {
+                return source
+            }
+            let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+            return (folder ?? downloads).flatMap { copy(source, into: $0) }
+        }
+
+        private func copy(_ source: URL, into folder: URL) -> URL? {
             let didAccess = folder.startAccessingSecurityScopedResource()
             defer {
                 if didAccess {
@@ -49,7 +61,7 @@
                 }
             }
             let target = availableURL(for: source.lastPathComponent, in: folder)
-            return (try? FileManager.default.copyItem(at: source, to: target)) == nil ? source : target
+            return (try? FileManager.default.copyItem(at: source, to: target)) == nil ? nil : target
         }
 
         private func availableURL(for name: String, in folder: URL) -> URL {

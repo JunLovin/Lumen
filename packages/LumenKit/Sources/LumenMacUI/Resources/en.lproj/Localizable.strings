@@ -43,3 +43,4 @@
 "menu.chooseFolder" = "Save received files to a folder…";
 "menu.useShelf" = "Keep received files on the shelf";
 "lab.lastHash" = "Last file SHA-256";
+"shelf.saved %@" = "Saved as %@";
