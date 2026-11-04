@@ -99,3 +99,12 @@ private func completedPath(in sink: TemporaryFileSink) async -> String? {
     await sink.register(offer(names: [".."]))
     #expect(await sink.resumeOffset(transferID: 1, resourceIndex: 0) == nil)
 }
+
+@Test func aRepeatedOfferDoesNotDisturbATransferInProgress() async {
+    let sink = TemporaryFileSink(root: makeRoot())
+    await sink.register(offer(names: ["a.mov"]))
+    _ = await sink.resumeOffset(transferID: 1, resourceIndex: 0)
+    _ = await sink.append([1, 2], transferID: 1, resourceIndex: 0)
+    await sink.register(offer(names: ["a.mov"]))
+    #expect(await sink.resumeOffset(transferID: 1, resourceIndex: 0) == 2)
+}

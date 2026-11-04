@@ -10,6 +10,10 @@ import type { DragSession } from '../../domain/drag-session';
 import type { FacingSide } from '../../domain/shared-space';
 
 const PLACEMENT_POLL_MILLISECONDS = 500;
+const SESSION_BASE_RANGE = 2 ** 30;
+
+// The Mac keeps transfers by session while it runs, and this counter restarts with the iPhone app.
+const randomSessionBase = () => Math.floor(Math.random() * SESSION_BASE_RANGE);
 
 const facingSide = (placement: PeerPlacement): FacingSide | null =>
   placement.facingEdge === 'left' || placement.facingEdge === 'right'
@@ -30,7 +34,7 @@ export const useDragController = (useCases: LabUseCases) => {
   const rightGlow = useSharedValue(0);
   const confidence = useSharedValue(0);
   const facingIsRight = useSharedValue<boolean | null>(null);
-  const session = useSharedValue(0);
+  const session = useSharedValue(randomSessionBase());
   const sequence = useSharedValue(0);
   const gridOffsetY = useSharedValue(0);
   const layerTop = useSharedValue(0);
