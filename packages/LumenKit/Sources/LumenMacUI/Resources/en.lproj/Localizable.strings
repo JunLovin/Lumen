@@ -40,3 +40,6 @@
 "lab.detached" = "Detached";
 "lab.ultrasoundRoute" = "Internal speakers in use";
 "lab.history" = "Evidence";
+"menu.chooseFolder" = "Save received files to a folder…";
+"menu.useShelf" = "Keep received files on the shelf";
+"lab.lastHash" = "Last file SHA-256";

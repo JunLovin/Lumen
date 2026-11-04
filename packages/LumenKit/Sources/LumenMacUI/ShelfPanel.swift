@@ -7,7 +7,9 @@
     struct ShelfItem: Identifiable {
         let id: UInt32
         let image: NSImage
-        let fileURL: URL
+        var progress: Double = 0
+        var fileURL: URL?
+        var hasFailed = false
     }
 
     @MainActor
@@ -20,8 +22,14 @@
     @MainActor
     final class ShelfPanel {
         private let model = ShelfModel()
+        private let destination: DestinationFolder
         private var panel: NSPanel?
         private var hideTask: Task<Void, Never>?
+        private var earlyStages: [UInt32: TransferStage] = [:]
+
+        init(destination: DestinationFolder) {
+            self.destination = destination
+        }
 
         func slot(forEdge edge: PhoneEdge, in space: MacSpace, objectSize _: Double) -> MacPoint {
             let offset = DesignTokens.Shelf.insetPoints + DesignTokens.Shelf.widthPoints / 2
@@ -29,10 +37,38 @@
         }
 
         func add(jpeg: [UInt8], edge: PhoneEdge, session: UInt32) {
-            let data = Data(jpeg)
-            guard let image = NSImage(data: data), let url = Self.write(data, session: session) else { return }
-            model.items.append(ShelfItem(id: session, image: image, fileURL: url))
+            guard let image = NSImage(data: Data(jpeg)) else { return }
+            model.items.append(ShelfItem(id: session, image: image))
+            if let stage = earlyStages.removeValue(forKey: session) {
+                apply(stage, to: session)
+            }
             show(edge: edge)
+        }
+
+        func update(_ update: TransferUpdate) {
+            let id = update.transferID
+            if model.items.contains(where: { $0.id == id }) {
+                apply(update.stage, to: id)
+            } else if case .cancelled = update.stage {
+                earlyStages[id] = nil
+            } else {
+                earlyStages[id] = update.stage
+            }
+        }
+
+        private func apply(_ stage: TransferStage, to id: UInt32) {
+            guard let index = model.items.firstIndex(where: { $0.id == id }) else { return }
+            switch stage {
+            case let .preparing(fraction):
+                model.items[index].progress = fraction * 0.1
+            case let .receiving(received, total):
+                model.items[index].progress = total > 0 ? 0.1 + 0.9 * Double(received) / Double(total) : 0.1
+            case let .completed(path, _):
+                model.items[index].fileURL = destination.deliver(URL(filePath: path))
+                model.items[index].progress = 1
+            case .failed, .cancelled:
+                model.items[index].hasFailed = true
+            }
         }
 
         private func show(edge: PhoneEdge) {
@@ -60,7 +96,8 @@
             hideTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(DesignTokens.Shelf.hideSeconds))
                 guard let self, !Task.isCancelled else { return }
-                if model.isHovering {
+                let isBusy = model.isHovering || model.items.contains { $0.fileURL == nil && !$0.hasFailed }
+                if isBusy {
                     scheduleHide()
                 } else {
                     panel?.orderOut(nil)
@@ -83,12 +120,6 @@
             panel.contentView = NSHostingView(rootView: ShelfView(model: model))
             return panel
         }
-
-        private static func write(_ data: Data, session: UInt32) -> URL? {
-            let url = FileManager.default.temporaryDirectory
-                .appending(path: "Lumen-\(session)-\(UUID().uuidString.prefix(8)).jpg")
-            return (try? data.write(to: url)) == nil ? nil : url
-        }
     }
 
     private struct ShelfView: View {
@@ -98,22 +129,43 @@
             ZStack {
                 ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
                     let fromTop = model.items.count - 1 - index
-                    Image(nsImage: item.image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: DesignTokens.Shelf.itemPoints, height: DesignTokens.Shelf.itemPoints)
-                        .clipShape(.rect(cornerRadius: 10))
-                        .shadow(radius: 8)
+                    ShelfItemView(item: item)
                         .rotationEffect(.degrees(model.isHovering ? Double(fromTop) * DesignTokens.Shelf
                                 .fanDegrees : 0))
                         .offset(y: model.isHovering ? Double(fromTop) * -14 : 0)
-                        .onDrag { NSItemProvider(contentsOf: item.fileURL) ?? NSItemProvider() }
+                        .onDrag { item.fileURL.flatMap(NSItemProvider.init(contentsOf:)) ?? NSItemProvider() }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(.rect)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: model.isHovering)
             .onHover { model.isHovering = $0 }
+        }
+    }
+
+    private struct ShelfItemView: View {
+        let item: ShelfItem
+
+        var body: some View {
+            Image(nsImage: item.image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: DesignTokens.Shelf.itemPoints, height: DesignTokens.Shelf.itemPoints)
+                .clipShape(.rect(cornerRadius: 10))
+                .overlay { outline }
+                .shadow(radius: 8)
+                .opacity(item.hasFailed ? 0.4 : 1)
+        }
+
+        @ViewBuilder private var outline: some View {
+            if item.hasFailed {
+                Image(systemName: "exclamationmark.triangle.fill").font(.title).foregroundStyle(.white)
+            } else if item.fileURL == nil {
+                RoundedRectangle(cornerRadius: 10)
+                    .trim(from: 0, to: item.progress)
+                    .stroke(.white, lineWidth: 3)
+                    .animation(.linear(duration: 0.2), value: item.progress)
+            }
         }
     }
 #endif

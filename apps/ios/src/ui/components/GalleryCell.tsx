@@ -36,6 +36,7 @@ const REPULSION_POINTS = 14;
 // A photo must be clearly past the edge to cross; an accidental graze returns to the gallery.
 const CROSSING_DEAD_ZONE = 0.25;
 const HAPTIC_SOFT = 0;
+const SPECULATIVE_UPLOAD_PROXIMITY = 0.5;
 
 export function GalleryCell({
   asset,
@@ -94,6 +95,13 @@ export function GalleryCell({
       updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
       const { edge, proximity } = updateGlow(drag, event.absoluteX);
       drag.lastEdge.value = edge;
+      if (
+        proximity > SPECULATIVE_UPLOAD_PROXIMITY &&
+        !drag.uploadStarted.value
+      ) {
+        drag.uploadStarted.value = true;
+        drag.channel.startUpload(drag.session.value);
+      }
       drag.dragSession.value = advanceDragSession(drag.dragSession.value, {
         type: 'moved',
         proximity,

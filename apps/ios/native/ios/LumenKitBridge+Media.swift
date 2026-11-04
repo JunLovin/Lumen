@@ -10,6 +10,8 @@ public extension LumenKitBridge {
     @objc func beginDrag(session frameSession: Int32, assetId: String, phoneHeightMillimeters: Float) {
         let session = session
         let identifier = UInt32(bitPattern: frameSession)
+        let transfers = session.transfers
+        Task { await transfers.register(transferID: identifier, assetID: assetId) }
         Task {
             await session.send(.dragBegan(DragStart(
                 session: identifier,

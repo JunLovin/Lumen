@@ -11,8 +11,10 @@
         @Environment(\.openWindow) private var openWindow
         private let readProtocolVersion: ReadProtocolVersion
         private let pairing: PairingModel
+        private let destination: DestinationFolder
 
-        public init(readProtocolVersion: ReadProtocolVersion, pairing: PairingModel) {
+        public init(readProtocolVersion: ReadProtocolVersion, pairing: PairingModel, destination: DestinationFolder) {
+            self.destination = destination
             self.readProtocolVersion = readProtocolVersion
             self.pairing = pairing
         }
@@ -31,6 +33,10 @@
             Text("menu.protocolVersion \(readProtocolVersion().rawValue)", bundle: .module)
             pairingStatus
             Divider()
+            Button { destination.choose() } label: { Text("menu.chooseFolder", bundle: .module) }
+            if destination.folderName != nil {
+                Button { destination.clear() } label: { Text("menu.useShelf", bundle: .module) }
+            }
             #if DEBUG
                 Button {
                     openWindow(id: LabWindow.identifier)

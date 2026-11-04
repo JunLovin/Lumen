@@ -32,6 +32,9 @@ public enum PeerMessage: Sendable, Equatable {
     case dragBegan(DragStart)
     case dragEnded(DragEnd)
     case landed(session: UInt32)
+    case transferOffer(TransferOffer)
+    case transferCancel(transferID: UInt32)
+    case transferPreparing(transferID: UInt32, fraction: Double)
 }
 
 public enum PeerEvent: Sendable, Equatable {
@@ -82,4 +85,13 @@ public protocol AudioRoutePort: Sendable {
 public protocol PlacementStorePort: Sendable {
     func load() async -> PlacementDistribution?
     func save(_ distribution: PlacementDistribution) async
+}
+
+public protocol FileSinkPort: Sendable {
+    var updates: AsyncStream<TransferUpdate> { get }
+    func register(_ offer: TransferOffer) async
+    func resumeOffset(transferID: UInt32, resourceIndex: UInt32) async -> UInt64?
+    func append(_ bytes: [UInt8], transferID: UInt32, resourceIndex: UInt32) async -> Bool
+    func finish(transferID: UInt32, resourceIndex: UInt32, sha256: [UInt8]) async -> Bool
+    func cancel(transferID: UInt32) async
 }

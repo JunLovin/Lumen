@@ -67,6 +67,17 @@ public enum WireCodec {
             ))
         case let .landed(landed):
             return .landed(session: landed.session)
+        case let .transferOffer(offer):
+            return .transferOffer(TransferOffer(
+                transferID: offer.transferID,
+                resources: offer.resources.map {
+                    TransferResource(index: $0.index, fileName: $0.fileName, byteCount: $0.byteCount)
+                }
+            ))
+        case let .transferCancel(cancel):
+            return .transferCancel(transferID: cancel.transferID)
+        case let .transferPreparing(preparing):
+            return .transferPreparing(transferID: preparing.transferID, fraction: Double(preparing.fraction))
         case .hello, .sessionKey, .sessionReady, .incompatibleVersion:
             return nil
         }
@@ -120,6 +131,24 @@ public enum WireCodec {
             })
         case let .landed(session):
             .landed(.with { $0.session = session })
+        case let .transferOffer(offer):
+            .transferOffer(.with { wire in
+                wire.transferID = offer.transferID
+                wire.resources = offer.resources.map { resource in
+                    .with {
+                        $0.index = resource.index
+                        $0.fileName = resource.fileName
+                        $0.byteCount = resource.byteCount
+                    }
+                }
+            })
+        case let .transferCancel(transferID):
+            .transferCancel(.with { $0.transferID = transferID })
+        case let .transferPreparing(transferID, fraction):
+            .transferPreparing(.with {
+                $0.transferID = transferID
+                $0.fraction = Float(fraction)
+            })
         case .hello, .dragFrame:
             nil
         }

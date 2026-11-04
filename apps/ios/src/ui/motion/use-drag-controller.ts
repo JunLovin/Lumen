@@ -36,6 +36,7 @@ export const useDragController = (useCases: LabUseCases) => {
   const layerTop = useSharedValue(0);
   const dragSession = useSharedValue<DragSession>({ stage: 'idle' });
   const lastEdge = useSharedValue<FacingSide>('right');
+  const uploadStarted = useSharedValue(false);
   const layerRef = useAnimatedRef<Animated.View>();
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export const useDragController = (useCases: LabUseCases) => {
       layerRef,
       dragSession,
       lastEdge,
+      uploadStarted,
       beginTransfer: (session: number, assetId: string) =>
         useCases.beginDragTransfer(
           session,
@@ -86,6 +88,7 @@ export const useDragController = (useCases: LabUseCases) => {
     [
       dragSession,
       lastEdge,
+      uploadStarted,
       activeIndex,
       confidence,
       facingIsRight,

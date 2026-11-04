@@ -14,6 +14,7 @@ public enum PeerLabUpdate: Sendable, Equatable {
     case audioRoute(canPlayUltrasound: Bool)
     case dragBegan(DragStart)
     case dragEnded(DragEnd)
+    case transfer(TransferUpdate)
 }
 
 public actor PeerLabSession {
@@ -28,6 +29,7 @@ public actor PeerLabSession {
     private let chirpPlayer: any ChirpPlayerPort
     private let audioRoute: any AudioRoutePort
     private let placementStore: any PlacementStorePort
+    private let fileSink: any FileSinkPort
     private var resolver = PlacementResolver()
     private var detachment = DetachmentDetector(farRSSI: -75, nearRSSI: -65, requiredReadings: 5)
     private var estimator = ClockOffsetEstimator()
@@ -40,6 +42,7 @@ public actor PeerLabSession {
         chirpPlayer: any ChirpPlayerPort,
         audioRoute: any AudioRoutePort,
         placementStore: any PlacementStorePort,
+        fileSink: any FileSinkPort,
         chirpAmplitude: Float
     ) {
         (updates, updatesContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(256))
@@ -48,12 +51,20 @@ public actor PeerLabSession {
         self.chirpPlayer = chirpPlayer
         self.audioRoute = audioRoute
         self.placementStore = placementStore
+        self.fileSink = fileSink
         self.chirpAmplitude = chirpAmplitude
     }
 
     public func run() async {
         if let saved = await placementStore.load() {
             resolver = PlacementResolver(distribution: saved, atNanoseconds: clock.nowNanoseconds())
+        }
+        let transfers = fileSink.updates
+        let continuation = updatesContinuation
+        Task {
+            for await update in transfers {
+                continuation.yield(.transfer(update))
+            }
         }
         for await event in link.events {
             await handle(event)
@@ -135,6 +146,15 @@ public actor PeerLabSession {
             updatesContinuation.yield(.dragBegan(start))
         case let .dragEnded(end):
             updatesContinuation.yield(.dragEnded(end))
+        case let .transferOffer(offer):
+            await fileSink.register(offer)
+        case let .transferCancel(transferID):
+            await fileSink.cancel(transferID: transferID)
+        case let .transferPreparing(transferID, fraction):
+            updatesContinuation.yield(.transfer(TransferUpdate(
+                transferID: transferID,
+                stage: .preparing(fraction: fraction)
+            )))
         case .hello, .beginLocate, .placementUpdate, .landed:
             break
         }

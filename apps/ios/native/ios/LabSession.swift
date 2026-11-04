@@ -13,6 +13,7 @@ actor LabSession {
     private static let landingHapticStyle = 1
 
     let link: PhoneSecureLink
+    nonisolated let transfers: TransferSender
     private let pairing: PairNearbyDevice
     private let advertiser = PhoneProximityAdvertiser()
     private let haptics = Haptics()
@@ -41,6 +42,7 @@ actor LabSession {
     init() {
         let link = PhoneSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
         self.link = link
+        transfers = TransferSender(link: link)
         pairing = PairNearbyDevice(
             trustStore: KeychainTrustStore(service: "com.junlovin.lumen"),
             identityFactory: IdentityFactoryAdapter(),

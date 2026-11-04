@@ -22,7 +22,7 @@ struct PeerLinkIntegrationTests {
         let service = uniqueService()
         let trust = try await paired(service: service)
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
         let phone = PhoneSecureLink(version: version, serviceType: control)
         await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
         await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
@@ -75,7 +75,7 @@ struct PeerLinkIntegrationTests {
     func theWrongSecretNeverConnects() async throws {
         let trust = try await paired(service: uniqueService())
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
         let impostor = PhoneSecureLink(version: version, serviceType: control)
         let forged = PairedDevice(
             deviceID: trust.phone.peer.deviceID,
@@ -103,7 +103,7 @@ struct PeerLinkIntegrationTests {
     func aPhoneReconnectsAfterTheControlChannelDrops() async throws {
         let trust = try await paired(service: uniqueService())
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
         let phone = PhoneSecureLink(version: version, serviceType: control)
         await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
         await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
@@ -117,6 +117,38 @@ struct PeerLinkIntegrationTests {
             _ = await first(in: events) { $0 == .connected }
         }
         #expect(elapsed < .seconds(2))
+        await phone.deactivate()
+        await mac.deactivate()
+    }
+
+    @Test(.enabled(if: isLocalRun, "CI runners do not allow Bonjour"), .timeLimit(.minutes(1)))
+    func aFileCrossesEncryptedWithItsHashVerified() async throws {
+        let trust = try await paired(service: uniqueService())
+        let control = uniqueService()
+        let sink = temporarySink()
+        let mac = MacSecureLink(version: version, sink: sink, serviceType: control)
+        let phone = PhoneSecureLink(version: version, serviceType: control)
+        await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
+        await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
+        _ = await first(in: phone.events) { $0 == .connected }
+
+        let bytes = Data((0 ..< 3 * 1024 * 1024).map { UInt8(truncatingIfNeeded: $0) })
+        let url = FileManager.default.temporaryDirectory.appending(path: "lumen-upload-\(UUID().uuidString).bin")
+        try bytes.write(to: url)
+        await sink.register(TransferOffer(transferID: 9, resources: [
+            TransferResource(index: 0, fileName: "video.mov", byteCount: UInt64(bytes.count)),
+        ]))
+        try await phone.upload(fileAt: url, transferID: 9, resourceIndex: 0) { _ in }
+
+        var delivered: String?
+        for await update in sink.updates {
+            if case let .completed(path, _) = update.stage {
+                delivered = path
+                break
+            }
+        }
+        let path = try #require(delivered)
+        #expect(try Data(contentsOf: URL(filePath: path)) == bytes)
         await phone.deactivate()
         await mac.deactivate()
     }

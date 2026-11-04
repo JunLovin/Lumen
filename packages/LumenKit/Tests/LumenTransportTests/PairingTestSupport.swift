@@ -85,3 +85,7 @@ struct Trust {
     let identity: LocalIdentity
     let peer: PairedDevice
 }
+
+func temporarySink() -> TemporaryFileSink {
+    TemporaryFileSink(root: FileManager.default.temporaryDirectory.appending(path: "lumen-tests-\(UUID().uuidString)"))
+}

@@ -20,5 +20,6 @@ export interface UIThreadChannelPort {
     velocityX: number,
     velocityY: number,
   ): void;
+  startUpload(session: number): void;
   impact(style: HapticStyle): void;
 }
