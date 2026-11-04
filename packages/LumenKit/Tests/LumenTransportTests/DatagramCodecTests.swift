@@ -35,6 +35,7 @@ private let dragFrame = DragFrameSample(
         phoneHeightMillimeters: 150.5,
         palette: GlowPalette(flat: [1, 0.5, 0, 0, 0.5, 1, 1, 1, 0.5])
     ))),
+    ("control-tune-token", PeerMessage.tuneToken(name: "glow.intensity", value: 1.5)),
     ("control-drag-ended", PeerMessage.dragEnded(DragEnd(
         session: 7,
         crossed: true,

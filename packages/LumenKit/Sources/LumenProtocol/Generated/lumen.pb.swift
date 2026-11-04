@@ -427,6 +427,20 @@ public nonisolated struct Lumen_Landed: Sendable {
   public init() {}
 }
 
+public nonisolated struct Lumen_TuneToken: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var value: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public nonisolated struct Lumen_TransferResource: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -762,6 +776,14 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     set {message = .transferPreparing(newValue)}
   }
 
+  public var tuneToken: Lumen_TuneToken {
+    get {
+      if case .tuneToken(let v)? = message {return v}
+      return Lumen_TuneToken()
+    }
+    set {message = .tuneToken(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -783,6 +805,7 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     case transferOffer(Lumen_TransferOffer)
     case transferCancel(Lumen_TransferCancel)
     case transferPreparing(Lumen_TransferPreparing)
+    case tuneToken(Lumen_TuneToken)
 
   }
 
@@ -1593,6 +1616,41 @@ nonisolated extension Lumen_Landed: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
+nonisolated extension Lumen_TuneToken: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TuneToken"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}value\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.value) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.value.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.value, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_TuneToken, rhs: Lumen_TuneToken) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.value != rhs.value {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".TransferResource"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}index\0\u{3}file_name\0\u{3}byte_count\0\u{3}is_directory\0")
@@ -2005,7 +2063,7 @@ nonisolated extension Lumen_FileMessage: SwiftProtobuf.Message, SwiftProtobuf._M
 
 nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ControlMessage"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0\u{3}drag_began\0\u{3}drag_ended\0\u{1}landed\0\u{3}transfer_offer\0\u{3}transfer_cancel\0\u{3}transfer_preparing\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0\u{3}drag_began\0\u{3}drag_ended\0\u{1}landed\0\u{3}transfer_offer\0\u{3}transfer_cancel\0\u{3}transfer_preparing\0\u{3}tune_token\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -2247,6 +2305,19 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
           self.message = .transferPreparing(v)
         }
       }()
+      case 19: try {
+        var v: Lumen_TuneToken?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .tuneToken(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .tuneToken(v)
+        }
+      }()
       default: break
       }
     }
@@ -2329,6 +2400,10 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
     case .transferPreparing?: try {
       guard case .transferPreparing(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+    }()
+    case .tuneToken?: try {
+      guard case .tuneToken(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
     }()
     case nil: break
     }

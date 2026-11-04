@@ -17,4 +17,6 @@ public enum PeerLabUpdate: Sendable, Equatable {
     case transfer(TransferUpdate)
     case directTransfer(TransferOffer)
     case sendingFiles(TransferOffer)
+    case waitingOffers(count: Int)
+    case tuning(name: String, value: Float)
 }

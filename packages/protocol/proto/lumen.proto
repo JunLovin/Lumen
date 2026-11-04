@@ -118,6 +118,11 @@ message Landed {
   uint32 session = 1;
 }
 
+message TuneToken {
+  string name = 1;
+  float value = 2;
+}
+
 message TransferResource {
   uint32 index = 1;
   string file_name = 2;
@@ -190,6 +195,7 @@ message ControlMessage {
     TransferOffer transfer_offer = 16;
     TransferCancel transfer_cancel = 17;
     TransferPreparing transfer_preparing = 18;
+    TuneToken tune_token = 19;
   }
 }
 

@@ -52,6 +52,9 @@ const controlMessages = {
       glowPalette: [1, 0.5, 0, 0, 0.5, 1, 1, 1, 0.5],
     },
   },
+  'control-tune-token': {
+    tuneToken: { name: 'glow.intensity', value: 1.5 },
+  },
   'control-drag-ended': {
     dragEnded: {
       session: 7,

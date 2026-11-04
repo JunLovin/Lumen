@@ -229,6 +229,11 @@ export interface Landed {
   session: number;
 }
 
+export interface TuneToken {
+  name: string;
+  value: number;
+}
+
 export interface TransferResource {
   index: number;
   fileName: string;
@@ -298,6 +303,7 @@ export interface ControlMessage {
   transferOffer?: TransferOffer | undefined;
   transferCancel?: TransferCancel | undefined;
   transferPreparing?: TransferPreparing | undefined;
+  tuneToken?: TuneToken | undefined;
 }
 
 export interface PairingCommit {
@@ -2104,6 +2110,91 @@ export const Landed: MessageFns<Landed> = {
   },
 };
 
+function createBaseTuneToken(): TuneToken {
+  return { name: "", value: 0 };
+}
+
+export const TuneToken: MessageFns<TuneToken> = {
+  encode(message: TuneToken, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.value !== 0) {
+      writer.uint32(21).float(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TuneToken {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTuneToken();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.name = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 21) {
+              break;
+            }
+
+            message.value = reader.float();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): TuneToken {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      value: isSet(object.value) ? globalThis.Number(object.value) : 0,
+    };
+  },
+
+  toJSON(message: TuneToken): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.value !== 0) {
+      obj.value = floatToJson(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TuneToken>, I>>(base?: I): TuneToken {
+    return TuneToken.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TuneToken>, I>>(object: I): TuneToken {
+    const message = createBaseTuneToken();
+    message.name = object.name ?? "";
+    message.value = object.value ?? 0;
+    return message;
+  },
+};
+
 function createBaseTransferResource(): TransferResource {
   return { index: 0, fileName: "", byteCount: 0, isDirectory: false };
 }
@@ -3005,6 +3096,7 @@ function createBaseControlMessage(): ControlMessage {
     transferOffer: undefined,
     transferCancel: undefined,
     transferPreparing: undefined,
+    tuneToken: undefined,
   };
 }
 
@@ -3063,6 +3155,9 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.transferPreparing !== undefined) {
       TransferPreparing.encode(message.transferPreparing, writer.uint32(146).fork()).join();
+    }
+    if (message.tuneToken !== undefined) {
+      TuneToken.encode(message.tuneToken, writer.uint32(154).fork()).join();
     }
     return writer;
   },
@@ -3224,6 +3319,14 @@ export const ControlMessage: MessageFns<ControlMessage> = {
             message.transferPreparing = TransferPreparing.decode(reader, reader.uint32());
             continue;
           }
+          case 19: {
+            if (tag !== 154) {
+              break;
+            }
+
+            message.tuneToken = TuneToken.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -3320,6 +3423,11 @@ export const ControlMessage: MessageFns<ControlMessage> = {
         : isSet(object.transfer_preparing)
         ? TransferPreparing.fromJSON(object.transfer_preparing)
         : undefined,
+      tuneToken: isSet(object.tuneToken)
+        ? TuneToken.fromJSON(object.tuneToken)
+        : isSet(object.tune_token)
+        ? TuneToken.fromJSON(object.tune_token)
+        : undefined,
     };
   },
 
@@ -3378,6 +3486,9 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.transferPreparing !== undefined) {
       obj.transferPreparing = TransferPreparing.toJSON(message.transferPreparing);
+    }
+    if (message.tuneToken !== undefined) {
+      obj.tuneToken = TuneToken.toJSON(message.tuneToken);
     }
     return obj;
   },
@@ -3438,6 +3549,9 @@ export const ControlMessage: MessageFns<ControlMessage> = {
       : undefined;
     message.transferPreparing = (object.transferPreparing !== undefined && object.transferPreparing !== null)
       ? TransferPreparing.fromPartial(object.transferPreparing)
+      : undefined;
+    message.tuneToken = (object.tuneToken !== undefined && object.tuneToken !== null)
+      ? TuneToken.fromPartial(object.tuneToken)
       : undefined;
     return message;
   },
