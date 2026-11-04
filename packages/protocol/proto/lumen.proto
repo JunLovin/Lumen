@@ -121,11 +121,13 @@ message TransferResource {
   uint32 index = 1;
   string file_name = 2;
   uint64 byte_count = 3;
+  bool is_directory = 4;
 }
 
 message TransferOffer {
   uint32 transfer_id = 1;
   repeated TransferResource resources = 2;
+  bool is_direct = 3;
 }
 
 message TransferCancel {
@@ -140,6 +142,8 @@ message TransferPreparing {
 message FileHeader {
   uint32 transfer_id = 1;
   uint32 resource_index = 2;
+  bool download = 3;
+  uint64 offset = 4;
 }
 
 message FileResume {

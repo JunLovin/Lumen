@@ -59,7 +59,15 @@ const controlMessages = {
   'control-transfer-offer': {
     transferOffer: {
       transferId: 7,
-      resources: [{ index: 0, fileName: 'IMG_0001.HEIC', byteCount: 4096 }],
+      resources: [
+        {
+          index: 0,
+          fileName: 'IMG_0001.HEIC',
+          byteCount: 4096,
+          isDirectory: false,
+        },
+      ],
+      isDirect: false,
     },
   },
   'control-transfer-cancel': { transferCancel: { transferId: 7 } },
@@ -106,7 +114,9 @@ const controlMessages = {
 };
 
 const fileMessages = {
-  'file-header': { header: { transferId: 7, resourceIndex: 1 } },
+  'file-header': {
+    header: { transferId: 7, resourceIndex: 1, download: true, offset: 512 },
+  },
   'file-resume': { resume: { offset: 1024 } },
   'file-block': { block: bytes(1, 2, 3) },
   'file-end': { end: { sha256: bytes(4, 5) } },
