@@ -6,19 +6,21 @@ public actor PeerLabSession {
     private static let steadyPingInterval = Duration.seconds(10)
 
     public nonisolated let updates: AsyncStream<PeerLabUpdate>
-    private let updatesContinuation: AsyncStream<PeerLabUpdate>.Continuation
-    private let link: any PeerLinkPort
+    let updatesContinuation: AsyncStream<PeerLabUpdate>.Continuation
+    let link: any PeerLinkPort
     private let clock: any ClockPort
     private let chirpPlayer: any ChirpPlayerPort
     private let audioRoute: any AudioRoutePort
     private let placementStore: any PlacementStorePort
     private let fileSink: any FileSinkPort
-    private let fileSource: any FileSourcePort
+    let fileSource: any FileSourcePort
     private var resolver = PlacementResolver()
     private var detachment = DetachmentDetector(farRSSI: -75, nearRSSI: -65, requiredReadings: 5)
     private var estimator = ClockOffsetEstimator()
     private var chirpAmplitude: Float
     private var pingTask: Task<Void, Never>?
+    var isConnected = false
+    var waitingOffers: [TransferOffer] = []
 
     public init(
         link: any PeerLinkPort,
@@ -61,12 +63,6 @@ public actor PeerLabSession {
         chirpAmplitude = amplitude
     }
 
-    public func sendFiles(paths: [String]) async {
-        guard let offer = await fileSource.prepareBatch(paths: paths, isDirect: true) else { return }
-        updatesContinuation.yield(.sendingFiles(offer))
-        await link.send(.transferOffer(offer))
-    }
-
     public func reportLanded(session: UInt32) async {
         await link.send(.landed(session: session))
     }
@@ -78,12 +74,15 @@ public actor PeerLabSession {
     func handle(_ event: PeerEvent) async {
         switch event {
         case .connected:
+            isConnected = true
             updatesContinuation.yield(.connection(isConnected: true))
             estimator = ClockOffsetEstimator()
             startPinging()
             await publishPlacement(evidence: "connected")
             await beginLocateIfPossible()
+            await sendWaitingOffers()
         case .disconnected, .incompatible:
+            isConnected = false
             updatesContinuation.yield(.connection(isConnected: false))
             pingTask?.cancel()
         case let .received(message):

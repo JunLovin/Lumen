@@ -85,8 +85,22 @@ import Testing
 
 @Test func droppedFilesAreOfferedToThePhone() async {
     let link = FakeLink()
-    await makeSession(link: link).sendFiles(paths: ["/tmp/a.pdf"])
-    #expect(await link.sent == [.transferOffer(TransferOffer(transferID: 5, resources: [], isDirect: true))])
+    let session = makeSession(link: link)
+    await session.handle(.connected)
+    await session.sendFiles(paths: ["/tmp/a.pdf"])
+    #expect(await link.sent.contains(.transferOffer(TransferOffer(transferID: 5, resources: [], isDirect: true))))
+}
+
+@Test func filesDroppedWhileThePhoneIsAwayAreOfferedOnceWhenItReconnects() async {
+    let link = FakeLink()
+    let session = makeSession(link: link)
+    let offer = PeerMessage.transferOffer(TransferOffer(transferID: 5, resources: [], isDirect: true))
+    await session.sendFiles(paths: ["/tmp/a.pdf"])
+    #expect(await !link.sent.contains(offer))
+    await session.handle(.connected)
+    await session.handle(.disconnected)
+    await session.handle(.connected)
+    #expect(await link.sent.filter { $0 == offer }.count == 1)
 }
 
 @Test func nothingIsOfferedWithoutFiles() async {
