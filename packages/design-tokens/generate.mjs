@@ -99,6 +99,7 @@ export function renderSwift(tokens) {
     `        public static let frequencyHz: Double = ${sound.frequencyHz}`,
     `        public static let seconds: Double = ${sound.seconds}`,
     `        public static let gain: Float = ${sound.gain}`,
+    `        public static let pan: Float = ${sound.pan}`,
     '    }',
     '',
     '    public enum Lens {',

@@ -14,6 +14,10 @@
         private let comet = CometPanel()
         private let finderDrag: FinderDragMonitor
         private let presence = PresenceAuraPanel()
+        private let settings: EffectSettings
+        private let sound = LandingSound()
+        private let lens = LensCapture()
+        private var tuning = MotionTuning()
         private var glowHideTask: Task<Void, Never>?
         private var panel: NSPanel?
         private var metalView: MTKView?
@@ -34,13 +38,22 @@
         init(
             clock: any ClockPort,
             destination: DestinationFolder,
+            settings: EffectSettings,
             reportLanded: @escaping (UInt32) -> Void,
             sendFiles: @escaping ([String]) -> Void
         ) {
+            self.settings = settings
             shelf = ShelfPanel(destination: destination)
             finderDrag = FinderDragMonitor(onDrop: sendFiles)
             self.clock = clock
             self.reportLanded = reportLanded
+        }
+
+        func tune(name: String, value: Float) {
+            tuning.set(name: name, value: value)
+            renderer?.tuning = tuning
+            leftGlow?.setTuning(tuning)
+            rightGlow?.setTuning(tuning)
         }
 
         func direct(_ offer: TransferOffer) {
@@ -123,8 +136,8 @@
                 ),
                 target: shelf.slot(forEdge: lastEdge, in: space, objectSize: pose.size),
                 parameters: SpringParameters(
-                    response: DesignTokens.Motion.land.response,
-                    damping: DesignTokens.Motion.land.damping
+                    response: tuning.landResponse,
+                    damping: tuning.landDamping
                 )
             )
             lastTickTime = CACurrentMediaTime()
@@ -162,6 +175,9 @@
             if let start {
                 shelf.add(jpeg: start.thumbnailJPEG, edge: lastEdge, session: start.session)
                 reportLanded(start.session)
+                if settings.isSoundEnabled {
+                    sound.play(edge: lastEdge)
+                }
             }
         }
 
@@ -172,11 +188,15 @@
         private func show() {
             panel?.orderFrontRegardless()
             metalView?.isPaused = false
+            if settings.isLensEnabled, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                lens.start()
+            }
         }
 
         private func hide() {
             panel?.orderOut(nil)
             metalView?.isPaused = true
+            lens.stop()
             renderer?.texture = nil
             lastPose = nil
         }
@@ -191,6 +211,8 @@
             view.isPaused = true
             guard let renderer = GhostRenderer(device: device, pixelFormat: view.colorPixelFormat) else { return }
             renderer.nextPose = { [weak self] in self?.nextPose() }
+            renderer.lensSurface = { [weak self] in self?.lens.latestSurface }
+            renderer.tuning = tuning
             view.delegate = renderer
             let panel = NSPanel(
                 contentRect: frame,
@@ -210,6 +232,8 @@
             self.renderer = renderer
             leftGlow = EdgeOverlayPanel(onLeftEdge: true) { _ in }
             rightGlow = EdgeOverlayPanel { _ in }
+            leftGlow?.setTuning(tuning)
+            rightGlow?.setTuning(tuning)
         }
     }
 #endif

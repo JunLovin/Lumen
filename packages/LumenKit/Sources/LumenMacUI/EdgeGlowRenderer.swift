@@ -7,14 +7,14 @@
     private struct EdgeGlowUniforms {
         var time: Float
         var proximity: Float
-        var bandFraction = DesignTokens.Glow.bandFraction
-        var intensity = DesignTokens.Glow.intensity
-        var flowSpeed = DesignTokens.Glow.flowSpeed
-        var noiseScale = DesignTokens.Glow.noiseScale
+        var bandFraction: Float
+        var intensity: Float
+        var flowSpeed: Float
+        var noiseScale: Float
         var mirrored: Float
         var particleAmount: Float
-        var particleCells = DesignTokens.Effects.particleCells
-        var particleSpeed = DesignTokens.Effects.particleSpeed
+        var particleCells: Float
+        var particleSpeed: Float
         var padding = SIMD2<Float>(0, 0)
         var primary: SIMD4<Float>
         var secondary: SIMD4<Float>
@@ -38,6 +38,7 @@
         private var displayedProximity: Float = 0
         var isMirrored = false
         var palette: GlowPalette?
+        var tuning = MotionTuning()
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
         private let startTime = CACurrentMediaTime()
@@ -71,10 +72,14 @@
             var uniforms = EdgeGlowUniforms(
                 time: Float(CACurrentMediaTime() - startTime),
                 proximity: displayedProximity,
+                bandFraction: tuning.bandFraction,
+                intensity: tuning.intensity,
+                flowSpeed: tuning.flowSpeed,
+                noiseScale: tuning.noiseScale,
                 mirrored: isMirrored ? 1 : 0,
-                particleAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-                    ? 0
-                    : DesignTokens.Effects.particleAmount,
+                particleAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : tuning.particleAmount,
+                particleCells: tuning.particleCells,
+                particleSpeed: tuning.particleSpeed,
                 primary: palette.map { SIMD4(color: $0.primary) } ?? SIMD4(color: DesignTokens.Glow.primary),
                 secondary: palette.map { SIMD4(color: $0.secondary) } ?? SIMD4(color: DesignTokens.Glow.secondary),
                 highlight: palette.map { SIMD4(color: $0.highlight) } ?? SIMD4(color: DesignTokens.Glow.highlight)

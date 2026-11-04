@@ -56,6 +56,7 @@ public enum DesignTokens {
         public static let frequencyHz: Double = 740
         public static let seconds: Double = 0.22
         public static let gain: Float = 0.12
+        public static let pan: Float = 0.7
     }
 
     public enum Lens {

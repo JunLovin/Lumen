@@ -1,5 +1,6 @@
 #if os(macOS)
     import AppKit
+    import IOSurface
     import LumenDomain
     import MetalKit
 
@@ -12,15 +13,20 @@
         var hasTexture: Float
         var glow: SIMD4<Float>
         var grainAmount: Float
+        var bloom: Float
+        var refraction: Float
     }
 
     @MainActor
     final class GhostRenderer: NSObject, MTKViewDelegate {
         var texture: MTLTexture?
         var palette: GlowPalette?
+        var tuning = MotionTuning()
+        var lensSurface: (() -> IOSurfaceRef?)?
         var nextPose: (() -> GhostPose?)?
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
+        private let lensPipeline: MTLRenderPipelineState
         private let fallbackTexture: MTLTexture?
 
         init?(device: MTLDevice, pixelFormat: MTLPixelFormat) {
@@ -39,8 +45,11 @@
             attachment?.sourceAlphaBlendFactor = .one
             attachment?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
             guard let pipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
+            descriptor.fragmentFunction = library.makeFunction(name: "lensFragment")
+            guard let lensPipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
             self.queue = queue
             self.pipeline = pipeline
+            self.lensPipeline = lensPipeline
             fallbackTexture = device.makeTexture(descriptor: .texture2DDescriptor(
                 pixelFormat: .rgba8Unorm,
                 width: 1,
@@ -80,13 +89,36 @@
                 condensation: Float(pose.condensation),
                 hasTexture: texture == nil ? 0 : 1,
                 glow: glow,
-                grainAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : 1
+                grainAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : 1,
+                bloom: tuning.bloom,
+                refraction: DesignTokens.Lens.refractionPoints * scale
             )
+            drawLens(uniforms, in: view, with: encoder)
             let length = MemoryLayout<GhostUniforms>.stride
             encoder.setRenderPipelineState(pipeline)
             encoder.setVertexBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentTexture(texture ?? fallbackTexture, index: 0)
+            encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        }
+
+        private func drawLens(_ ghost: GhostUniforms, in view: MTKView, with encoder: MTLRenderCommandEncoder) {
+            guard let surface = lensSurface?(), let device = view.device else { return }
+            let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: .bgra8Unorm,
+                width: IOSurfaceGetWidth(surface),
+                height: IOSurfaceGetHeight(surface),
+                mipmapped: false
+            )
+            guard let screen = device.makeTexture(descriptor: descriptor, iosurface: surface, plane: 0) else { return }
+            var uniforms = ghost
+            uniforms.size = ghost.size * DesignTokens.Lens.radiusFraction * 2
+            uniforms.rotation = 0
+            let length = MemoryLayout<GhostUniforms>.stride
+            encoder.setRenderPipelineState(lensPipeline)
+            encoder.setVertexBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentTexture(screen, index: 0)
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         }
     }

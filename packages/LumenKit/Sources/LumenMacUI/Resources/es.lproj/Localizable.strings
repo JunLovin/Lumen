@@ -44,3 +44,14 @@
 "menu.useShelf" = "Mantener lo recibido en el estante";
 "lab.lastHash" = "SHA-256 del último archivo";
 "shelf.saved %@" = "Guardado como %@";
+"menu.connected" = "iPhone conectado";
+"menu.disconnected" = "iPhone sin conexión. Abre Lumen en él.";
+"menu.waiting %lld" = "%lld envíos esperando a tu iPhone";
+"menu.sound" = "Sonido al aterrizar";
+"menu.lens" = "Efecto lente (necesita Grabación de pantalla)";
+"onboarding.title" = "Lumen vive en tu barra de menús";
+"onboarding.pair" = "Acerca tu iPhone y abre Lumen para emparejarlos.";
+"onboarding.toMac" = "Mantén presionada una foto en tu iPhone y arrástrala más allá del borde que mira a esta Mac.";
+"onboarding.toPhone" = "Arrastra un archivo desde Finder al borde de esta pantalla que mira a tu iPhone.";
+"onboarding.done" = "Entendido";
+"lab.motion" = "Motion Lab";

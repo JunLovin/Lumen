@@ -134,10 +134,15 @@ export const tokens = {
   "sound": {
     "frequencyHz": 740,
     "seconds": 0.22,
-    "gain": 0.12
+    "gain": 0.12,
+    "pan": 0.7
   },
   "lens": {
     "refractionPoints": 22,
     "radiusFraction": 1.3
+  },
+  "proximity": {
+    "activationPoints": 140,
+    "curve": 1
   }
 } as const;

@@ -58,6 +58,10 @@
             panel.orderOut(nil)
         }
 
+        func setTuning(_ tuning: MotionTuning) {
+            renderer.tuning = tuning
+        }
+
         func setPalette(_ palette: GlowPalette?) {
             renderer.palette = palette
         }

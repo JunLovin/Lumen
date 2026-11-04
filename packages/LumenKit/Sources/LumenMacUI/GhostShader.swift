@@ -13,6 +13,8 @@
             float hasTexture;
             float4 glow;
             float grainAmount;
+            float bloom;
+            float refraction;
         };
 
         struct Varyings {
@@ -56,9 +58,24 @@
             float solid = smoothstep(grain - 0.12, grain + 0.12, u.condensation);
             float3 photo = u.hasTexture > 0.5 ? image.sample(linear, in.uv).rgb : u.glow.rgb;
             float rim = solid * (1 - solid) * 4;
-            float3 color = mix(u.glow.rgb, photo, solid) + u.glow.rgb * rim;
+            float3 color = mix(u.glow.rgb, photo, solid) + u.glow.rgb * rim * u.bloom;
             float alpha = corner * max(solid, 0.45 * (1 - solid));
             return float4(color * alpha, alpha);
+        }
+
+        fragment float4 lensFragment(
+            Varyings in [[stage_in]],
+            constant Uniforms &u [[buffer(0)]],
+            texture2d<float> screen [[texture(0)]]
+        ) {
+            constexpr sampler linear(filter::linear, address::clamp_to_edge);
+            float2 fromCenter = (in.uv - 0.5) * 2;
+            float reach = length(fromCenter);
+            float mask = 1 - smoothstep(0.75, 1.0, reach);
+            float2 direction = reach > 0 ? fromCenter / reach : float2(0);
+            float bend = u.refraction * sin(saturate(reach) * M_PI_F);
+            float2 target = (in.position.xy - direction * bend) / u.viewport;
+            return float4(screen.sample(linear, target).rgb * mask, mask);
         }
         """
     }

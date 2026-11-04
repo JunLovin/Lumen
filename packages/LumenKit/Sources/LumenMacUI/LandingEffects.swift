@@ -24,10 +24,14 @@
         var body: some View {
             if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
                 GeometryReader { geometry in
-                    LinearGradient(colors: [.clear, .white.opacity(0.7), .clear], startPoint: .leading, endPoint: .trailing)
-                        .frame(width: geometry.size.width / 2)
-                        .rotationEffect(.degrees(20))
-                        .offset(x: geometry.size.width * offset)
+                    LinearGradient(
+                        colors: [.clear, .white.opacity(0.7), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geometry.size.width / 2)
+                    .rotationEffect(.degrees(20))
+                    .offset(x: geometry.size.width * offset)
                 }
                 .allowsHitTesting(false)
                 .onAppear {
