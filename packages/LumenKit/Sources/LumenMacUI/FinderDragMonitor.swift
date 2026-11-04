@@ -3,7 +3,7 @@
     import LumenDomain
     import os
 
-    private let dropLog = Logger(subsystem: "com.junlovin.lumen", category: "drop")
+    let dropLog = Logger(subsystem: "com.junlovin.lumen", category: "drop")
 
     @MainActor
     final class FinderDragMonitor {

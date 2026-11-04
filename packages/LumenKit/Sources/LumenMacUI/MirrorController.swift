@@ -19,6 +19,7 @@
         private var tuning = MotionTuning()
         private var glowHideTask: Task<Void, Never>?
         private var ghost: GhostOverlay?
+        private var timing = DragTiming()
         private var leftGlow: EdgeOverlayPanel?
         private var rightGlow: EdgeOverlayPanel?
         private var interpolator = FrameInterpolator(
@@ -56,7 +57,7 @@
             shelf.addDirect(offer, edge: lastEdge)
             prepare()
             show()
-            playArrivalSweep()
+            ghost?.playSweep(fromLeft: lastEdge == .right)
             hide()
         }
 
@@ -102,6 +103,7 @@
                 localTimestampNs: frame.localTimestampNs ?? receivedAtNs
             ))
             lastEdge = frame.sample.edge
+            timing.lastFrameNs = receivedAtNs
             let glow = frame.sample.edge == .right ? leftGlow : rightGlow
             glow?.show()
             glow?.setProximity(frame.sample.edgeProximity)
@@ -121,14 +123,10 @@
                 hide()
                 return
             }
+            timing.logRelease(atNanoseconds: clock.nowNanoseconds())
+            ghost?.playSweep(fromLeft: lastEdge == .right)
             landing = GhostOverlay.landing(from: pose, end: end, edge: lastEdge, shelf: shelf, tuning: tuning)
             lastTickTime = CACurrentMediaTime()
-        }
-
-        private func playArrivalSweep() {
-            if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                ghost?.playSweep(fromLeft: lastEdge == .right)
-            }
         }
 
         private func nextPose() -> GhostPose? {
@@ -159,7 +157,7 @@
 
         private func finishLanding() {
             landing = nil
-            playArrivalSweep()
+            timing.logLanding(atNanoseconds: clock.nowNanoseconds())
             hide()
             if let start {
                 shelf.add(jpeg: start.thumbnailJPEG, edge: lastEdge, session: start.session)

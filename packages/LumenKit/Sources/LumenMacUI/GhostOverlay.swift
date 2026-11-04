@@ -67,7 +67,9 @@
         }
 
         func playSweep(fromLeft: Bool) {
-            renderer.playSweep(fromLeft: fromLeft)
+            if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                renderer.playSweep(fromLeft: fromLeft)
+            }
         }
 
         func setTuning(_ tuning: MotionTuning) {
