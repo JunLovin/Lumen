@@ -29,6 +29,9 @@ public enum PeerMessage: Sendable, Equatable {
     case beginLocate
     case edgeExit(PhoneEdge)
     case placementUpdate(Placement)
+    case dragBegan(DragStart)
+    case dragEnded(DragEnd)
+    case landed(session: UInt32)
 }
 
 public enum PeerEvent: Sendable, Equatable {

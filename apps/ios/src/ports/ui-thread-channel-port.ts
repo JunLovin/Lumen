@@ -12,6 +12,13 @@ export interface UIThreadChannelPort {
     objectWidth: number,
     objectHeight: number,
     rotation: number,
+    edge: number,
+  ): void;
+  endDrag(
+    session: number,
+    crossed: boolean,
+    velocityX: number,
+    velocityY: number,
   ): void;
   impact(style: HapticStyle): void;
 }

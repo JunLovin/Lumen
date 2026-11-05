@@ -9,7 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import type { MediaAsset } from '../../domain/media';
-import { horizontalExitEdge } from '../../domain/edge-proximity';
+import { advanceDragSession } from '../../domain/drag-session';
+import { crossingFraction } from '../../domain/edge-proximity';
 import { sendDragFrame, updateGlow, updateTilt } from '../motion/drag-worklets';
 import { springs } from '../motion/spring';
 import type { DragController } from '../motion/use-drag-controller';
@@ -32,7 +33,8 @@ const THUMBNAIL_PIXELS = 400;
 const GAP_POINTS = 1;
 const REPULSION_RADIUS_POINTS = 170;
 const REPULSION_POINTS = 14;
-const EXIT_MARGIN_POINTS = 24;
+// A photo must be clearly past the edge to cross; an accidental graze returns to the gallery.
+const CROSSING_DEAD_ZONE = 0.25;
 const HAPTIC_SOFT = 0;
 
 export function GalleryCell({
@@ -79,6 +81,11 @@ export function GalleryCell({
       drag.y.value = event.absoluteY;
       drag.lift.value = withSpring(1, springs.lift);
       drag.channel.impact(HAPTIC_SOFT);
+      drag.dragSession.value = advanceDragSession(
+        { stage: 'idle' },
+        { type: 'lift' },
+      );
+      scheduleOnRN(drag.beginTransfer, drag.session.value, asset.id);
       scheduleOnRN(onLift, uri);
     },
     onUpdate: event => {
@@ -86,6 +93,16 @@ export function GalleryCell({
       drag.y.value = withSpring(event.absoluteY, springs.follow);
       updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
       const { edge, proximity } = updateGlow(drag, event.absoluteX);
+      drag.lastEdge.value = edge;
+      drag.dragSession.value = advanceDragSession(drag.dragSession.value, {
+        type: 'moved',
+        proximity,
+        crossingFraction: Math.max(
+          crossingFraction(event.absoluteX, edge, drag.screenWidth, size) -
+            CROSSING_DEAD_ZONE,
+          0,
+        ),
+      });
       sendDragFrame(
         drag,
         event.absoluteX,
@@ -98,18 +115,31 @@ export function GalleryCell({
       );
     },
     onDeactivate: event => {
-      const edge = horizontalExitEdge(
-        event.absoluteX,
-        drag.screenWidth,
-        EXIT_MARGIN_POINTS,
+      const released = advanceDragSession(drag.dragSession.value, {
+        type: 'release',
+      });
+      drag.dragSession.value = { stage: 'idle' };
+      const edge = drag.lastEdge.value;
+      const crossed = released.stage === 'released';
+      const perMillimeter = drag.pointsPerMillimeter;
+      drag.channel.endDrag(
+        drag.session.value,
+        crossed,
+        (edge === 'right' ? event.velocityX : -event.velocityX) / perMillimeter,
+        event.velocityY / perMillimeter,
       );
-      if (edge !== null) {
+      if (crossed) {
         scheduleOnRN(drag.reportEdgeExit, edge);
-      }
-      const frame = measure(reference);
-      if (frame !== null) {
-        drag.x.value = withSpring(frame.pageX + size / 2, springs.snapBack);
-        drag.y.value = withSpring(frame.pageY + size / 2, springs.snapBack);
+        drag.x.value = withSpring(
+          edge === 'right' ? drag.screenWidth + size : -size,
+          { ...springs.land, velocity: event.velocityX },
+        );
+      } else {
+        const frame = measure(reference);
+        if (frame !== null) {
+          drag.x.value = withSpring(frame.pageX + size / 2, springs.snapBack);
+          drag.y.value = withSpring(frame.pageY + size / 2, springs.snapBack);
+        }
       }
       drag.rotation.value = withSpring(0, springs.snapBack);
       drag.tiltX.value = withSpring(0, springs.snapBack);

@@ -52,6 +52,21 @@ public enum WireCodec {
             return PhoneEdge(rawValue: exit.edge.rawValue).map { .edgeExit($0) }
         case let .placementUpdate(update):
             return .placementUpdate(domain(update))
+        case let .dragBegan(began):
+            return .dragBegan(DragStart(
+                session: began.session,
+                thumbnailJPEG: Array(began.thumbnailJpeg),
+                phoneHeightMillimeters: began.phoneHeightMm
+            ))
+        case let .dragEnded(ended):
+            return .dragEnded(DragEnd(
+                session: ended.session,
+                crossed: ended.crossed,
+                velocityXMillimetersPerSecond: ended.velocityXMmS,
+                velocityYMillimetersPerSecond: ended.velocityYMmS
+            ))
+        case let .landed(landed):
+            return .landed(session: landed.session)
         case .hello, .sessionKey, .sessionReady, .incompatibleVersion:
             return nil
         }
@@ -90,6 +105,21 @@ public enum WireCodec {
                 $0.probabilities = placement.distribution.probabilities.map { Float($0) }
                 $0.isDetached = placement.isDetached
             })
+        case let .dragBegan(start):
+            .dragBegan(.with {
+                $0.session = start.session
+                $0.thumbnailJpeg = Data(start.thumbnailJPEG)
+                $0.phoneHeightMm = start.phoneHeightMillimeters
+            })
+        case let .dragEnded(end):
+            .dragEnded(.with {
+                $0.session = end.session
+                $0.crossed = end.crossed
+                $0.velocityXMmS = end.velocityXMillimetersPerSecond
+                $0.velocityYMmS = end.velocityYMillimetersPerSecond
+            })
+        case let .landed(session):
+            .landed(.with { $0.session = session })
         case .hello, .dragFrame:
             nil
         }
@@ -117,6 +147,7 @@ public enum WireCodec {
             $0.objectWidthMm = sample.objectWidthMillimeters
             $0.objectHeightMm = sample.objectHeightMillimeters
             $0.rotationRad = sample.rotationRadians
+            $0.edge = Lumen_PhoneEdge(rawValue: sample.edge.rawValue) ?? .top
         }
     }
 
@@ -132,7 +163,8 @@ public enum WireCodec {
             edgeProximity: frame.edgeProximity,
             objectWidthMillimeters: frame.objectWidthMm,
             objectHeightMillimeters: frame.objectHeightMm,
-            rotationRadians: frame.rotationRad
+            rotationRadians: frame.rotationRad,
+            edge: PhoneEdge(rawValue: frame.edge.rawValue) ?? .top
         )
     }
 }

@@ -39,11 +39,11 @@
 
         @ObservationIgnored private let session: PeerLabSession
         @ObservationIgnored private let clock: any ClockPort
+        @ObservationIgnored private let mirror: MirrorController
         @ObservationIgnored private var networkWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var renderWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var gpuWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var overlay: EdgeOverlayPanel?
-        @ObservationIgnored private var comet: CometPanel?
         @ObservationIgnored private var firstSequence: UInt32?
         @ObservationIgnored private var currentSession: UInt32?
         @ObservationIgnored private var gapWindow = SampleWindow(capacity: windowCapacity)
@@ -54,6 +54,9 @@
         public init(session: PeerLabSession, clock: any ClockPort, chirpAmplitude: Float) {
             self.session = session
             self.clock = clock
+            mirror = MirrorController(clock: clock) { landed in
+                Task { await session.reportLanded(session: landed) }
+            }
             self.chirpAmplitude = chirpAmplitude
         }
 
@@ -134,16 +137,15 @@
                 apply(placement, evidence: evidence)
             case let .audioRoute(canPlayUltrasound):
                 self.canPlayUltrasound = canPlayUltrasound
+            case let .dragBegan(start):
+                mirror.begin(start)
+            case let .dragEnded(end):
+                mirror.end(end)
             }
         }
 
         private func apply(_ newPlacement: Placement, evidence: String) {
-            if let previous = placement?.side, previous != newPlacement.side, newPlacement.side != .unknown {
-                if comet == nil {
-                    comet = CometPanel()
-                }
-                comet?.play(from: previous, to: newPlacement.side)
-            }
+            mirror.placementChanged(from: placement?.side, to: newPlacement.side)
             placement = newPlacement
             placementHistory = Array(([evidence] + placementHistory).prefix(Self.historyLength))
         }
@@ -166,6 +168,7 @@
             lostFrames = max(0, Int(sample.sequence) - Int(first) + 1 - receivedFrames)
             latestFrame = sample
             pendingFrames.append(frame)
+            mirror.add(frame, receivedAtNs: receivedAtNs)
             pushProximity()
             if let timestamp = frame.localTimestampNs {
                 networkWindow.add(Self.milliseconds(from: timestamp, to: receivedAtNs))

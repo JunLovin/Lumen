@@ -216,6 +216,8 @@ public nonisolated struct Lumen_DragFrame: Sendable {
 
   public var rotationRad: Float = 0
 
+  public var edge: Lumen_PhoneEdge = .top
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -377,6 +379,52 @@ public nonisolated struct Lumen_PlacementUpdate: Sendable {
   public init() {}
 }
 
+public nonisolated struct Lumen_DragBegan: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var session: UInt32 = 0
+
+  public var thumbnailJpeg: Data = Data()
+
+  public var phoneHeightMm: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_DragEnded: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var session: UInt32 = 0
+
+  public var crossed: Bool = false
+
+  public var velocityXMmS: Float = 0
+
+  public var velocityYMmS: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_Landed: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var session: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public nonisolated struct Lumen_ControlMessage: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -480,6 +528,30 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     set {message = .placementUpdate(newValue)}
   }
 
+  public var dragBegan: Lumen_DragBegan {
+    get {
+      if case .dragBegan(let v)? = message {return v}
+      return Lumen_DragBegan()
+    }
+    set {message = .dragBegan(newValue)}
+  }
+
+  public var dragEnded: Lumen_DragEnded {
+    get {
+      if case .dragEnded(let v)? = message {return v}
+      return Lumen_DragEnded()
+    }
+    set {message = .dragEnded(newValue)}
+  }
+
+  public var landed: Lumen_Landed {
+    get {
+      if case .landed(let v)? = message {return v}
+      return Lumen_Landed()
+    }
+    set {message = .landed(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -495,6 +567,9 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     case beginLocate(Lumen_BeginLocate)
     case edgeExit(Lumen_EdgeExit)
     case placementUpdate(Lumen_PlacementUpdate)
+    case dragBegan(Lumen_DragBegan)
+    case dragEnded(Lumen_DragEnded)
+    case landed(Lumen_Landed)
 
   }
 
@@ -742,7 +817,7 @@ nonisolated extension Lumen_ClockPong: SwiftProtobuf.Message, SwiftProtobuf._Mes
 
 nonisolated extension Lumen_DragFrame: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".DragFrame"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{1}sequence\0\u{3}timestamp_ns\0\u{3}x_mm\0\u{3}y_mm\0\u{3}velocity_x_mm_s\0\u{3}velocity_y_mm_s\0\u{3}edge_proximity\0\u{3}object_width_mm\0\u{3}object_height_mm\0\u{3}rotation_rad\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{1}sequence\0\u{3}timestamp_ns\0\u{3}x_mm\0\u{3}y_mm\0\u{3}velocity_x_mm_s\0\u{3}velocity_y_mm_s\0\u{3}edge_proximity\0\u{3}object_width_mm\0\u{3}object_height_mm\0\u{3}rotation_rad\0\u{1}edge\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -761,6 +836,7 @@ nonisolated extension Lumen_DragFrame: SwiftProtobuf.Message, SwiftProtobuf._Mes
       case 9: try { try decoder.decodeSingularFloatField(value: &self.objectWidthMm) }()
       case 10: try { try decoder.decodeSingularFloatField(value: &self.objectHeightMm) }()
       case 11: try { try decoder.decodeSingularFloatField(value: &self.rotationRad) }()
+      case 12: try { try decoder.decodeSingularEnumField(value: &self.edge) }()
       default: break
       }
     }
@@ -800,6 +876,9 @@ nonisolated extension Lumen_DragFrame: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if self.rotationRad.bitPattern != 0 {
       try visitor.visitSingularFloatField(value: self.rotationRad, fieldNumber: 11)
     }
+    if self.edge != .top {
+      try visitor.visitSingularEnumField(value: self.edge, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -815,6 +894,7 @@ nonisolated extension Lumen_DragFrame: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if lhs.objectWidthMm != rhs.objectWidthMm {return false}
     if lhs.objectHeightMm != rhs.objectHeightMm {return false}
     if lhs.rotationRad != rhs.rotationRad {return false}
+    if lhs.edge != rhs.edge {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1180,9 +1260,124 @@ nonisolated extension Lumen_PlacementUpdate: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
+nonisolated extension Lumen_DragBegan: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DragBegan"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{3}thumbnail_jpeg\0\u{3}phone_height_mm\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.session) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.thumbnailJpeg) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.phoneHeightMm) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.session != 0 {
+      try visitor.visitSingularUInt32Field(value: self.session, fieldNumber: 1)
+    }
+    if !self.thumbnailJpeg.isEmpty {
+      try visitor.visitSingularBytesField(value: self.thumbnailJpeg, fieldNumber: 2)
+    }
+    if self.phoneHeightMm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.phoneHeightMm, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_DragBegan, rhs: Lumen_DragBegan) -> Bool {
+    if lhs.session != rhs.session {return false}
+    if lhs.thumbnailJpeg != rhs.thumbnailJpeg {return false}
+    if lhs.phoneHeightMm != rhs.phoneHeightMm {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_DragEnded: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DragEnded"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0\u{1}crossed\0\u{3}velocity_x_mm_s\0\u{3}velocity_y_mm_s\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.session) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.crossed) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.velocityXMmS) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.velocityYMmS) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.session != 0 {
+      try visitor.visitSingularUInt32Field(value: self.session, fieldNumber: 1)
+    }
+    if self.crossed != false {
+      try visitor.visitSingularBoolField(value: self.crossed, fieldNumber: 2)
+    }
+    if self.velocityXMmS.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.velocityXMmS, fieldNumber: 3)
+    }
+    if self.velocityYMmS.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.velocityYMmS, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_DragEnded, rhs: Lumen_DragEnded) -> Bool {
+    if lhs.session != rhs.session {return false}
+    if lhs.crossed != rhs.crossed {return false}
+    if lhs.velocityXMmS != rhs.velocityXMmS {return false}
+    if lhs.velocityYMmS != rhs.velocityYMmS {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_Landed: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Landed"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}session\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.session) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.session != 0 {
+      try visitor.visitSingularUInt32Field(value: self.session, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_Landed, rhs: Lumen_Landed) -> Bool {
+    if lhs.session != rhs.session {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ControlMessage"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0\u{3}drag_began\0\u{3}drag_ended\0\u{1}landed\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1346,6 +1541,45 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
           self.message = .placementUpdate(v)
         }
       }()
+      case 13: try {
+        var v: Lumen_DragBegan?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .dragBegan(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .dragBegan(v)
+        }
+      }()
+      case 14: try {
+        var v: Lumen_DragEnded?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .dragEnded(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .dragEnded(v)
+        }
+      }()
+      case 15: try {
+        var v: Lumen_Landed?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .landed(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .landed(v)
+        }
+      }()
       default: break
       }
     }
@@ -1404,6 +1638,18 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
     case .placementUpdate?: try {
       guard case .placementUpdate(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+    }()
+    case .dragBegan?: try {
+      guard case .dragBegan(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+    }()
+    case .dragEnded?: try {
+      guard case .dragEnded(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+    }()
+    case .landed?: try {
+      guard case .landed(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
     }()
     case nil: break
     }

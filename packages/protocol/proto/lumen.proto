@@ -34,6 +34,7 @@ message DragFrame {
   float object_width_mm = 9;
   float object_height_mm = 10;
   float rotation_rad = 11;
+  PhoneEdge edge = 12;
 }
 
 message PlayChirpPair {
@@ -99,6 +100,23 @@ message PlacementUpdate {
   bool is_detached = 4;
 }
 
+message DragBegan {
+  uint32 session = 1;
+  bytes thumbnail_jpeg = 2;
+  float phone_height_mm = 3;
+}
+
+message DragEnded {
+  uint32 session = 1;
+  bool crossed = 2;
+  float velocity_x_mm_s = 3;
+  float velocity_y_mm_s = 4;
+}
+
+message Landed {
+  uint32 session = 1;
+}
+
 message ControlMessage {
   oneof message {
     Hello hello = 1;
@@ -113,6 +131,9 @@ message ControlMessage {
     BeginLocate begin_locate = 10;
     EdgeExit edge_exit = 11;
     PlacementUpdate placement_update = 12;
+    DragBegan drag_began = 13;
+    DragEnded drag_ended = 14;
+    Landed landed = 15;
   }
 }
 

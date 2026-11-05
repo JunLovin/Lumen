@@ -44,7 +44,7 @@ struct PeerLinkIntegrationTests {
         let frame = DragFrameSample(
             session: 1, sequence: 1, timestampNs: 9, xMillimeters: 1, yMillimeters: 2,
             velocityXMillimetersPerSecond: 0, velocityYMillimetersPerSecond: 0, edgeProximity: 0.5,
-            objectWidthMillimeters: 10, objectHeightMillimeters: 10, rotationRadians: 0
+            objectWidthMillimeters: 10, objectHeightMillimeters: 10, rotationRadians: 0, edge: .right
         )
         await phone.send(.dragFrame(frame))
         let received = await first(in: macEvents) {

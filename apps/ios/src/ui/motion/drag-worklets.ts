@@ -3,6 +3,9 @@ import { activeEdge } from '../../domain/glow-edge';
 import { phoneToWorld, type FacingSide } from '../../domain/shared-space';
 import type { DragController } from './use-drag-controller';
 
+// Positions of PhoneEdge in the protocol.
+const EDGE_INDEX_RIGHT = 1;
+const EDGE_INDEX_LEFT = 3;
 const ACTIVATION_DISTANCE_POINTS = 140;
 const MAX_TILT_DEGREES = 8;
 const MAX_ROTATION_RADIANS = 0.2;
@@ -83,5 +86,6 @@ export const sendDragFrame = (
     objectSize / perMillimeter,
     objectSize / perMillimeter,
     drag.rotation.value,
+    edge === 'right' ? EDGE_INDEX_RIGHT : EDGE_INDEX_LEFT,
   );
 };

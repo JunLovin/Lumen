@@ -24,10 +24,23 @@ private let dragFrame = DragFrameSample(
     edgeProximity: 0.75,
     objectWidthMillimeters: 40,
     objectHeightMillimeters: 30,
-    rotationRadians: 0.5
+    rotationRadians: 0.5,
+    edge: .right
 )
 
 @Test(arguments: [
+    ("control-drag-began", PeerMessage.dragBegan(DragStart(
+        session: 7,
+        thumbnailJPEG: [1, 2],
+        phoneHeightMillimeters: 150.5
+    ))),
+    ("control-drag-ended", PeerMessage.dragEnded(DragEnd(
+        session: 7,
+        crossed: true,
+        velocityXMillimetersPerSecond: 100.5,
+        velocityYMillimetersPerSecond: -50.25
+    ))),
+    ("control-landed", PeerMessage.landed(session: 7)),
     ("control-motion-settled", PeerMessage.motionSettled),
     ("control-begin-locate", PeerMessage.beginLocate),
     ("control-edge-exit", PeerMessage.edgeExit(.right)),

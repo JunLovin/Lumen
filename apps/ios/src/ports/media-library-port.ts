@@ -6,4 +6,9 @@ export interface MediaLibraryPort {
   fetchAssets(offset: number, limit: number): Promise<readonly MediaAsset[]>;
   loadThumbnail(assetId: string, size: number): Promise<string | null>;
   manageLimitedAccess(): void;
+  beginDragTransfer(
+    session: number,
+    assetId: string,
+    phoneHeightMillimeters: number,
+  ): void;
 }

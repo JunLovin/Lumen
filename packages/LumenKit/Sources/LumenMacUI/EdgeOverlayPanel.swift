@@ -8,14 +8,12 @@
         private let renderer: EdgeGlowRenderer
         private let metalView: MTKView
 
-        init?(onGPUTime: @escaping @Sendable (Double) -> Void) {
-            guard
-                let screen = NSScreen.main,
-                let device = MTLCreateSystemDefaultDevice()
-            else { return nil }
+        init?(onLeftEdge: Bool = false, onGPUTime: @escaping @Sendable (Double) -> Void) {
+            guard let device = MTLCreateSystemDefaultDevice() else { return nil }
+            let screen = BuiltInScreen.current
             let width = DesignTokens.Glow.overlayWidthPoints
             let frame = NSRect(
-                x: screen.frame.maxX - width,
+                x: onLeftEdge ? screen.frame.minX : screen.frame.maxX - width,
                 y: screen.frame.minY,
                 width: width,
                 height: screen.frame.height
@@ -29,6 +27,7 @@
                 pixelFormat: metalView.colorPixelFormat,
                 onGPUTime: onGPUTime
             ) else { return nil }
+            renderer.isMirrored = onLeftEdge
             metalView.delegate = renderer
 
             let panel = NSPanel(

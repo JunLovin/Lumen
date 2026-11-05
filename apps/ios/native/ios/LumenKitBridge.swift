@@ -6,7 +6,7 @@ import LumenTransport
 
 @objc(LumenKitBridge)
 public final class LumenKitBridge: NSObject, @unchecked Sendable {
-    private let session = LabSession()
+    let session = LabSession()
     let media = MediaLibrary()
     private let haptics = Haptics()
 
@@ -20,6 +20,17 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
         var machine = [CChar](repeating: 0, count: size)
         sysctlbyname("hw.machine", &machine, &size, nil, 0)
         return String(cString: machine)
+    }
+
+    @objc public func endDrag(session frameSession: Int32, crossed: Bool, velocityX: Float, velocityY: Float) {
+        let session = session
+        let end = DragEnd(
+            session: UInt32(bitPattern: frameSession),
+            crossed: crossed,
+            velocityXMillimetersPerSecond: velocityX,
+            velocityYMillimetersPerSecond: velocityY
+        )
+        Task { await session.send(.dragEnded(end)) }
     }
 
     @objc public func impact(style: Int) {
@@ -114,7 +125,8 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
         edgeProximity: Float,
         objectWidth: Float,
         objectHeight: Float,
-        rotation: Float
+        rotation: Float,
+        edge: Int
     ) {
         let age = UInt64(max(ageMilliseconds, 0) * 1_000_000)
         session.enqueue(DragFrameSample(
@@ -128,7 +140,8 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
             edgeProximity: edgeProximity,
             objectWidthMillimeters: objectWidth,
             objectHeightMillimeters: objectHeight,
-            rotationRadians: rotation
+            rotationRadians: rotation,
+            edge: PhoneEdge(rawValue: edge) ?? .right
         ))
     }
 

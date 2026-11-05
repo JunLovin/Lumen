@@ -37,11 +37,24 @@ const datagrams = {
       objectWidthMm: 40,
       objectHeightMm: 30,
       rotationRad: 0.5,
+      edge: PhoneEdge.PHONE_EDGE_RIGHT,
     },
   },
 };
 
 const controlMessages = {
+  'control-drag-began': {
+    dragBegan: { session: 7, thumbnailJpeg: bytes(1, 2), phoneHeightMm: 150.5 },
+  },
+  'control-drag-ended': {
+    dragEnded: {
+      session: 7,
+      crossed: true,
+      velocityXMmS: 100.5,
+      velocityYMmS: -50.25,
+    },
+  },
+  'control-landed': { landed: { session: 7 } },
   'control-motion-settled': { motionSettled: {} },
   'control-begin-locate': { beginLocate: {} },
   'control-edge-exit': { edgeExit: { edge: PhoneEdge.PHONE_EDGE_RIGHT } },

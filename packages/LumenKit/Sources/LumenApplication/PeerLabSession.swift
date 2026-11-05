@@ -12,6 +12,8 @@ public enum PeerLabUpdate: Sendable, Equatable {
     case acousticReport(AcousticReading)
     case placement(Placement, evidence: String)
     case audioRoute(canPlayUltrasound: Bool)
+    case dragBegan(DragStart)
+    case dragEnded(DragEnd)
 }
 
 public actor PeerLabSession {
@@ -60,6 +62,10 @@ public actor PeerLabSession {
 
     public func setChirpAmplitude(_ amplitude: Float) {
         chirpAmplitude = amplitude
+    }
+
+    public func reportLanded(session: UInt32) async {
+        await link.send(.landed(session: session))
     }
 
     public func playTestTone(on channel: AudioChannel) async {
@@ -125,7 +131,11 @@ public actor PeerLabSession {
         case let .edgeExit(edge):
             resolver.apply(.edgeExit(edge), atNanoseconds: clock.nowNanoseconds())
             await publishPlacement(evidence: "edgeExit")
-        case .hello, .beginLocate, .placementUpdate:
+        case let .dragBegan(start):
+            updatesContinuation.yield(.dragBegan(start))
+        case let .dragEnded(end):
+            updatesContinuation.yield(.dragEnded(end))
+        case .hello, .beginLocate, .placementUpdate, .landed:
             break
         }
     }
