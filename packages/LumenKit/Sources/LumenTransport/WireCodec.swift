@@ -44,6 +44,14 @@ public enum WireCodec {
                 snrDecibels: report.snrDb,
                 acceptedPairs: report.acceptedPairs
             ))
+        case .motionSettled:
+            return .motionSettled
+        case .beginLocate:
+            return .beginLocate
+        case let .edgeExit(exit):
+            return PhoneEdge(rawValue: exit.edge.rawValue).map { .edgeExit($0) }
+        case let .placementUpdate(update):
+            return .placementUpdate(domain(update))
         case .hello, .sessionKey, .sessionReady, .incompatibleVersion:
             return nil
         }
@@ -69,9 +77,31 @@ public enum WireCodec {
                 $0.snrDb = reading.snrDecibels
                 $0.acceptedPairs = reading.acceptedPairs
             })
+        case .motionSettled:
+            .motionSettled(Lumen_MotionSettled())
+        case .beginLocate:
+            .beginLocate(Lumen_BeginLocate())
+        case let .edgeExit(edge):
+            .edgeExit(.with { $0.edge = Lumen_PhoneEdge(rawValue: edge.rawValue) ?? .top })
+        case let .placementUpdate(placement):
+            .placementUpdate(.with {
+                $0.side = Lumen_PlacementSide(rawValue: placement.side.rawValue) ?? .unknown
+                $0.confidence = Float(placement.confidence)
+                $0.probabilities = placement.distribution.probabilities.map { Float($0) }
+                $0.isDetached = placement.isDetached
+            })
         case .hello, .dragFrame:
             nil
         }
+    }
+
+    private static func domain(_ update: Lumen_PlacementUpdate) -> Placement {
+        Placement(
+            side: PlacementSide(rawValue: update.side.rawValue) ?? .unknown,
+            confidence: Double(update.confidence),
+            distribution: PlacementDistribution(probabilities: update.probabilities.map { Double($0) }),
+            isDetached: update.isDetached
+        )
     }
 
     private static func wire(_ sample: DragFrameSample) -> Lumen_DragFrame {

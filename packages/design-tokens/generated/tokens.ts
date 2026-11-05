@@ -87,5 +87,11 @@ export const tokens = {
         0.8
       ]
     ]
+  },
+  "placement": {
+    "cometSeconds": 1.2,
+    "cometLengthFraction": 0.18,
+    "cometWidthPoints": 6,
+    "pulseSeconds": 0.8
   }
 } as const;

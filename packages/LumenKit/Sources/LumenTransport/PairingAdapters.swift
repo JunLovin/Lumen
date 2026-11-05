@@ -82,6 +82,8 @@ public actor PairingResponder: PairingPort {
 }
 
 public actor PairingInitiator: PairingPort {
+    private static let connectRetryDelay = Duration.milliseconds(500)
+
     private let serviceType: String
     private var browser: NWBrowser?
     private var channel: FramedConnection?
@@ -116,8 +118,11 @@ public actor PairingInitiator: PairingPort {
         guard channel == nil else { return }
         let channel = FramedConnection(connection: NWConnection(to: endpoint, using: SecureParameters.plainStream()))
         self.channel = channel
+        guard await (try? channel.start()) != nil else {
+            await retryConnecting(to: endpoint, identity: identity)
+            return
+        }
         do {
-            try await channel.start()
             continuation?.yield(.exchanging)
             let exchange = try await PairingExchange.run(role: .initiator, identity: identity, channel: channel)
             continuation?.yield(.awaitingConfirmation(exchange.verificationPattern))
@@ -131,6 +136,13 @@ public actor PairingInitiator: PairingPort {
         }
         channel.cancel()
         finish()
+    }
+
+    private func retryConnecting(to endpoint: NWEndpoint, identity: LocalIdentity) async {
+        channel = nil
+        try? await Task.sleep(for: Self.connectRetryDelay)
+        guard browser != nil else { return }
+        await connect(to: browser?.browseResults.first?.endpoint ?? endpoint, identity: identity)
     }
 
     private func finish() {

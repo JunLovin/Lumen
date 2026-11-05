@@ -35,3 +35,8 @@
 "pairing.confirm" = "Coinciden";
 "pairing.reject" = "No coinciden";
 "lab.rssi" = "Señal de Bluetooth";
+"lab.side" = "Lado";
+"lab.confidence" = "Confianza";
+"lab.detached" = "Lejos";
+"lab.ultrasoundRoute" = "Altavoces internos en uso";
+"lab.history" = "Evidencias";

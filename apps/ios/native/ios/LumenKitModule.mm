@@ -53,6 +53,17 @@ RCT_EXPORT_MODULE(LumenKit)
   }];
 }
 
+- (void)reportEdgeExit:(double)edge {
+  [_bridge reportEdgeExit:(NSInteger)edge];
+}
+
+- (void)placementStatus:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject {
+  [_bridge placementStatus:^(NSDictionary *status) {
+    resolve(status);
+  }];
+}
+
 - (void)linkStatus:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   [_bridge linkStatus:^(BOOL isConnected) {

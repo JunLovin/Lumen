@@ -35,3 +35,8 @@
 "pairing.confirm" = "They match";
 "pairing.reject" = "They don't match";
 "lab.rssi" = "Bluetooth signal";
+"lab.side" = "Side";
+"lab.confidence" = "Confidence";
+"lab.detached" = "Detached";
+"lab.ultrasoundRoute" = "Internal speakers in use";
+"lab.history" = "Evidence";

@@ -37,6 +37,102 @@ export function protocolVersionToJSON(object: ProtocolVersion): string {
   }
 }
 
+export enum PhoneEdge {
+  PHONE_EDGE_TOP = 0,
+  PHONE_EDGE_RIGHT = 1,
+  PHONE_EDGE_BOTTOM = 2,
+  PHONE_EDGE_LEFT = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function phoneEdgeFromJSON(object: any): PhoneEdge {
+  switch (object) {
+    case 0:
+    case "PHONE_EDGE_TOP":
+      return PhoneEdge.PHONE_EDGE_TOP;
+    case 1:
+    case "PHONE_EDGE_RIGHT":
+      return PhoneEdge.PHONE_EDGE_RIGHT;
+    case 2:
+    case "PHONE_EDGE_BOTTOM":
+      return PhoneEdge.PHONE_EDGE_BOTTOM;
+    case 3:
+    case "PHONE_EDGE_LEFT":
+      return PhoneEdge.PHONE_EDGE_LEFT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return PhoneEdge.UNRECOGNIZED;
+  }
+}
+
+export function phoneEdgeToJSON(object: PhoneEdge): string {
+  switch (object) {
+    case PhoneEdge.PHONE_EDGE_TOP:
+      return "PHONE_EDGE_TOP";
+    case PhoneEdge.PHONE_EDGE_RIGHT:
+      return "PHONE_EDGE_RIGHT";
+    case PhoneEdge.PHONE_EDGE_BOTTOM:
+      return "PHONE_EDGE_BOTTOM";
+    case PhoneEdge.PHONE_EDGE_LEFT:
+      return "PHONE_EDGE_LEFT";
+    case PhoneEdge.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum PlacementSide {
+  PLACEMENT_SIDE_LEFT = 0,
+  PLACEMENT_SIDE_RIGHT = 1,
+  PLACEMENT_SIDE_BELOW = 2,
+  PLACEMENT_SIDE_ABOVE = 3,
+  PLACEMENT_SIDE_UNKNOWN = 4,
+  UNRECOGNIZED = -1,
+}
+
+export function placementSideFromJSON(object: any): PlacementSide {
+  switch (object) {
+    case 0:
+    case "PLACEMENT_SIDE_LEFT":
+      return PlacementSide.PLACEMENT_SIDE_LEFT;
+    case 1:
+    case "PLACEMENT_SIDE_RIGHT":
+      return PlacementSide.PLACEMENT_SIDE_RIGHT;
+    case 2:
+    case "PLACEMENT_SIDE_BELOW":
+      return PlacementSide.PLACEMENT_SIDE_BELOW;
+    case 3:
+    case "PLACEMENT_SIDE_ABOVE":
+      return PlacementSide.PLACEMENT_SIDE_ABOVE;
+    case 4:
+    case "PLACEMENT_SIDE_UNKNOWN":
+      return PlacementSide.PLACEMENT_SIDE_UNKNOWN;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return PlacementSide.UNRECOGNIZED;
+  }
+}
+
+export function placementSideToJSON(object: PlacementSide): string {
+  switch (object) {
+    case PlacementSide.PLACEMENT_SIDE_LEFT:
+      return "PLACEMENT_SIDE_LEFT";
+    case PlacementSide.PLACEMENT_SIDE_RIGHT:
+      return "PLACEMENT_SIDE_RIGHT";
+    case PlacementSide.PLACEMENT_SIDE_BELOW:
+      return "PLACEMENT_SIDE_BELOW";
+    case PlacementSide.PLACEMENT_SIDE_ABOVE:
+      return "PLACEMENT_SIDE_ABOVE";
+    case PlacementSide.PLACEMENT_SIDE_UNKNOWN:
+      return "PLACEMENT_SIDE_UNKNOWN";
+    case PlacementSide.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Hello {
   protocolVersion: ProtocolVersion;
   deviceIdHash: Uint8Array;
@@ -97,6 +193,23 @@ export interface IncompatibleVersion {
   supported: ProtocolVersion;
 }
 
+export interface MotionSettled {
+}
+
+export interface BeginLocate {
+}
+
+export interface EdgeExit {
+  edge: PhoneEdge;
+}
+
+export interface PlacementUpdate {
+  side: PlacementSide;
+  confidence: number;
+  probabilities: number[];
+  isDetached: boolean;
+}
+
 export interface ControlMessage {
   hello?: Hello | undefined;
   sessionKey?: SessionKey | undefined;
@@ -106,6 +219,10 @@ export interface ControlMessage {
   clockPong?: ClockPong | undefined;
   playChirpPair?: PlayChirpPair | undefined;
   acousticReport?: AcousticReport | undefined;
+  motionSettled?: MotionSettled | undefined;
+  beginLocate?: BeginLocate | undefined;
+  edgeExit?: EdgeExit | undefined;
+  placementUpdate?: PlacementUpdate | undefined;
 }
 
 export interface PairingCommit {
@@ -1252,6 +1369,314 @@ export const IncompatibleVersion: MessageFns<IncompatibleVersion> = {
   },
 };
 
+function createBaseMotionSettled(): MotionSettled {
+  return {};
+}
+
+export const MotionSettled: MessageFns<MotionSettled> = {
+  encode(_: MotionSettled, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MotionSettled {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseMotionSettled();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(_: any): MotionSettled {
+    return {};
+  },
+
+  toJSON(_: MotionSettled): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MotionSettled>, I>>(base?: I): MotionSettled {
+    return MotionSettled.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MotionSettled>, I>>(_: I): MotionSettled {
+    const message = createBaseMotionSettled();
+    return message;
+  },
+};
+
+function createBaseBeginLocate(): BeginLocate {
+  return {};
+}
+
+export const BeginLocate: MessageFns<BeginLocate> = {
+  encode(_: BeginLocate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): BeginLocate {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseBeginLocate();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(_: any): BeginLocate {
+    return {};
+  },
+
+  toJSON(_: BeginLocate): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BeginLocate>, I>>(base?: I): BeginLocate {
+    return BeginLocate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BeginLocate>, I>>(_: I): BeginLocate {
+    const message = createBaseBeginLocate();
+    return message;
+  },
+};
+
+function createBaseEdgeExit(): EdgeExit {
+  return { edge: 0 };
+}
+
+export const EdgeExit: MessageFns<EdgeExit> = {
+  encode(message: EdgeExit, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.edge !== 0) {
+      writer.uint32(8).int32(message.edge);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): EdgeExit {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseEdgeExit();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.edge = reader.int32() as any;
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): EdgeExit {
+    return { edge: isSet(object.edge) ? phoneEdgeFromJSON(object.edge) : 0 };
+  },
+
+  toJSON(message: EdgeExit): unknown {
+    const obj: any = {};
+    if (message.edge !== 0) {
+      obj.edge = phoneEdgeToJSON(message.edge);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<EdgeExit>, I>>(base?: I): EdgeExit {
+    return EdgeExit.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<EdgeExit>, I>>(object: I): EdgeExit {
+    const message = createBaseEdgeExit();
+    message.edge = object.edge ?? 0;
+    return message;
+  },
+};
+
+function createBasePlacementUpdate(): PlacementUpdate {
+  return { side: 0, confidence: 0, probabilities: [], isDetached: false };
+}
+
+export const PlacementUpdate: MessageFns<PlacementUpdate> = {
+  encode(message: PlacementUpdate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.side !== 0) {
+      writer.uint32(8).int32(message.side);
+    }
+    if (message.confidence !== 0) {
+      writer.uint32(21).float(message.confidence);
+    }
+    if (message.probabilities.length !== 0) {
+      writer.uint32(26).fork();
+      for (const v of message.probabilities) {
+        writer.float(v);
+      }
+      writer.join();
+    }
+    if (message.isDetached !== false) {
+      writer.uint32(32).bool(message.isDetached);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PlacementUpdate {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePlacementUpdate();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.side = reader.int32() as any;
+            continue;
+          }
+          case 2: {
+            if (tag !== 21) {
+              break;
+            }
+
+            message.confidence = reader.float();
+            continue;
+          }
+          case 3: {
+            if (tag === 29) {
+              message.probabilities.push(reader.float());
+
+              continue;
+            }
+
+            if (tag === 26) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.probabilities.push(reader.float());
+              }
+
+              continue;
+            }
+
+            break;
+          }
+          case 4: {
+            if (tag !== 32) {
+              break;
+            }
+
+            message.isDetached = reader.bool();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PlacementUpdate {
+    return {
+      side: isSet(object.side) ? placementSideFromJSON(object.side) : 0,
+      confidence: isSet(object.confidence) ? globalThis.Number(object.confidence) : 0,
+      probabilities: globalThis.Array.isArray(object?.probabilities)
+        ? object.probabilities.map((e: any) => globalThis.Number(e))
+        : [],
+      isDetached: isSet(object.isDetached)
+        ? globalThis.Boolean(object.isDetached)
+        : isSet(object.is_detached)
+        ? globalThis.Boolean(object.is_detached)
+        : false,
+    };
+  },
+
+  toJSON(message: PlacementUpdate): unknown {
+    const obj: any = {};
+    if (message.side !== 0) {
+      obj.side = placementSideToJSON(message.side);
+    }
+    if (message.confidence !== 0) {
+      obj.confidence = floatToJson(message.confidence);
+    }
+    if (message.probabilities?.length) {
+      obj.probabilities = message.probabilities.map((e) => floatToJson(e));
+    }
+    if (message.isDetached !== false) {
+      obj.isDetached = message.isDetached;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PlacementUpdate>, I>>(base?: I): PlacementUpdate {
+    return PlacementUpdate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PlacementUpdate>, I>>(object: I): PlacementUpdate {
+    const message = createBasePlacementUpdate();
+    message.side = object.side ?? 0;
+    message.confidence = object.confidence ?? 0;
+    message.probabilities = object.probabilities?.map((e) => e) || [];
+    message.isDetached = object.isDetached ?? false;
+    return message;
+  },
+};
+
 function createBaseControlMessage(): ControlMessage {
   return {
     hello: undefined,
@@ -1262,6 +1687,10 @@ function createBaseControlMessage(): ControlMessage {
     clockPong: undefined,
     playChirpPair: undefined,
     acousticReport: undefined,
+    motionSettled: undefined,
+    beginLocate: undefined,
+    edgeExit: undefined,
+    placementUpdate: undefined,
   };
 }
 
@@ -1290,6 +1719,18 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.acousticReport !== undefined) {
       AcousticReport.encode(message.acousticReport, writer.uint32(66).fork()).join();
+    }
+    if (message.motionSettled !== undefined) {
+      MotionSettled.encode(message.motionSettled, writer.uint32(74).fork()).join();
+    }
+    if (message.beginLocate !== undefined) {
+      BeginLocate.encode(message.beginLocate, writer.uint32(82).fork()).join();
+    }
+    if (message.edgeExit !== undefined) {
+      EdgeExit.encode(message.edgeExit, writer.uint32(90).fork()).join();
+    }
+    if (message.placementUpdate !== undefined) {
+      PlacementUpdate.encode(message.placementUpdate, writer.uint32(98).fork()).join();
     }
     return writer;
   },
@@ -1371,6 +1812,38 @@ export const ControlMessage: MessageFns<ControlMessage> = {
             message.acousticReport = AcousticReport.decode(reader, reader.uint32());
             continue;
           }
+          case 9: {
+            if (tag !== 74) {
+              break;
+            }
+
+            message.motionSettled = MotionSettled.decode(reader, reader.uint32());
+            continue;
+          }
+          case 10: {
+            if (tag !== 82) {
+              break;
+            }
+
+            message.beginLocate = BeginLocate.decode(reader, reader.uint32());
+            continue;
+          }
+          case 11: {
+            if (tag !== 90) {
+              break;
+            }
+
+            message.edgeExit = EdgeExit.decode(reader, reader.uint32());
+            continue;
+          }
+          case 12: {
+            if (tag !== 98) {
+              break;
+            }
+
+            message.placementUpdate = PlacementUpdate.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -1421,6 +1894,26 @@ export const ControlMessage: MessageFns<ControlMessage> = {
         : isSet(object.acoustic_report)
         ? AcousticReport.fromJSON(object.acoustic_report)
         : undefined,
+      motionSettled: isSet(object.motionSettled)
+        ? MotionSettled.fromJSON(object.motionSettled)
+        : isSet(object.motion_settled)
+        ? MotionSettled.fromJSON(object.motion_settled)
+        : undefined,
+      beginLocate: isSet(object.beginLocate)
+        ? BeginLocate.fromJSON(object.beginLocate)
+        : isSet(object.begin_locate)
+        ? BeginLocate.fromJSON(object.begin_locate)
+        : undefined,
+      edgeExit: isSet(object.edgeExit)
+        ? EdgeExit.fromJSON(object.edgeExit)
+        : isSet(object.edge_exit)
+        ? EdgeExit.fromJSON(object.edge_exit)
+        : undefined,
+      placementUpdate: isSet(object.placementUpdate)
+        ? PlacementUpdate.fromJSON(object.placementUpdate)
+        : isSet(object.placement_update)
+        ? PlacementUpdate.fromJSON(object.placement_update)
+        : undefined,
     };
   },
 
@@ -1449,6 +1942,18 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.acousticReport !== undefined) {
       obj.acousticReport = AcousticReport.toJSON(message.acousticReport);
+    }
+    if (message.motionSettled !== undefined) {
+      obj.motionSettled = MotionSettled.toJSON(message.motionSettled);
+    }
+    if (message.beginLocate !== undefined) {
+      obj.beginLocate = BeginLocate.toJSON(message.beginLocate);
+    }
+    if (message.edgeExit !== undefined) {
+      obj.edgeExit = EdgeExit.toJSON(message.edgeExit);
+    }
+    if (message.placementUpdate !== undefined) {
+      obj.placementUpdate = PlacementUpdate.toJSON(message.placementUpdate);
     }
     return obj;
   },
@@ -1479,6 +1984,18 @@ export const ControlMessage: MessageFns<ControlMessage> = {
       : undefined;
     message.acousticReport = (object.acousticReport !== undefined && object.acousticReport !== null)
       ? AcousticReport.fromPartial(object.acousticReport)
+      : undefined;
+    message.motionSettled = (object.motionSettled !== undefined && object.motionSettled !== null)
+      ? MotionSettled.fromPartial(object.motionSettled)
+      : undefined;
+    message.beginLocate = (object.beginLocate !== undefined && object.beginLocate !== null)
+      ? BeginLocate.fromPartial(object.beginLocate)
+      : undefined;
+    message.edgeExit = (object.edgeExit !== undefined && object.edgeExit !== null)
+      ? EdgeExit.fromPartial(object.edgeExit)
+      : undefined;
+    message.placementUpdate = (object.placementUpdate !== undefined && object.placementUpdate !== null)
+      ? PlacementUpdate.fromPartial(object.placementUpdate)
       : undefined;
     return message;
   },

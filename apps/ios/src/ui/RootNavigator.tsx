@@ -5,6 +5,7 @@ import {
 } from '@react-navigation/native-stack';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { translate } from './i18n/translate';
+import { PlacementPulse } from './effects/PlacementPulse';
 import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
 import { LatencyLabScreen } from './screens/LatencyLabScreen';
@@ -47,33 +48,41 @@ export function RootNavigator({
   );
 
   return (
-    <NavigationContainer theme={DarkTheme}>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Diagnostics"
-          options={{ title: translate('diagnostics.title') }}
-        >
-          {renderDiagnostics}
-        </Stack.Screen>
-        <Stack.Screen
-          name="Placement"
-          options={{ title: translate('lab.placement') }}
-        >
-          {() => <PlacementLabScreen useCases={useCases} />}
-        </Stack.Screen>
-        <Stack.Screen
-          name="Latency"
-          options={{ title: translate('lab.latency'), gestureEnabled: false }}
-        >
-          {() => <LatencyLabScreen sender={useCases.dragFrameSender} />}
-        </Stack.Screen>
-        <Stack.Screen
-          name="Glow"
-          options={{ title: translate('lab.glow'), gestureEnabled: false }}
-        >
-          {() => <GlowLabScreen />}
-        </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer theme={DarkTheme}>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Diagnostics"
+            options={{ title: translate('diagnostics.title') }}
+          >
+            {renderDiagnostics}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Placement"
+            options={{ title: translate('lab.placement') }}
+          >
+            {() => <PlacementLabScreen useCases={useCases} />}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Latency"
+            options={{ title: translate('lab.latency'), gestureEnabled: false }}
+          >
+            {() => (
+              <LatencyLabScreen
+                sender={useCases.dragFrameSender}
+                onEdgeExit={useCases.reportEdgeExit}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Glow"
+            options={{ title: translate('lab.glow'), gestureEnabled: false }}
+          >
+            {() => <GlowLabScreen />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+      <PlacementPulse readPlacement={useCases.readPlacement} />
+    </>
   );
 }

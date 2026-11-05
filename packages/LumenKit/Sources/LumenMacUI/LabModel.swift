@@ -3,26 +3,12 @@
     import LumenDomain
     import Observation
 
-    public struct LatencySummary: Equatable {
-        public let p50: Double
-        public let p95: Double
-        public let max: Double
-        public let count: Int
-
-        init?(window: SampleWindow) {
-            guard let p50 = window.percentile(0.5), let p95 = window.percentile(0.95) else { return nil }
-            self.p50 = p50
-            self.p95 = p95
-            max = window.percentile(1) ?? p95
-            count = window.count
-        }
-    }
-
     @MainActor
     @Observable
     public final class LabModel {
         private static let statsPublishIntervalNs: UInt64 = 500_000_000
         private static let windowCapacity = 2048
+        private static let historyLength = 8
 
         public private(set) var isListening = false
         public private(set) var isConnected = false
@@ -36,6 +22,9 @@
         public private(set) var acousticReading: AcousticReading?
         public private(set) var gpuTime: LatencySummary?
         public private(set) var isOverlayVisible = false
+        public private(set) var placement: Placement?
+        public private(set) var placementHistory: [String] = []
+        public private(set) var canPlayUltrasound: Bool?
         public var manualProximity: Float = 0 {
             didSet { pushProximity() }
         }
@@ -54,6 +43,7 @@
         @ObservationIgnored private var renderWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var gpuWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var overlay: EdgeOverlayPanel?
+        @ObservationIgnored private var comet: CometPanel?
         @ObservationIgnored private var firstSequence: UInt32?
         @ObservationIgnored private var currentSession: UInt32?
         @ObservationIgnored private var gapWindow = SampleWindow(capacity: windowCapacity)
@@ -140,7 +130,22 @@
                 apply(frame, receivedAtNs: receivedAtNs)
             case let .acousticReport(reading):
                 acousticReading = reading
+            case let .placement(placement, evidence):
+                apply(placement, evidence: evidence)
+            case let .audioRoute(canPlayUltrasound):
+                self.canPlayUltrasound = canPlayUltrasound
             }
+        }
+
+        private func apply(_ newPlacement: Placement, evidence: String) {
+            if let previous = placement?.side, previous != newPlacement.side, newPlacement.side != .unknown {
+                if comet == nil {
+                    comet = CometPanel()
+                }
+                comet?.play(from: previous, to: newPlacement.side)
+            }
+            placement = newPlacement
+            placementHistory = Array(([evidence] + placementHistory).prefix(Self.historyLength))
         }
 
         private func apply(_ frame: LocalizedDragFrame, receivedAtNs: UInt64) {

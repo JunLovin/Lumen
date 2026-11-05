@@ -4,8 +4,7 @@ import LumenDomain
 import LumenTransport
 import Testing
 
-/// Serialized: several tests advertising Bonjour services at once hang on discovery, while
-/// serial runs pass every time.
+/// Serialized so that only one test at a time depends on Bonjour discovery timing.
 @Suite(.serialized)
 struct PeerLinkIntegrationTests {
     @Test(.enabled(if: isLocalRun, "CI runners do not allow Bonjour"), .timeLimit(.minutes(1)))

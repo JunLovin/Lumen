@@ -54,6 +54,35 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
         }
     }
 
+    @objc public func reportEdgeExit(_ edgeIndex: Int) {
+        guard let edge = PhoneEdge(rawValue: edgeIndex) else { return }
+        let session = session
+        Task { await session.reportEdgeExit(edge) }
+    }
+
+    @objc public func placementStatus(_ completion: @escaping @Sendable (NSDictionary) -> Void) {
+        let session = session
+        Task {
+            let placement = await session.placement
+            let edge = await session.facingEdge
+            let failure = await session.locationFailure
+            var status: [String: Any] = [
+                "side": placement?.side.rawValue ?? PlacementSide.unknown.rawValue,
+                "confidence": placement?.confidence ?? 0,
+                "probabilities": placement?.distribution.probabilities ?? PlacementDistribution.uncertain.probabilities,
+                "isDetached": placement?.isDetached ?? false,
+                "facingEdge": edge?.rawValue ?? -1,
+            ]
+            if let failure {
+                status["locationFailure"] = failure
+            }
+            if let locateMilliseconds = await session.lastLocateMilliseconds {
+                status["locateMilliseconds"] = locateMilliseconds
+            }
+            completion(status as NSDictionary)
+        }
+    }
+
     @objc public func linkStatus(_ completion: @escaping @Sendable (Bool) -> Void) {
         let session = session
         Task { await completion(session.connected) }

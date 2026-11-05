@@ -25,6 +25,10 @@ public enum PeerMessage: Sendable, Equatable {
     case dragFrame(DragFrameSample)
     case playChirpPair(requestID: UInt32)
     case acousticReport(AcousticReading)
+    case motionSettled
+    case beginLocate
+    case edgeExit(PhoneEdge)
+    case placementUpdate(Placement)
 }
 
 public enum PeerEvent: Sendable, Equatable {
@@ -66,4 +70,13 @@ public protocol PairingPort: Sendable {
 public protocol ProximityPort: Sendable {
     func rssiReadings() async -> AsyncStream<Int>
     func stop() async
+}
+
+public protocol AudioRoutePort: Sendable {
+    func canPlayUltrasound() async -> Bool
+}
+
+public protocol PlacementStorePort: Sendable {
+    func load() async -> PlacementDistribution?
+    func save(_ distribution: PlacementDistribution) async
 }

@@ -59,6 +59,94 @@ public nonisolated enum Lumen_ProtocolVersion: SwiftProtobuf.Enum, Swift.CaseIte
 
 }
 
+public nonisolated enum Lumen_PhoneEdge: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case top // = 0
+  case right // = 1
+  case bottom // = 2
+  case left // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .top
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .top
+    case 1: self = .right
+    case 2: self = .bottom
+    case 3: self = .left
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .top: return 0
+    case .right: return 1
+    case .bottom: return 2
+    case .left: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Lumen_PhoneEdge] = [
+    .top,
+    .right,
+    .bottom,
+    .left,
+  ]
+
+}
+
+public nonisolated enum Lumen_PlacementSide: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case left // = 0
+  case right // = 1
+  case below // = 2
+  case above // = 3
+  case unknown // = 4
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .left
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .left
+    case 1: self = .right
+    case 2: self = .below
+    case 3: self = .above
+    case 4: self = .unknown
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .left: return 0
+    case .right: return 1
+    case .below: return 2
+    case .above: return 3
+    case .unknown: return 4
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Lumen_PlacementSide] = [
+    .left,
+    .right,
+    .below,
+    .above,
+    .unknown,
+  ]
+
+}
+
 public nonisolated struct Lumen_Hello: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -239,6 +327,56 @@ public nonisolated struct Lumen_IncompatibleVersion: Sendable {
   public init() {}
 }
 
+public nonisolated struct Lumen_MotionSettled: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_BeginLocate: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_EdgeExit: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var edge: Lumen_PhoneEdge = .top
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_PlacementUpdate: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var side: Lumen_PlacementSide = .left
+
+  public var confidence: Float = 0
+
+  public var probabilities: [Float] = []
+
+  public var isDetached: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public nonisolated struct Lumen_ControlMessage: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -310,6 +448,38 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     set {message = .acousticReport(newValue)}
   }
 
+  public var motionSettled: Lumen_MotionSettled {
+    get {
+      if case .motionSettled(let v)? = message {return v}
+      return Lumen_MotionSettled()
+    }
+    set {message = .motionSettled(newValue)}
+  }
+
+  public var beginLocate: Lumen_BeginLocate {
+    get {
+      if case .beginLocate(let v)? = message {return v}
+      return Lumen_BeginLocate()
+    }
+    set {message = .beginLocate(newValue)}
+  }
+
+  public var edgeExit: Lumen_EdgeExit {
+    get {
+      if case .edgeExit(let v)? = message {return v}
+      return Lumen_EdgeExit()
+    }
+    set {message = .edgeExit(newValue)}
+  }
+
+  public var placementUpdate: Lumen_PlacementUpdate {
+    get {
+      if case .placementUpdate(let v)? = message {return v}
+      return Lumen_PlacementUpdate()
+    }
+    set {message = .placementUpdate(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -321,6 +491,10 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     case clockPong(Lumen_ClockPong)
     case playChirpPair(Lumen_PlayChirpPair)
     case acousticReport(Lumen_AcousticReport)
+    case motionSettled(Lumen_MotionSettled)
+    case beginLocate(Lumen_BeginLocate)
+    case edgeExit(Lumen_EdgeExit)
+    case placementUpdate(Lumen_PlacementUpdate)
 
   }
 
@@ -451,6 +625,14 @@ fileprivate nonisolated let _protobuf_package = "lumen"
 
 nonisolated extension Lumen_ProtocolVersion: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0PROTOCOL_VERSION_UNSPECIFIED\0\u{1}PROTOCOL_VERSION_CURRENT\0")
+}
+
+nonisolated extension Lumen_PhoneEdge: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0PHONE_EDGE_TOP\0\u{1}PHONE_EDGE_RIGHT\0\u{1}PHONE_EDGE_BOTTOM\0\u{1}PHONE_EDGE_LEFT\0")
+}
+
+nonisolated extension Lumen_PlacementSide: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0PLACEMENT_SIDE_LEFT\0\u{1}PLACEMENT_SIDE_RIGHT\0\u{1}PLACEMENT_SIDE_BELOW\0\u{1}PLACEMENT_SIDE_ABOVE\0\u{1}PLACEMENT_SIDE_UNKNOWN\0")
 }
 
 nonisolated extension Lumen_Hello: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -885,9 +1067,122 @@ nonisolated extension Lumen_IncompatibleVersion: SwiftProtobuf.Message, SwiftPro
   }
 }
 
+nonisolated extension Lumen_MotionSettled: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MotionSettled"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_MotionSettled, rhs: Lumen_MotionSettled) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_BeginLocate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BeginLocate"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_BeginLocate, rhs: Lumen_BeginLocate) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_EdgeExit: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EdgeExit"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}edge\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.edge) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.edge != .top {
+      try visitor.visitSingularEnumField(value: self.edge, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_EdgeExit, rhs: Lumen_EdgeExit) -> Bool {
+    if lhs.edge != rhs.edge {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_PlacementUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PlacementUpdate"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}side\0\u{1}confidence\0\u{1}probabilities\0\u{3}is_detached\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.side) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.confidence) }()
+      case 3: try { try decoder.decodeRepeatedFloatField(value: &self.probabilities) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.isDetached) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.side != .left {
+      try visitor.visitSingularEnumField(value: self.side, fieldNumber: 1)
+    }
+    if self.confidence.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.confidence, fieldNumber: 2)
+    }
+    if !self.probabilities.isEmpty {
+      try visitor.visitPackedFloatField(value: self.probabilities, fieldNumber: 3)
+    }
+    if self.isDetached != false {
+      try visitor.visitSingularBoolField(value: self.isDetached, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_PlacementUpdate, rhs: Lumen_PlacementUpdate) -> Bool {
+    if lhs.side != rhs.side {return false}
+    if lhs.confidence != rhs.confidence {return false}
+    if lhs.probabilities != rhs.probabilities {return false}
+    if lhs.isDetached != rhs.isDetached {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ControlMessage"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -999,6 +1294,58 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
           self.message = .acousticReport(v)
         }
       }()
+      case 9: try {
+        var v: Lumen_MotionSettled?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .motionSettled(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .motionSettled(v)
+        }
+      }()
+      case 10: try {
+        var v: Lumen_BeginLocate?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .beginLocate(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .beginLocate(v)
+        }
+      }()
+      case 11: try {
+        var v: Lumen_EdgeExit?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .edgeExit(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .edgeExit(v)
+        }
+      }()
+      case 12: try {
+        var v: Lumen_PlacementUpdate?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .placementUpdate(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .placementUpdate(v)
+        }
+      }()
       default: break
       }
     }
@@ -1041,6 +1388,22 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
     case .acousticReport?: try {
       guard case .acousticReport(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+    }()
+    case .motionSettled?: try {
+      guard case .motionSettled(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+    }()
+    case .beginLocate?: try {
+      guard case .beginLocate(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+    }()
+    case .edgeExit?: try {
+      guard case .edgeExit(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+    }()
+    case .placementUpdate?: try {
+      guard case .placementUpdate(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     }()
     case nil: break
     }

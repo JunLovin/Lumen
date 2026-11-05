@@ -5,36 +5,36 @@ import LumenProximity
 import LumenSignal
 import LumenTransport
 
-enum PlacementError: String, Error {
-    case linkDown = "link_down"
-    case lowSignal = "low_signal"
-    case microphoneDenied = "microphone_denied"
-    case microphoneUnavailable = "microphone_unavailable"
-}
-
-struct PlacementMeasurement {
-    let estimate: AcousticEstimate
-    let pairs: [ChirpPairArrival]
-    let curve: [Float]
-}
-
 actor LabSession {
-    private static let pairsPerMeasurement = 3
-    // Wider than the plan's 300 ms: it absorbs network and Mac audio start latency before the 140 ms pair.
-    private static let recordingSeconds = 0.5
-    private static let curvePointCount = 240
+    /// In g: a phone resting on a table reads well under this, and a phone being moved well over it.
+    private static let movingAcceleration = 0.05
+    private static let quietNanoseconds: UInt64 = 1_000_000_000
+    private static let locatedConfidence = 0.8
 
-    private let link: PhoneSecureLink
+    let link: PhoneSecureLink
     private let pairing: PairNearbyDevice
     private let advertiser = PhoneProximityAdvertiser()
-    private let clock = SystemClockAdapter()
-    private let recorder = MicrophoneRecorder()
+    let clock = SystemClockAdapter()
+    private let locator = AcousticLocator()
     private let frames: AsyncStream<DragFrameSample>.Continuation
     private var isConnected = false
     private var hasStarted = false
     private(set) var pairingStage: PairingStage = .idle
+    private(set) var placement: Placement?
+    let motion = MotionMonitor()
+    var settleDetector = MotionSettleDetector(
+        movingAcceleration: LabSession.movingAcceleration,
+        quietNanoseconds: LabSession.quietNanoseconds
+    )
+    var isLocating = false
+    var hasPendingLocate = false
+    var lastLocationFailure: PlacementError?
+    var settledAtNanoseconds: UInt64?
+    private(set) var lastLocateMilliseconds: Double?
+    var referenceYawRadians: Double?
+    private var referenceEdge: PhoneEdge?
+    var currentYawRadians: Double?
     private var nextRequestID: UInt32 = 1
-    private var lastRecording: MicrophoneRecording?
 
     init() {
         let link = PhoneSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
@@ -75,6 +75,7 @@ actor LabSession {
         hasStarted = true
         Task { await consumeEvents() }
         Task { await consumePairing() }
+        Task { await consumeMotion() }
         await pairing.start()
     }
 
@@ -90,13 +91,31 @@ actor LabSession {
         await link.probeFileChannel()
     }
 
+    func reportEdgeExit(_ edge: PhoneEdge) async {
+        referenceYawRadians = currentYawRadians
+        referenceEdge = edge
+        await link.send(.edgeExit(edge))
+    }
+
+    var facingEdge: PhoneEdge? {
+        guard let edge = referenceEdge ?? placement.flatMap({ PhoneEdge.facingMac(from: $0.side) }) else { return nil }
+        guard let reference = referenceYawRadians, let current = currentYawRadians else { return edge }
+        // CoreMotion yaw grows counter-clockwise seen from above; a clockwise turn is a negative change.
+        let turns = Int(((reference - current) / (Double.pi / 2)).rounded())
+        return edge.rotated(clockwiseQuarterTurns: turns)
+    }
+
+    var locationFailure: String? {
+        lastLocationFailure?.rawValue
+    }
+
     private func consumePairing() async {
         for await stage in pairing.stages {
             pairingStage = stage
             switch stage {
-            case .searching, .exchanging, .awaitingConfirmation, .failed:
+            case .searching, .exchanging, .awaitingConfirmation, .failed, .paired:
                 advertiser.start()
-            case .paired, .idle:
+            case .idle:
                 advertiser.stop()
             }
         }
@@ -104,69 +123,27 @@ actor LabSession {
 
     func measurePlacement() async throws -> PlacementMeasurement {
         guard isConnected else { throw PlacementError.linkDown }
-        var pairs: [ChirpPairArrival] = []
-        var curve: [Float] = []
         let requestID = nextRequestID
         nextRequestID += 1
-        for _ in 0 ..< Self.pairsPerMeasurement {
-            let recording = try await record(requestID: requestID)
-            let parameters = ChirpParameters.initial
-            let template = ChirpGenerator.chirp(parameters, sampleRate: recording.sampleRate)
-            let envelope = MatchedFilter(template: template).envelope(of: recording.samples)
-            curve = CorrelationCurve.downsample(envelope, pointCount: Self.curvePointCount)
-            if let pair = ChirpPairEstimator.estimate(
-                envelope: envelope,
-                parameters: parameters,
-                sampleRate: recording.sampleRate
-            ) {
-                pairs.append(pair)
-            }
+        let link = link
+        return try await locator.measure {
+            await link.send(.playChirpPair(requestID: requestID))
+        } onPair: { pair in
+            await link.send(.acousticReport(AcousticReading(
+                requestID: requestID,
+                tauMicroseconds: Float(pair.tauSeconds * 1_000_000),
+                levelDifferenceDecibels: pair.levelDifferenceDecibels,
+                snrDecibels: pair.snrDecibels,
+                acceptedPairs: 1
+            )))
         }
-        guard let estimate = AcousticEstimate(pairs: pairs, parameters: .initial) else {
-            throw PlacementError.lowSignal
-        }
-        await report(estimate, requestID: requestID)
-        return PlacementMeasurement(estimate: estimate, pairs: pairs, curve: curve)
     }
 
     #if DEBUG
-        func exportLastRecording() throws -> URL? {
-            guard let lastRecording else { return nil }
-            let rate = Int(lastRecording.sampleRate)
-            let url = FileManager.default.temporaryDirectory
-                .appending(path: "lumen-recording-\(rate)hz-\(UUID().uuidString).f32")
-            let data = lastRecording.samples.withUnsafeBytes { Data($0) }
-            try data.write(to: url)
-            return url
+        func exportLastRecording() async throws -> URL? {
+            try await locator.exportLastRecording()
         }
     #endif
-
-    private func record(requestID: UInt32) async throws -> MicrophoneRecording {
-        let link = link
-        do {
-            let recording = try await recorder.record(seconds: Self.recordingSeconds) {
-                await link.send(.playChirpPair(requestID: requestID))
-            }
-            #if DEBUG
-                lastRecording = recording
-            #endif
-            return recording
-        } catch MicrophoneError.denied {
-            throw PlacementError.microphoneDenied
-        } catch {
-            throw PlacementError.microphoneUnavailable
-        }
-    }
-
-    private func report(_ estimate: AcousticEstimate, requestID: UInt32) async {
-        await link.send(.acousticReport(AcousticReading(
-            requestID: requestID,
-            tauMicroseconds: Float(estimate.tauSeconds * 1_000_000),
-            levelDifferenceDecibels: estimate.levelDifferenceDecibels,
-            snrDecibels: estimate.snrDecibels,
-            acceptedPairs: Int32(estimate.acceptedPairs)
-        )))
-    }
 
     private func consumeEvents() async {
         for await event in link.events {
@@ -178,6 +155,18 @@ actor LabSession {
             case let .received(.clockPing(originNs)):
                 let now = clock.nowNanoseconds()
                 await link.send(.clockPong(originNs: originNs, receiveNs: now, transmitNs: now))
+            case .received(.beginLocate):
+                Task { await locate() }
+            case let .received(.placementUpdate(update)):
+                if update.side != placement?.side {
+                    referenceEdge = nil
+                    referenceYawRadians = currentYawRadians
+                }
+                placement = update
+                if let settledAt = settledAtNanoseconds, update.confidence >= Self.locatedConfidence {
+                    lastLocateMilliseconds = Double(clock.nowNanoseconds() - settledAt) / 1_000_000
+                    settledAtNanoseconds = nil
+                }
             case .received:
                 break
             }

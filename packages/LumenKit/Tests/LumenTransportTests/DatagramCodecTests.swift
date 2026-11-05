@@ -28,6 +28,15 @@ private let dragFrame = DragFrameSample(
 )
 
 @Test(arguments: [
+    ("control-motion-settled", PeerMessage.motionSettled),
+    ("control-begin-locate", PeerMessage.beginLocate),
+    ("control-edge-exit", PeerMessage.edgeExit(.right)),
+    ("control-placement-update", PeerMessage.placementUpdate(Placement(
+        side: .right,
+        confidence: 0.75,
+        distribution: PlacementDistribution(probabilities: [0.0625, 0.75, 0.0625, 0.0625, 0.0625]),
+        isDetached: false
+    ))),
     ("control-clock-ping", PeerMessage.clockPing(originNs: 1000)),
     ("control-clock-pong", PeerMessage.clockPong(originNs: 1000, receiveNs: 2000, transmitNs: 3000)),
     ("control-play-chirp-pair", PeerMessage.playChirpPair(requestID: 9)),

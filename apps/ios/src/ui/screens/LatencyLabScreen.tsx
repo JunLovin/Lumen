@@ -9,19 +9,22 @@ import { scheduleOnRN } from 'react-native-worklets';
 import type { DragFrameSender } from '../../application/drag-frame-sender';
 import { pointsToMillimeters } from '../../domain/device-metrics';
 import type { DragFrameInput } from '../../domain/drag-frame';
-import { edgeProximity } from '../../domain/edge-proximity';
+import { edgeProximity, horizontalExitEdge } from '../../domain/edge-proximity';
+import type { PhoneEdge } from '../../domain/peer-placement';
 import { DiagnosticRow } from '../components/DiagnosticRow';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
 
 type Props = {
   readonly sender: DragFrameSender;
+  readonly onEdgeExit: (edge: PhoneEdge) => void;
 };
 
 const DOT_SIZE_POINTS = 72;
 const ACTIVATION_DISTANCE_POINTS = 200;
+const EXIT_MARGIN_POINTS = 24;
 
-export function LatencyLabScreen({ sender }: Props) {
+export function LatencyLabScreen({ sender, onEdgeExit }: Props) {
   const { width } = useWindowDimensions();
   const [framesSent, setFramesSent] = useState(0);
   const x = useSharedValue(width / 2);
@@ -40,6 +43,12 @@ export function LatencyLabScreen({ sender }: Props) {
     minDistance: 0,
     onBegin: () => {
       scheduleOnRN(begin);
+    },
+    onDeactivate: () => {
+      const edge = horizontalExitEdge(x.value, width, EXIT_MARGIN_POINTS);
+      if (edge !== null) {
+        scheduleOnRN(onEdgeExit, edge);
+      }
     },
     onUpdate: event => {
       x.value = event.x;
