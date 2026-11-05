@@ -54,6 +54,16 @@ public:
             return jsi::Value::undefined();
           });
     }
+    if (property == "startUpload") {
+      return jsi::Function::createFromHostFunction(
+          runtime, name, 1,
+          [bridge](jsi::Runtime &, const jsi::Value &, const jsi::Value *args, size_t count) {
+            if (count == 1) {
+              [bridge startUploadWithSession:(int32_t)args[0].asNumber()];
+            }
+            return jsi::Value::undefined();
+          });
+    }
     if (property == "impact") {
       return jsi::Function::createFromHostFunction(
           runtime, name, 1,

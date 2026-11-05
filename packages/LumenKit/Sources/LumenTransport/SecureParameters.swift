@@ -18,10 +18,13 @@ enum SecureParameters {
     }
 
     static func datagram(psk: Data) -> NWParameters {
-        NWParameters(
+        let parameters = NWParameters(
             dtls: tlsOptions(psk: psk, version: .DTLSv12, cipherSuite: datagramCipherSuite),
             udp: NWProtocolUDP.Options()
         )
+        // Requests the Wi-Fi voice access category: drag frames were arriving in bursts at p95.
+        parameters.serviceClass = .interactiveVoice
+        return parameters
     }
 
     private static func tcpOptions() -> NWProtocolTCP.Options {

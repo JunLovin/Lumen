@@ -57,11 +57,38 @@ private actor FakePlacementStore: PlacementStorePort {
     }
 }
 
+private actor FakeFileSink: FileSinkPort {
+    nonisolated let updates = AsyncStream<TransferUpdate> { _ in }
+    private(set) var offers: [TransferOffer] = []
+    private(set) var cancelled: [UInt32] = []
+
+    func register(_ offer: TransferOffer) async {
+        offers.append(offer)
+    }
+
+    func resumeOffset(transferID _: UInt32, resourceIndex _: UInt32) async -> UInt64? {
+        0
+    }
+
+    func append(_: [UInt8], transferID _: UInt32, resourceIndex _: UInt32) async -> Bool {
+        true
+    }
+
+    func finish(transferID _: UInt32, resourceIndex _: UInt32, sha256 _: [UInt8]) async -> Bool {
+        true
+    }
+
+    func cancel(transferID: UInt32) async {
+        cancelled.append(transferID)
+    }
+}
+
 private func makeSession(
     link: FakeLink = FakeLink(),
     player: FakeChirpPlayer = FakeChirpPlayer(),
     canPlay: Bool = true,
     store: FakePlacementStore = FakePlacementStore(),
+    sink: FakeFileSink = FakeFileSink(),
     now: UInt64 = 0
 ) -> PeerLabSession {
     PeerLabSession(
@@ -70,6 +97,7 @@ private func makeSession(
         chirpPlayer: player,
         audioRoute: FakeRoute(canPlay: canPlay),
         placementStore: store,
+        fileSink: sink,
         chirpAmplitude: 0.25
     )
 }
@@ -143,4 +171,14 @@ private func makeSession(
     }
     #expect(placement.side == .right)
     #expect(placement.confidence >= 0.8)
+}
+
+@Test func offersAndCancelsReachTheFileSink() async {
+    let sink = FakeFileSink()
+    let session = makeSession(sink: sink)
+    let offer = TransferOffer(transferID: 3, resources: [])
+    await session.handle(.received(.transferOffer(offer)))
+    await session.handle(.received(.transferCancel(transferID: 3)))
+    #expect(await sink.offers == [offer])
+    #expect(await sink.cancelled == [3])
 }

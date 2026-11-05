@@ -10,7 +10,7 @@
         private static let nanosecondsPerMillisecond: UInt64 = 1_000_000
         private let clock: any ClockPort
         private let reportLanded: (UInt32) -> Void
-        private let shelf = ShelfPanel()
+        private let shelf: ShelfPanel
         private let comet = CometPanel()
         private var panel: NSPanel?
         private var metalView: MTKView?
@@ -28,7 +28,8 @@
         private var landing: GhostLanding?
         private var lastTickTime = CACurrentMediaTime()
 
-        init(clock: any ClockPort, reportLanded: @escaping (UInt32) -> Void) {
+        init(clock: any ClockPort, destination: DestinationFolder, reportLanded: @escaping (UInt32) -> Void) {
+            shelf = ShelfPanel(destination: destination)
             self.clock = clock
             self.reportLanded = reportLanded
         }
@@ -37,6 +38,10 @@
             if let previous, previous != current, current != .unknown {
                 comet?.play(from: previous, to: current)
             }
+        }
+
+        func transfer(_ update: TransferUpdate) {
+            shelf.update(update)
         }
 
         func begin(_ newStart: DragStart) {

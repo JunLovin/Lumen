@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ControlMessage,
   Datagram,
+  FileMessage,
   Hello,
   PairingMessage,
   PhoneEdge,
@@ -55,6 +56,16 @@ const controlMessages = {
     },
   },
   'control-landed': { landed: { session: 7 } },
+  'control-transfer-offer': {
+    transferOffer: {
+      transferId: 7,
+      resources: [{ index: 0, fileName: 'IMG_0001.HEIC', byteCount: 4096 }],
+    },
+  },
+  'control-transfer-cancel': { transferCancel: { transferId: 7 } },
+  'control-transfer-preparing': {
+    transferPreparing: { transferId: 7, fraction: 0.5 },
+  },
   'control-motion-settled': { motionSettled: {} },
   'control-begin-locate': { beginLocate: {} },
   'control-edge-exit': { edgeExit: { edge: PhoneEdge.PHONE_EDGE_RIGHT } },
@@ -94,6 +105,14 @@ const controlMessages = {
   },
 };
 
+const fileMessages = {
+  'file-header': { header: { transferId: 7, resourceIndex: 1 } },
+  'file-resume': { resume: { offset: 1024 } },
+  'file-block': { block: bytes(1, 2, 3) },
+  'file-end': { end: { sha256: bytes(4, 5) } },
+  'file-ack': { ack: { verified: true } },
+};
+
 const pairingMessages = {
   'pairing-commit': { commit: { commitment: bytes(1, 2, 3) } },
   'pairing-key': { key: { x25519Public: bytes(4, 5), nonce: bytes(6, 7) } },
@@ -110,6 +129,12 @@ for (const [name, message] of Object.entries(controlMessages)) {
   writeFileSync(
     `${directory}${name}.bin`,
     ControlMessage.encode(message).finish(),
+  );
+}
+for (const [name, message] of Object.entries(fileMessages)) {
+  writeFileSync(
+    `${directory}${name}.bin`,
+    FileMessage.encode(message).finish(),
   );
 }
 for (const [name, message] of Object.entries(pairingMessages)) {

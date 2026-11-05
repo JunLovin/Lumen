@@ -8,11 +8,14 @@ import SwiftUI
 @main
 struct LumenApp: App {
     private let readProtocolVersion = ReadProtocolVersion(protocolInfo: ProtocolInfoAdapter())
+    private let destination: DestinationFolder
     @State private var labModel: LabModel
     @State private var pairingModel: PairingModel
 
     init() {
-        let link = MacSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
+        let sink = TemporaryFileSink(root: FileManager.default.temporaryDirectory.appending(path: "Lumen"))
+        let link = MacSecureLink(version: ProtocolInfoAdapter().localProtocolVersion, sink: sink)
+        let destinationFolder = DestinationFolder()
         let clock = SystemClockAdapter()
         let amplitude = DesignTokens.Chirp.defaultAmplitude
         let session = PeerLabSession(
@@ -21,9 +24,15 @@ struct LumenApp: App {
             chirpPlayer: ChirpPlayerAdapter(),
             audioRoute: AudioRouteAdapter(),
             placementStore: UserDefaultsPlacementStore(),
+            fileSink: sink,
             chirpAmplitude: amplitude
         )
-        let model = LabModel(session: session, clock: clock, chirpAmplitude: amplitude)
+        let model = LabModel(
+            session: session,
+            clock: clock,
+            destination: destinationFolder,
+            chirpAmplitude: amplitude
+        )
         let pairing = PairingModel(useCase: PairNearbyDevice(
             trustStore: KeychainTrustStore(service: "com.junlovin.lumen.mac"),
             identityFactory: IdentityFactoryAdapter(),
@@ -38,6 +47,7 @@ struct LumenApp: App {
             )
         ))
         _labModel = State(initialValue: model)
+        destination = destinationFolder
         _pairingModel = State(initialValue: pairing)
         Task { await model.setListening(link.start()) }
         Task { await session.run() }
@@ -52,7 +62,11 @@ struct LumenApp: App {
 
     var body: some Scene {
         MenuBarExtra("Lumen", systemImage: "sparkles") {
-            MenuBarContentView(readProtocolVersion: readProtocolVersion, pairing: pairingModel)
+            MenuBarContentView(
+                readProtocolVersion: readProtocolVersion,
+                pairing: pairingModel,
+                destination: destination
+            )
         }
         #if DEBUG
             Window("Lumen Lab", id: LabWindow.identifier) {

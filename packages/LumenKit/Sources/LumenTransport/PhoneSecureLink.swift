@@ -13,8 +13,8 @@ public actor PhoneSecureLink: SecureLinkPort {
     private var browser: NWBrowser?
     private var control: FramedConnection?
     private var realtime: NWConnection?
-    private var fileEndpoint: NWEndpoint?
-    private var filePSK: Data?
+    var fileEndpoint: NWEndpoint?
+    var filePSK: Data?
     private var lastHost: NWEndpoint.Host?
     private var lastControlPort: NWEndpoint.Port?
     private var backoff = ReconnectBackoff(initialMilliseconds: 100, maximumMilliseconds: 5000)
@@ -58,12 +58,6 @@ public actor PhoneSecureLink: SecureLinkPort {
         } else if let control, let data = WireCodec.encodeControl(message) {
             try? await control.send(data)
         }
-    }
-
-    public func probeFileChannel() async -> Bool {
-        guard let fileEndpoint, let filePSK else { return false }
-        let connection = NWConnection(to: fileEndpoint, using: SecureParameters.stream(psk: filePSK))
-        return await FileProbe.run(on: FramedConnection(connection: connection))
     }
 
     private func startBrowsing(peer _: PairedDevice) {

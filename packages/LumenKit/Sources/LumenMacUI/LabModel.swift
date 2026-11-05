@@ -6,7 +6,7 @@
     @MainActor
     @Observable
     public final class LabModel {
-        private static let statsPublishIntervalNs: UInt64 = 500_000_000
+        static let statsPublishIntervalNs: UInt64 = 500_000_000
         private static let windowCapacity = 2048
         private static let historyLength = 8
 
@@ -21,10 +21,11 @@
         public private(set) var lostFrames = 0
         public private(set) var acousticReading: AcousticReading?
         public private(set) var gpuTime: LatencySummary?
-        public private(set) var isOverlayVisible = false
+        public internal(set) var isOverlayVisible = false
         public private(set) var placement: Placement?
         public private(set) var placementHistory: [String] = []
         public private(set) var canPlayUltrasound: Bool?
+        public private(set) var lastFileHash: String?
         public var manualProximity: Float = 0 {
             didSet { pushProximity() }
         }
@@ -38,23 +39,28 @@
         }
 
         @ObservationIgnored private let session: PeerLabSession
-        @ObservationIgnored private let clock: any ClockPort
+        @ObservationIgnored let clock: any ClockPort
         @ObservationIgnored private let mirror: MirrorController
         @ObservationIgnored private var networkWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var renderWindow = SampleWindow(capacity: windowCapacity)
-        @ObservationIgnored private var gpuWindow = SampleWindow(capacity: windowCapacity)
-        @ObservationIgnored private var overlay: EdgeOverlayPanel?
+        @ObservationIgnored var gpuWindow = SampleWindow(capacity: windowCapacity)
+        @ObservationIgnored var overlay: EdgeOverlayPanel?
         @ObservationIgnored private var firstSequence: UInt32?
         @ObservationIgnored private var currentSession: UInt32?
         @ObservationIgnored private var gapWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var lastArrivalNs: UInt64?
         @ObservationIgnored private var pendingFrames: [LocalizedDragFrame] = []
-        @ObservationIgnored private var lastPublishNs: UInt64 = 0
+        @ObservationIgnored var lastPublishNs: UInt64 = 0
 
-        public init(session: PeerLabSession, clock: any ClockPort, chirpAmplitude: Float) {
+        public init(
+            session: PeerLabSession,
+            clock: any ClockPort,
+            destination: DestinationFolder,
+            chirpAmplitude: Float
+        ) {
             self.session = session
             self.clock = clock
-            mirror = MirrorController(clock: clock) { landed in
+            mirror = MirrorController(clock: clock, destination: destination) { landed in
                 Task { await session.reportLanded(session: landed) }
             }
             self.chirpAmplitude = chirpAmplitude
@@ -99,30 +105,6 @@
             Task { await session.playTestTone(on: channel) }
         }
 
-        public func toggleOverlay() {
-            if isOverlayVisible {
-                overlay?.hide()
-                isOverlayVisible = false
-                return
-            }
-            if overlay == nil {
-                overlay = EdgeOverlayPanel { [weak self] milliseconds in
-                    Task { @MainActor in self?.recordGPUTime(milliseconds) }
-                }
-            }
-            overlay?.show()
-            isOverlayVisible = overlay != nil
-            pushProximity()
-        }
-
-        private func recordGPUTime(_ milliseconds: Double) {
-            gpuWindow.add(milliseconds)
-            let now = clock.nowNanoseconds()
-            if now - lastPublishNs > Self.statsPublishIntervalNs {
-                publishStats(at: now)
-            }
-        }
-
         private func apply(_ update: PeerLabUpdate) {
             switch update {
             case let .connection(isConnected):
@@ -141,6 +123,11 @@
                 mirror.begin(start)
             case let .dragEnded(end):
                 mirror.end(end)
+            case let .transfer(update):
+                mirror.transfer(update)
+                if case let .completed(_, sha256Hex) = update.stage {
+                    lastFileHash = sha256Hex
+                }
             }
         }
 
@@ -178,7 +165,7 @@
             }
         }
 
-        private func publishStats(at now: UInt64) {
+        func publishStats(at now: UInt64) {
             lastPublishNs = now
             networkLatency = LatencySummary(window: networkWindow)
             renderLatency = LatencySummary(window: renderWindow)
@@ -186,7 +173,7 @@
             gpuTime = LatencySummary(window: gpuWindow)
         }
 
-        private func pushProximity() {
+        func pushProximity() {
             overlay?.setProximity(max(manualProximity, latestFrame?.edgeProximity ?? 0))
         }
 

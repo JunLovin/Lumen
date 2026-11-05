@@ -97,6 +97,7 @@
                 LabRow("lab.renderP95", milliseconds(model.renderLatency?.p95))
                 LabRow("lab.gapP95", milliseconds(model.frameGap?.p95))
                 LabRow("lab.gapMax", milliseconds(model.frameGap?.max))
+                LabRow("lab.lastHash", model.lastFileHash ?? "—")
                 LabRow("lab.framesReceived", String(model.receivedFrames))
                 LabRow("lab.framesLost", String(model.lostFrames))
                 Button { model.resetStats() } label: { Text("lab.reset", bundle: .module) }

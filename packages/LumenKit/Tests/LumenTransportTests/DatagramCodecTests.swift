@@ -41,6 +41,12 @@ private let dragFrame = DragFrameSample(
         velocityYMillimetersPerSecond: -50.25
     ))),
     ("control-landed", PeerMessage.landed(session: 7)),
+    ("control-transfer-offer", PeerMessage.transferOffer(TransferOffer(
+        transferID: 7,
+        resources: [TransferResource(index: 0, fileName: "IMG_0001.HEIC", byteCount: 4096)]
+    ))),
+    ("control-transfer-cancel", PeerMessage.transferCancel(transferID: 7)),
+    ("control-transfer-preparing", PeerMessage.transferPreparing(transferID: 7, fraction: 0.5)),
     ("control-motion-settled", PeerMessage.motionSettled),
     ("control-begin-locate", PeerMessage.beginLocate),
     ("control-edge-exit", PeerMessage.edgeExit(.right)),

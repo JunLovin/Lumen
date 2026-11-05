@@ -425,6 +425,182 @@ public nonisolated struct Lumen_Landed: Sendable {
   public init() {}
 }
 
+public nonisolated struct Lumen_TransferResource: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var index: UInt32 = 0
+
+  public var fileName: String = String()
+
+  public var byteCount: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_TransferOffer: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var transferID: UInt32 = 0
+
+  public var resources: [Lumen_TransferResource] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_TransferCancel: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var transferID: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_TransferPreparing: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var transferID: UInt32 = 0
+
+  public var fraction: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_FileHeader: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var transferID: UInt32 = 0
+
+  public var resourceIndex: UInt32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_FileResume: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var offset: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_FileEnd: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var sha256: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_FileAck: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var verified: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Lumen_FileMessage: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var message: Lumen_FileMessage.OneOf_Message? = nil
+
+  public var header: Lumen_FileHeader {
+    get {
+      if case .header(let v)? = message {return v}
+      return Lumen_FileHeader()
+    }
+    set {message = .header(newValue)}
+  }
+
+  public var resume: Lumen_FileResume {
+    get {
+      if case .resume(let v)? = message {return v}
+      return Lumen_FileResume()
+    }
+    set {message = .resume(newValue)}
+  }
+
+  public var block: Data {
+    get {
+      if case .block(let v)? = message {return v}
+      return Data()
+    }
+    set {message = .block(newValue)}
+  }
+
+  public var end: Lumen_FileEnd {
+    get {
+      if case .end(let v)? = message {return v}
+      return Lumen_FileEnd()
+    }
+    set {message = .end(newValue)}
+  }
+
+  public var ack: Lumen_FileAck {
+    get {
+      if case .ack(let v)? = message {return v}
+      return Lumen_FileAck()
+    }
+    set {message = .ack(newValue)}
+  }
+
+  public var probe: Data {
+    get {
+      if case .probe(let v)? = message {return v}
+      return Data()
+    }
+    set {message = .probe(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public nonisolated enum OneOf_Message: Equatable, Sendable {
+    case header(Lumen_FileHeader)
+    case resume(Lumen_FileResume)
+    case block(Data)
+    case end(Lumen_FileEnd)
+    case ack(Lumen_FileAck)
+    case probe(Data)
+
+  }
+
+  public init() {}
+}
+
 public nonisolated struct Lumen_ControlMessage: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -552,6 +728,30 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     set {message = .landed(newValue)}
   }
 
+  public var transferOffer: Lumen_TransferOffer {
+    get {
+      if case .transferOffer(let v)? = message {return v}
+      return Lumen_TransferOffer()
+    }
+    set {message = .transferOffer(newValue)}
+  }
+
+  public var transferCancel: Lumen_TransferCancel {
+    get {
+      if case .transferCancel(let v)? = message {return v}
+      return Lumen_TransferCancel()
+    }
+    set {message = .transferCancel(newValue)}
+  }
+
+  public var transferPreparing: Lumen_TransferPreparing {
+    get {
+      if case .transferPreparing(let v)? = message {return v}
+      return Lumen_TransferPreparing()
+    }
+    set {message = .transferPreparing(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -570,6 +770,9 @@ public nonisolated struct Lumen_ControlMessage: Sendable {
     case dragBegan(Lumen_DragBegan)
     case dragEnded(Lumen_DragEnded)
     case landed(Lumen_Landed)
+    case transferOffer(Lumen_TransferOffer)
+    case transferCancel(Lumen_TransferCancel)
+    case transferPreparing(Lumen_TransferPreparing)
 
   }
 
@@ -1375,9 +1578,399 @@ nonisolated extension Lumen_Landed: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
+nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TransferResource"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}index\0\u{3}file_name\0\u{3}byte_count\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.index) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.fileName) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.byteCount) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.index != 0 {
+      try visitor.visitSingularUInt32Field(value: self.index, fieldNumber: 1)
+    }
+    if !self.fileName.isEmpty {
+      try visitor.visitSingularStringField(value: self.fileName, fieldNumber: 2)
+    }
+    if self.byteCount != 0 {
+      try visitor.visitSingularUInt64Field(value: self.byteCount, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_TransferResource, rhs: Lumen_TransferResource) -> Bool {
+    if lhs.index != rhs.index {return false}
+    if lhs.fileName != rhs.fileName {return false}
+    if lhs.byteCount != rhs.byteCount {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_TransferOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TransferOffer"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{1}resources\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.resources) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.transferID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.transferID, fieldNumber: 1)
+    }
+    if !self.resources.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.resources, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_TransferOffer, rhs: Lumen_TransferOffer) -> Bool {
+    if lhs.transferID != rhs.transferID {return false}
+    if lhs.resources != rhs.resources {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_TransferCancel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TransferCancel"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.transferID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.transferID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_TransferCancel, rhs: Lumen_TransferCancel) -> Bool {
+    if lhs.transferID != rhs.transferID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_TransferPreparing: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TransferPreparing"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{1}fraction\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.fraction) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.transferID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.transferID, fieldNumber: 1)
+    }
+    if self.fraction.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.fraction, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_TransferPreparing, rhs: Lumen_TransferPreparing) -> Bool {
+    if lhs.transferID != rhs.transferID {return false}
+    if lhs.fraction != rhs.fraction {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_FileHeader: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileHeader"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{3}resource_index\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.resourceIndex) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.transferID != 0 {
+      try visitor.visitSingularUInt32Field(value: self.transferID, fieldNumber: 1)
+    }
+    if self.resourceIndex != 0 {
+      try visitor.visitSingularUInt32Field(value: self.resourceIndex, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_FileHeader, rhs: Lumen_FileHeader) -> Bool {
+    if lhs.transferID != rhs.transferID {return false}
+    if lhs.resourceIndex != rhs.resourceIndex {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_FileResume: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileResume"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}offset\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.offset) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.offset != 0 {
+      try visitor.visitSingularUInt64Field(value: self.offset, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_FileResume, rhs: Lumen_FileResume) -> Bool {
+    if lhs.offset != rhs.offset {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_FileEnd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileEnd"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sha256\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.sha256) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.sha256.isEmpty {
+      try visitor.visitSingularBytesField(value: self.sha256, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_FileEnd, rhs: Lumen_FileEnd) -> Bool {
+    if lhs.sha256 != rhs.sha256 {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_FileAck: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileAck"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}verified\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.verified) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.verified != false {
+      try visitor.visitSingularBoolField(value: self.verified, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_FileAck, rhs: Lumen_FileAck) -> Bool {
+    if lhs.verified != rhs.verified {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Lumen_FileMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileMessage"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}header\0\u{1}resume\0\u{1}block\0\u{1}end\0\u{1}ack\0\u{1}probe\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Lumen_FileHeader?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .header(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .header(v)
+        }
+      }()
+      case 2: try {
+        var v: Lumen_FileResume?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .resume(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .resume(v)
+        }
+      }()
+      case 3: try {
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {
+          if self.message != nil {try decoder.handleConflictingOneOf()}
+          self.message = .block(v)
+        }
+      }()
+      case 4: try {
+        var v: Lumen_FileEnd?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .end(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .end(v)
+        }
+      }()
+      case 5: try {
+        var v: Lumen_FileAck?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .ack(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .ack(v)
+        }
+      }()
+      case 6: try {
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {
+          if self.message != nil {try decoder.handleConflictingOneOf()}
+          self.message = .probe(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.message {
+    case .header?: try {
+      guard case .header(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .resume?: try {
+      guard case .resume(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .block?: try {
+      guard case .block(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
+    }()
+    case .end?: try {
+      guard case .end(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .ack?: try {
+      guard case .ack(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case .probe?: try {
+      guard case .probe(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 6)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Lumen_FileMessage, rhs: Lumen_FileMessage) -> Bool {
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ControlMessage"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0\u{3}drag_began\0\u{3}drag_ended\0\u{1}landed\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hello\0\u{3}session_key\0\u{3}session_ready\0\u{3}incompatible_version\0\u{3}clock_ping\0\u{3}clock_pong\0\u{3}play_chirp_pair\0\u{3}acoustic_report\0\u{3}motion_settled\0\u{3}begin_locate\0\u{3}edge_exit\0\u{3}placement_update\0\u{3}drag_began\0\u{3}drag_ended\0\u{1}landed\0\u{3}transfer_offer\0\u{3}transfer_cancel\0\u{3}transfer_preparing\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1580,6 +2173,45 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
           self.message = .landed(v)
         }
       }()
+      case 16: try {
+        var v: Lumen_TransferOffer?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .transferOffer(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .transferOffer(v)
+        }
+      }()
+      case 17: try {
+        var v: Lumen_TransferCancel?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .transferCancel(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .transferCancel(v)
+        }
+      }()
+      case 18: try {
+        var v: Lumen_TransferPreparing?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .transferPreparing(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .transferPreparing(v)
+        }
+      }()
       default: break
       }
     }
@@ -1650,6 +2282,18 @@ nonisolated extension Lumen_ControlMessage: SwiftProtobuf.Message, SwiftProtobuf
     case .landed?: try {
       guard case .landed(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+    }()
+    case .transferOffer?: try {
+      guard case .transferOffer(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+    }()
+    case .transferCancel?: try {
+      guard case .transferCancel(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+    }()
+    case .transferPreparing?: try {
+      guard case .transferPreparing(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
     }()
     case nil: break
     }

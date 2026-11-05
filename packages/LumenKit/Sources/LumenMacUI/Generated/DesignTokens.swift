@@ -58,7 +58,7 @@ public enum DesignTokens {
     public enum Shelf {
         public static let insetPoints: Double = 24
         public static let widthPoints: Double = 200
-        public static let heightPoints: Double = 260
+        public static let heightPoints: Double = 460
         public static let itemPoints: Double = 140
         public static let fanDegrees: Double = 6
         public static let hideSeconds: Double = 30

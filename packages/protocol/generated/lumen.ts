@@ -228,6 +228,52 @@ export interface Landed {
   session: number;
 }
 
+export interface TransferResource {
+  index: number;
+  fileName: string;
+  byteCount: number;
+}
+
+export interface TransferOffer {
+  transferId: number;
+  resources: TransferResource[];
+}
+
+export interface TransferCancel {
+  transferId: number;
+}
+
+export interface TransferPreparing {
+  transferId: number;
+  fraction: number;
+}
+
+export interface FileHeader {
+  transferId: number;
+  resourceIndex: number;
+}
+
+export interface FileResume {
+  offset: number;
+}
+
+export interface FileEnd {
+  sha256: Uint8Array;
+}
+
+export interface FileAck {
+  verified: boolean;
+}
+
+export interface FileMessage {
+  header?: FileHeader | undefined;
+  resume?: FileResume | undefined;
+  block?: Uint8Array | undefined;
+  end?: FileEnd | undefined;
+  ack?: FileAck | undefined;
+  probe?: Uint8Array | undefined;
+}
+
 export interface ControlMessage {
   hello?: Hello | undefined;
   sessionKey?: SessionKey | undefined;
@@ -244,6 +290,9 @@ export interface ControlMessage {
   dragBegan?: DragBegan | undefined;
   dragEnded?: DragEnded | undefined;
   landed?: Landed | undefined;
+  transferOffer?: TransferOffer | undefined;
+  transferCancel?: TransferCancel | undefined;
+  transferPreparing?: TransferPreparing | undefined;
 }
 
 export interface PairingCommit {
@@ -2016,6 +2065,815 @@ export const Landed: MessageFns<Landed> = {
   },
 };
 
+function createBaseTransferResource(): TransferResource {
+  return { index: 0, fileName: "", byteCount: 0 };
+}
+
+export const TransferResource: MessageFns<TransferResource> = {
+  encode(message: TransferResource, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.index !== 0) {
+      writer.uint32(8).uint32(message.index);
+    }
+    if (message.fileName !== "") {
+      writer.uint32(18).string(message.fileName);
+    }
+    if (message.byteCount !== 0) {
+      writer.uint32(24).uint64(message.byteCount);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TransferResource {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTransferResource();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.index = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.fileName = reader.string();
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.byteCount = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): TransferResource {
+    return {
+      index: isSet(object.index) ? globalThis.Number(object.index) : 0,
+      fileName: isSet(object.fileName)
+        ? globalThis.String(object.fileName)
+        : isSet(object.file_name)
+        ? globalThis.String(object.file_name)
+        : "",
+      byteCount: isSet(object.byteCount)
+        ? globalThis.Number(object.byteCount)
+        : isSet(object.byte_count)
+        ? globalThis.Number(object.byte_count)
+        : 0,
+    };
+  },
+
+  toJSON(message: TransferResource): unknown {
+    const obj: any = {};
+    if (message.index !== 0) {
+      obj.index = Math.round(message.index);
+    }
+    if (message.fileName !== "") {
+      obj.fileName = message.fileName;
+    }
+    if (message.byteCount !== 0) {
+      obj.byteCount = Math.round(message.byteCount);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TransferResource>, I>>(base?: I): TransferResource {
+    return TransferResource.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TransferResource>, I>>(object: I): TransferResource {
+    const message = createBaseTransferResource();
+    message.index = object.index ?? 0;
+    message.fileName = object.fileName ?? "";
+    message.byteCount = object.byteCount ?? 0;
+    return message;
+  },
+};
+
+function createBaseTransferOffer(): TransferOffer {
+  return { transferId: 0, resources: [] };
+}
+
+export const TransferOffer: MessageFns<TransferOffer> = {
+  encode(message: TransferOffer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.transferId !== 0) {
+      writer.uint32(8).uint32(message.transferId);
+    }
+    for (const v of message.resources) {
+      TransferResource.encode(v!, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TransferOffer {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTransferOffer();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.transferId = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.resources.push(TransferResource.decode(reader, reader.uint32()));
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): TransferOffer {
+    return {
+      transferId: isSet(object.transferId)
+        ? globalThis.Number(object.transferId)
+        : isSet(object.transfer_id)
+        ? globalThis.Number(object.transfer_id)
+        : 0,
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => TransferResource.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: TransferOffer): unknown {
+    const obj: any = {};
+    if (message.transferId !== 0) {
+      obj.transferId = Math.round(message.transferId);
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => TransferResource.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TransferOffer>, I>>(base?: I): TransferOffer {
+    return TransferOffer.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TransferOffer>, I>>(object: I): TransferOffer {
+    const message = createBaseTransferOffer();
+    message.transferId = object.transferId ?? 0;
+    message.resources = object.resources?.map((e) => TransferResource.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseTransferCancel(): TransferCancel {
+  return { transferId: 0 };
+}
+
+export const TransferCancel: MessageFns<TransferCancel> = {
+  encode(message: TransferCancel, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.transferId !== 0) {
+      writer.uint32(8).uint32(message.transferId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TransferCancel {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTransferCancel();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.transferId = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): TransferCancel {
+    return {
+      transferId: isSet(object.transferId)
+        ? globalThis.Number(object.transferId)
+        : isSet(object.transfer_id)
+        ? globalThis.Number(object.transfer_id)
+        : 0,
+    };
+  },
+
+  toJSON(message: TransferCancel): unknown {
+    const obj: any = {};
+    if (message.transferId !== 0) {
+      obj.transferId = Math.round(message.transferId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TransferCancel>, I>>(base?: I): TransferCancel {
+    return TransferCancel.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TransferCancel>, I>>(object: I): TransferCancel {
+    const message = createBaseTransferCancel();
+    message.transferId = object.transferId ?? 0;
+    return message;
+  },
+};
+
+function createBaseTransferPreparing(): TransferPreparing {
+  return { transferId: 0, fraction: 0 };
+}
+
+export const TransferPreparing: MessageFns<TransferPreparing> = {
+  encode(message: TransferPreparing, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.transferId !== 0) {
+      writer.uint32(8).uint32(message.transferId);
+    }
+    if (message.fraction !== 0) {
+      writer.uint32(21).float(message.fraction);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TransferPreparing {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTransferPreparing();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.transferId = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 21) {
+              break;
+            }
+
+            message.fraction = reader.float();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): TransferPreparing {
+    return {
+      transferId: isSet(object.transferId)
+        ? globalThis.Number(object.transferId)
+        : isSet(object.transfer_id)
+        ? globalThis.Number(object.transfer_id)
+        : 0,
+      fraction: isSet(object.fraction) ? globalThis.Number(object.fraction) : 0,
+    };
+  },
+
+  toJSON(message: TransferPreparing): unknown {
+    const obj: any = {};
+    if (message.transferId !== 0) {
+      obj.transferId = Math.round(message.transferId);
+    }
+    if (message.fraction !== 0) {
+      obj.fraction = floatToJson(message.fraction);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TransferPreparing>, I>>(base?: I): TransferPreparing {
+    return TransferPreparing.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TransferPreparing>, I>>(object: I): TransferPreparing {
+    const message = createBaseTransferPreparing();
+    message.transferId = object.transferId ?? 0;
+    message.fraction = object.fraction ?? 0;
+    return message;
+  },
+};
+
+function createBaseFileHeader(): FileHeader {
+  return { transferId: 0, resourceIndex: 0 };
+}
+
+export const FileHeader: MessageFns<FileHeader> = {
+  encode(message: FileHeader, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.transferId !== 0) {
+      writer.uint32(8).uint32(message.transferId);
+    }
+    if (message.resourceIndex !== 0) {
+      writer.uint32(16).uint32(message.resourceIndex);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FileHeader {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseFileHeader();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.transferId = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.resourceIndex = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): FileHeader {
+    return {
+      transferId: isSet(object.transferId)
+        ? globalThis.Number(object.transferId)
+        : isSet(object.transfer_id)
+        ? globalThis.Number(object.transfer_id)
+        : 0,
+      resourceIndex: isSet(object.resourceIndex)
+        ? globalThis.Number(object.resourceIndex)
+        : isSet(object.resource_index)
+        ? globalThis.Number(object.resource_index)
+        : 0,
+    };
+  },
+
+  toJSON(message: FileHeader): unknown {
+    const obj: any = {};
+    if (message.transferId !== 0) {
+      obj.transferId = Math.round(message.transferId);
+    }
+    if (message.resourceIndex !== 0) {
+      obj.resourceIndex = Math.round(message.resourceIndex);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FileHeader>, I>>(base?: I): FileHeader {
+    return FileHeader.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FileHeader>, I>>(object: I): FileHeader {
+    const message = createBaseFileHeader();
+    message.transferId = object.transferId ?? 0;
+    message.resourceIndex = object.resourceIndex ?? 0;
+    return message;
+  },
+};
+
+function createBaseFileResume(): FileResume {
+  return { offset: 0 };
+}
+
+export const FileResume: MessageFns<FileResume> = {
+  encode(message: FileResume, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.offset !== 0) {
+      writer.uint32(8).uint64(message.offset);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FileResume {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseFileResume();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.offset = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): FileResume {
+    return { offset: isSet(object.offset) ? globalThis.Number(object.offset) : 0 };
+  },
+
+  toJSON(message: FileResume): unknown {
+    const obj: any = {};
+    if (message.offset !== 0) {
+      obj.offset = Math.round(message.offset);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FileResume>, I>>(base?: I): FileResume {
+    return FileResume.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FileResume>, I>>(object: I): FileResume {
+    const message = createBaseFileResume();
+    message.offset = object.offset ?? 0;
+    return message;
+  },
+};
+
+function createBaseFileEnd(): FileEnd {
+  return { sha256: new Uint8Array(0) };
+}
+
+export const FileEnd: MessageFns<FileEnd> = {
+  encode(message: FileEnd, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sha256.length !== 0) {
+      writer.uint32(10).bytes(message.sha256);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FileEnd {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseFileEnd();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.sha256 = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): FileEnd {
+    return { sha256: isSet(object.sha256) ? bytesFromBase64(object.sha256) : new Uint8Array(0) };
+  },
+
+  toJSON(message: FileEnd): unknown {
+    const obj: any = {};
+    if (message.sha256.length !== 0) {
+      obj.sha256 = base64FromBytes(message.sha256);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FileEnd>, I>>(base?: I): FileEnd {
+    return FileEnd.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FileEnd>, I>>(object: I): FileEnd {
+    const message = createBaseFileEnd();
+    message.sha256 = object.sha256 ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseFileAck(): FileAck {
+  return { verified: false };
+}
+
+export const FileAck: MessageFns<FileAck> = {
+  encode(message: FileAck, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.verified !== false) {
+      writer.uint32(8).bool(message.verified);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FileAck {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseFileAck();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.verified = reader.bool();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): FileAck {
+    return { verified: isSet(object.verified) ? globalThis.Boolean(object.verified) : false };
+  },
+
+  toJSON(message: FileAck): unknown {
+    const obj: any = {};
+    if (message.verified !== false) {
+      obj.verified = message.verified;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FileAck>, I>>(base?: I): FileAck {
+    return FileAck.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FileAck>, I>>(object: I): FileAck {
+    const message = createBaseFileAck();
+    message.verified = object.verified ?? false;
+    return message;
+  },
+};
+
+function createBaseFileMessage(): FileMessage {
+  return { header: undefined, resume: undefined, block: undefined, end: undefined, ack: undefined, probe: undefined };
+}
+
+export const FileMessage: MessageFns<FileMessage> = {
+  encode(message: FileMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.header !== undefined) {
+      FileHeader.encode(message.header, writer.uint32(10).fork()).join();
+    }
+    if (message.resume !== undefined) {
+      FileResume.encode(message.resume, writer.uint32(18).fork()).join();
+    }
+    if (message.block !== undefined) {
+      writer.uint32(26).bytes(message.block);
+    }
+    if (message.end !== undefined) {
+      FileEnd.encode(message.end, writer.uint32(34).fork()).join();
+    }
+    if (message.ack !== undefined) {
+      FileAck.encode(message.ack, writer.uint32(42).fork()).join();
+    }
+    if (message.probe !== undefined) {
+      writer.uint32(50).bytes(message.probe);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FileMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseFileMessage();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.header = FileHeader.decode(reader, reader.uint32());
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.resume = FileResume.decode(reader, reader.uint32());
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.block = reader.bytes();
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.end = FileEnd.decode(reader, reader.uint32());
+            continue;
+          }
+          case 5: {
+            if (tag !== 42) {
+              break;
+            }
+
+            message.ack = FileAck.decode(reader, reader.uint32());
+            continue;
+          }
+          case 6: {
+            if (tag !== 50) {
+              break;
+            }
+
+            message.probe = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): FileMessage {
+    return {
+      header: isSet(object.header) ? FileHeader.fromJSON(object.header) : undefined,
+      resume: isSet(object.resume) ? FileResume.fromJSON(object.resume) : undefined,
+      block: isSet(object.block) ? bytesFromBase64(object.block) : undefined,
+      end: isSet(object.end) ? FileEnd.fromJSON(object.end) : undefined,
+      ack: isSet(object.ack) ? FileAck.fromJSON(object.ack) : undefined,
+      probe: isSet(object.probe) ? bytesFromBase64(object.probe) : undefined,
+    };
+  },
+
+  toJSON(message: FileMessage): unknown {
+    const obj: any = {};
+    if (message.header !== undefined) {
+      obj.header = FileHeader.toJSON(message.header);
+    }
+    if (message.resume !== undefined) {
+      obj.resume = FileResume.toJSON(message.resume);
+    }
+    if (message.block !== undefined) {
+      obj.block = base64FromBytes(message.block);
+    }
+    if (message.end !== undefined) {
+      obj.end = FileEnd.toJSON(message.end);
+    }
+    if (message.ack !== undefined) {
+      obj.ack = FileAck.toJSON(message.ack);
+    }
+    if (message.probe !== undefined) {
+      obj.probe = base64FromBytes(message.probe);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FileMessage>, I>>(base?: I): FileMessage {
+    return FileMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FileMessage>, I>>(object: I): FileMessage {
+    const message = createBaseFileMessage();
+    message.header = (object.header !== undefined && object.header !== null)
+      ? FileHeader.fromPartial(object.header)
+      : undefined;
+    message.resume = (object.resume !== undefined && object.resume !== null)
+      ? FileResume.fromPartial(object.resume)
+      : undefined;
+    message.block = object.block ?? undefined;
+    message.end = (object.end !== undefined && object.end !== null) ? FileEnd.fromPartial(object.end) : undefined;
+    message.ack = (object.ack !== undefined && object.ack !== null) ? FileAck.fromPartial(object.ack) : undefined;
+    message.probe = object.probe ?? undefined;
+    return message;
+  },
+};
+
 function createBaseControlMessage(): ControlMessage {
   return {
     hello: undefined,
@@ -2033,6 +2891,9 @@ function createBaseControlMessage(): ControlMessage {
     dragBegan: undefined,
     dragEnded: undefined,
     landed: undefined,
+    transferOffer: undefined,
+    transferCancel: undefined,
+    transferPreparing: undefined,
   };
 }
 
@@ -2082,6 +2943,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.landed !== undefined) {
       Landed.encode(message.landed, writer.uint32(122).fork()).join();
+    }
+    if (message.transferOffer !== undefined) {
+      TransferOffer.encode(message.transferOffer, writer.uint32(130).fork()).join();
+    }
+    if (message.transferCancel !== undefined) {
+      TransferCancel.encode(message.transferCancel, writer.uint32(138).fork()).join();
+    }
+    if (message.transferPreparing !== undefined) {
+      TransferPreparing.encode(message.transferPreparing, writer.uint32(146).fork()).join();
     }
     return writer;
   },
@@ -2219,6 +3089,30 @@ export const ControlMessage: MessageFns<ControlMessage> = {
             message.landed = Landed.decode(reader, reader.uint32());
             continue;
           }
+          case 16: {
+            if (tag !== 130) {
+              break;
+            }
+
+            message.transferOffer = TransferOffer.decode(reader, reader.uint32());
+            continue;
+          }
+          case 17: {
+            if (tag !== 138) {
+              break;
+            }
+
+            message.transferCancel = TransferCancel.decode(reader, reader.uint32());
+            continue;
+          }
+          case 18: {
+            if (tag !== 146) {
+              break;
+            }
+
+            message.transferPreparing = TransferPreparing.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2300,6 +3194,21 @@ export const ControlMessage: MessageFns<ControlMessage> = {
         ? DragEnded.fromJSON(object.drag_ended)
         : undefined,
       landed: isSet(object.landed) ? Landed.fromJSON(object.landed) : undefined,
+      transferOffer: isSet(object.transferOffer)
+        ? TransferOffer.fromJSON(object.transferOffer)
+        : isSet(object.transfer_offer)
+        ? TransferOffer.fromJSON(object.transfer_offer)
+        : undefined,
+      transferCancel: isSet(object.transferCancel)
+        ? TransferCancel.fromJSON(object.transferCancel)
+        : isSet(object.transfer_cancel)
+        ? TransferCancel.fromJSON(object.transfer_cancel)
+        : undefined,
+      transferPreparing: isSet(object.transferPreparing)
+        ? TransferPreparing.fromJSON(object.transferPreparing)
+        : isSet(object.transfer_preparing)
+        ? TransferPreparing.fromJSON(object.transfer_preparing)
+        : undefined,
     };
   },
 
@@ -2349,6 +3258,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
     }
     if (message.landed !== undefined) {
       obj.landed = Landed.toJSON(message.landed);
+    }
+    if (message.transferOffer !== undefined) {
+      obj.transferOffer = TransferOffer.toJSON(message.transferOffer);
+    }
+    if (message.transferCancel !== undefined) {
+      obj.transferCancel = TransferCancel.toJSON(message.transferCancel);
+    }
+    if (message.transferPreparing !== undefined) {
+      obj.transferPreparing = TransferPreparing.toJSON(message.transferPreparing);
     }
     return obj;
   },
@@ -2400,6 +3318,15 @@ export const ControlMessage: MessageFns<ControlMessage> = {
       : undefined;
     message.landed = (object.landed !== undefined && object.landed !== null)
       ? Landed.fromPartial(object.landed)
+      : undefined;
+    message.transferOffer = (object.transferOffer !== undefined && object.transferOffer !== null)
+      ? TransferOffer.fromPartial(object.transferOffer)
+      : undefined;
+    message.transferCancel = (object.transferCancel !== undefined && object.transferCancel !== null)
+      ? TransferCancel.fromPartial(object.transferCancel)
+      : undefined;
+    message.transferPreparing = (object.transferPreparing !== undefined && object.transferPreparing !== null)
+      ? TransferPreparing.fromPartial(object.transferPreparing)
       : undefined;
     return message;
   },

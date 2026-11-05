@@ -117,6 +117,54 @@ message Landed {
   uint32 session = 1;
 }
 
+message TransferResource {
+  uint32 index = 1;
+  string file_name = 2;
+  uint64 byte_count = 3;
+}
+
+message TransferOffer {
+  uint32 transfer_id = 1;
+  repeated TransferResource resources = 2;
+}
+
+message TransferCancel {
+  uint32 transfer_id = 1;
+}
+
+message TransferPreparing {
+  uint32 transfer_id = 1;
+  float fraction = 2;
+}
+
+message FileHeader {
+  uint32 transfer_id = 1;
+  uint32 resource_index = 2;
+}
+
+message FileResume {
+  uint64 offset = 1;
+}
+
+message FileEnd {
+  bytes sha256 = 1;
+}
+
+message FileAck {
+  bool verified = 1;
+}
+
+message FileMessage {
+  oneof message {
+    FileHeader header = 1;
+    FileResume resume = 2;
+    bytes block = 3;
+    FileEnd end = 4;
+    FileAck ack = 5;
+    bytes probe = 6;
+  }
+}
+
 message ControlMessage {
   oneof message {
     Hello hello = 1;
@@ -134,6 +182,9 @@ message ControlMessage {
     DragBegan drag_began = 13;
     DragEnded drag_ended = 14;
     Landed landed = 15;
+    TransferOffer transfer_offer = 16;
+    TransferCancel transfer_cancel = 17;
+    TransferPreparing transfer_preparing = 18;
   }
 }
 
