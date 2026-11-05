@@ -12,8 +12,18 @@
         private let readProtocolVersion: ReadProtocolVersion
         private let pairing: PairingModel
         private let destination: DestinationFolder
+        private let model: LabModel
+        @Bindable private var settings: EffectSettings
 
-        public init(readProtocolVersion: ReadProtocolVersion, pairing: PairingModel, destination: DestinationFolder) {
+        public init(
+            readProtocolVersion: ReadProtocolVersion,
+            pairing: PairingModel,
+            destination: DestinationFolder,
+            model: LabModel,
+            settings: EffectSettings
+        ) {
+            self.model = model
+            self.settings = settings
             self.destination = destination
             self.readProtocolVersion = readProtocolVersion
             self.pairing = pairing
@@ -22,6 +32,10 @@
         @ViewBuilder private var pairingStatus: some View {
             if let name = pairing.pairedDeviceName {
                 Text("menu.pairedWith \(name)", bundle: .module)
+                Text(model.isConnected ? "menu.connected" : "menu.disconnected", bundle: .module)
+                if model.waitingOfferCount > 0 {
+                    Text("menu.waiting \(model.waitingOfferCount)", bundle: .module)
+                }
                 Button { pairing.forget() } label: { Text("menu.forget", bundle: .module) }
             } else {
                 Text("menu.bringCloser", bundle: .module)
@@ -37,6 +51,8 @@
             if destination.folderName != nil {
                 Button { destination.clear() } label: { Text("menu.useShelf", bundle: .module) }
             }
+            Toggle(isOn: $settings.isSoundEnabled) { Text("menu.sound", bundle: .module) }
+            Toggle(isOn: $settings.isLensEnabled) { Text("menu.lens", bundle: .module) }
             #if DEBUG
                 Button {
                     openWindow(id: LabWindow.identifier)

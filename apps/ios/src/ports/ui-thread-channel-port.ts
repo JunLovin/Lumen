@@ -1,4 +1,6 @@
-export type HapticStyle = 0 | 1;
+import type { HapticStyle } from '../domain/haptics';
+
+export type { HapticStyle };
 
 export interface UIThreadChannelPort {
   sendFrame(

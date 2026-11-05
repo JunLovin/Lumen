@@ -5,32 +5,24 @@
         let model: ShelfModel
 
         var body: some View {
-            Group {
-                if model.isHovering {
-                    ScrollView {
-                        VStack(spacing: 10) {
-                            ForEach(model.items.reversed()) { item in
-                                ShelfItemView(item: item, model: model)
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity)
-                    }
-                    .scrollIndicators(.hidden)
-                } else {
-                    ZStack {
-                        ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
+            let isOpen = model.isHovering
+            let layout = isOpen ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(ZStackLayout())
+            GeometryReader { geometry in
+                ScrollView {
+                    layout {
+                        ForEach(Array(model.items.reversed().enumerated()), id: \.element.id) { depth, item in
                             ShelfItemView(item: item, model: model)
-                                .rotationEffect(.degrees(
-                                    Double(model.items.count - 1 - index) * DesignTokens.Shelf.fanDegrees
-                                ))
+                                .rotationEffect(.degrees(isOpen ? 0 : Double(depth) * DesignTokens.Shelf.fanDegrees))
+                                .zIndex(Double(-depth))
                         }
                     }
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
+                .scrollDisabled(!isOpen)
+                .scrollIndicators(.hidden)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(.rect)
-            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: model.isHovering)
+            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isOpen)
             .onHover { model.isHovering = $0 }
         }
     }
@@ -46,6 +38,8 @@
                 .frame(width: DesignTokens.Shelf.itemPoints, height: DesignTokens.Shelf.itemPoints)
                 .clipShape(.rect(cornerRadius: 10))
                 .overlay { outline }
+                .overlay { sheen }
+                .modifier(LandingPop())
                 .overlay(alignment: .topTrailing) { removeButton }
                 .shadow(radius: 8)
                 .opacity(item.hasFailed ? 0.4 : 1)
@@ -53,6 +47,12 @@
                 .onTapGesture { model.onSave(item.id) }
                 .onDrag { item.fileURL.flatMap(NSItemProvider.init(contentsOf:)) ?? NSItemProvider() }
                 .help(item.savedName.map { String(localized: "shelf.saved \($0)", bundle: .module) } ?? "")
+        }
+
+        @ViewBuilder private var sheen: some View {
+            if item.fileURL != nil {
+                DeliveredSheen().clipShape(.rect(cornerRadius: 10))
+            }
         }
 
         @ViewBuilder private var removeButton: some View {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import type { LoadDiagnostics } from '../../application/load-diagnostics';
 import { DiagnosticRow } from '../components/DiagnosticRow';
 import { LabButton } from '../components/LabButton';
@@ -17,6 +17,7 @@ type Props = {
   readonly onOpenPlacement: () => void;
   readonly onOpenLatency: () => void;
   readonly onOpenGlow: () => void;
+  readonly onOpenMotion: () => void;
 };
 
 const STATUS_POLL_MILLISECONDS = 1000;
@@ -33,6 +34,7 @@ export function DiagnosticsScreen({
   onOpenPlacement,
   onOpenLatency,
   onOpenGlow,
+  onOpenMotion,
 }: Props) {
   const diagnostics = loadDiagnostics();
   const [isConnected, setIsConnected] = useState(false);
@@ -48,7 +50,7 @@ export function DiagnosticsScreen({
   }, [isPeerConnected]);
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <DiagnosticRow label={translate('pairing.peer')} value={peerName} />
       <DiagnosticRow
         label={translate('lab.connected')}
@@ -98,7 +100,8 @@ export function DiagnosticsScreen({
       <LabButton title={translate('lab.placement')} onPress={onOpenPlacement} />
       <LabButton title={translate('lab.latency')} onPress={onOpenLatency} />
       <LabButton title={translate('lab.glow')} onPress={onOpenGlow} />
-    </View>
+      <LabButton title={translate('lab.motion')} onPress={onOpenMotion} />
+    </ScrollView>
   );
 }
 
@@ -106,6 +109,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: labTheme.background,
-    padding: labTheme.spacing,
   },
+  content: { padding: labTheme.spacing },
 });

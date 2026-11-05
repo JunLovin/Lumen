@@ -8,6 +8,9 @@ import type { LabUseCases } from '../../application/lab-use-cases';
 import type { PeerPlacement } from '../../domain/peer-placement';
 import type { DragSession } from '../../domain/drag-session';
 import type { FacingSide } from '../../domain/shared-space';
+import { DEFAULT_PALETTE, usablePalette } from '../effects/glow-palette';
+import { useSweep } from './SweepContext';
+import { useTuning } from './TuningContext';
 
 const PLACEMENT_POLL_MILLISECONDS = 500;
 const SESSION_BASE_RANGE = 2 ** 30;
@@ -42,6 +45,9 @@ export const useDragController = (useCases: LabUseCases) => {
   const lastEdge = useSharedValue<FacingSide>('right');
   const uploadStarted = useSharedValue(false);
   const layerRef = useAnimatedRef<Animated.View>();
+  const tuning = useTuning();
+  const sweep = useSweep();
+  const palette = useSharedValue<readonly number[]>(DEFAULT_PALETTE);
 
   useEffect(() => {
     const poll = async () => {
@@ -82,14 +88,24 @@ export const useDragController = (useCases: LabUseCases) => {
       dragSession,
       lastEdge,
       uploadStarted,
-      beginTransfer: (session: number, assetId: string) =>
-        useCases.beginDragTransfer(
-          session,
-          assetId,
-          height / useCases.phoneMetrics.pointsPerMillimeter,
-        ),
+      palette,
+      tuning,
+      sweep,
+      beginTransfer: async (session: number, assetId: string) => {
+        palette.value = DEFAULT_PALETTE;
+        palette.value = usablePalette(
+          await useCases.beginDragTransfer(
+            session,
+            assetId,
+            height / useCases.phoneMetrics.pointsPerMillimeter,
+          ),
+        );
+      },
     }),
     [
+      palette,
+      tuning,
+      sweep,
       dragSession,
       lastEdge,
       uploadStarted,

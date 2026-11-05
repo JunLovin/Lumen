@@ -26,6 +26,8 @@
         public private(set) var placementHistory: [String] = []
         public private(set) var canPlayUltrasound: Bool?
         public private(set) var lastFileHash: String?
+        public private(set) var waitingOfferCount = 0
+        public internal(set) var tuningValues: [String: Float] = [:]
         public var manualProximity: Float = 0 {
             didSet { pushProximity() }
         }
@@ -38,9 +40,9 @@
             }
         }
 
-        @ObservationIgnored private let session: PeerLabSession
+        @ObservationIgnored let session: PeerLabSession
         @ObservationIgnored let clock: any ClockPort
-        @ObservationIgnored private let mirror: MirrorController
+        @ObservationIgnored let mirror: MirrorController
         @ObservationIgnored private var networkWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored private var renderWindow = SampleWindow(capacity: windowCapacity)
         @ObservationIgnored var gpuWindow = SampleWindow(capacity: windowCapacity)
@@ -56,11 +58,12 @@
             session: PeerLabSession,
             clock: any ClockPort,
             destination: DestinationFolder,
+            settings: EffectSettings,
             chirpAmplitude: Float
         ) {
             self.session = session
             self.clock = clock
-            mirror = MirrorController(clock: clock, destination: destination) { landed in
+            mirror = MirrorController(clock: clock, destination: destination, settings: settings) { landed in
                 Task { await session.reportLanded(session: landed) }
             } sendFiles: { paths in
                 Task { await session.sendFiles(paths: paths) }
@@ -111,6 +114,7 @@
             switch update {
             case let .connection(isConnected):
                 self.isConnected = isConnected
+                mirror.presenceChanged(placement, isConnected: isConnected)
             case let .bestClockRoundTrip(milliseconds):
                 clockRoundTripMilliseconds = milliseconds
             case let .frame(frame, receivedAtNs):
@@ -129,6 +133,10 @@
                 mirror.direct(offer)
             case .sendingFiles:
                 break
+            case let .waitingOffers(count):
+                waitingOfferCount = count
+            case let .tuning(name, value):
+                applyTuning(name: name, value: value)
             case let .transfer(update):
                 mirror.transfer(update)
                 if case let .completed(_, sha256Hex) = update.stage {
@@ -140,6 +148,7 @@
         private func apply(_ newPlacement: Placement, evidence: String) {
             mirror.placementChanged(from: placement?.side, to: newPlacement.side)
             placement = newPlacement
+            mirror.presenceChanged(newPlacement, isConnected: isConnected)
             placementHistory = Array(([evidence] + placementHistory).prefix(Self.historyLength))
         }
 

@@ -44,3 +44,14 @@
 "menu.useShelf" = "Keep received files on the shelf";
 "lab.lastHash" = "Last file SHA-256";
 "shelf.saved %@" = "Saved as %@";
+"menu.connected" = "iPhone connected";
+"menu.disconnected" = "iPhone not connected. Open Lumen on it.";
+"menu.waiting %lld" = "%lld sends waiting for your iPhone";
+"menu.sound" = "Landing sound";
+"menu.lens" = "Lens effect (needs Screen Recording)";
+"onboarding.title" = "Lumen lives in your menu bar";
+"onboarding.pair" = "Bring your iPhone close and open Lumen to pair them.";
+"onboarding.toMac" = "Hold a photo on your iPhone and drag it off the edge facing this Mac.";
+"onboarding.toPhone" = "Drag a file from Finder to the edge of this screen facing your iPhone.";
+"onboarding.done" = "Got it";
+"lab.motion" = "Motion Lab";

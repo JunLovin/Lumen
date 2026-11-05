@@ -56,7 +56,8 @@ public enum WireCodec {
             return .dragBegan(DragStart(
                 session: began.session,
                 thumbnailJPEG: Array(began.thumbnailJpeg),
-                phoneHeightMillimeters: began.phoneHeightMm
+                phoneHeightMillimeters: began.phoneHeightMm,
+                palette: GlowPalette(flat: began.glowPalette)
             ))
         case let .dragEnded(ended):
             return .dragEnded(DragEnd(
@@ -67,6 +68,8 @@ public enum WireCodec {
             ))
         case let .landed(landed):
             return .landed(session: landed.session)
+        case let .tuneToken(token):
+            return .tuneToken(name: token.name, value: token.value)
         case let .transferOffer(offer):
             return .transferOffer(TransferOffer(
                 transferID: offer.transferID,
@@ -127,6 +130,7 @@ public enum WireCodec {
                 $0.session = start.session
                 $0.thumbnailJpeg = Data(start.thumbnailJPEG)
                 $0.phoneHeightMm = start.phoneHeightMillimeters
+                $0.glowPalette = start.palette?.flat ?? []
             })
         case let .dragEnded(end):
             .dragEnded(.with {
@@ -137,6 +141,11 @@ public enum WireCodec {
             })
         case let .landed(session):
             .landed(.with { $0.session = session })
+        case let .tuneToken(name, value):
+            .tuneToken(.with {
+                $0.name = name
+                $0.value = value
+            })
         case let .transferOffer(offer):
             .transferOffer(.with { wire in
                 wire.transferID = offer.transferID

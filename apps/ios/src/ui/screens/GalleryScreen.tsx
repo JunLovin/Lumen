@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { LabUseCases } from '../../application/lab-use-cases';
 import type { LibraryAccess, MediaAsset } from '../../domain/media';
+import { ConnectionBanner } from '../components/ConnectionBanner';
 import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
@@ -55,6 +56,7 @@ export function GalleryScreen({ useCases }: Props) {
 
   return (
     <View style={styles.screen}>
+      <ConnectionBanner isPeerConnected={useCases.isPeerConnected} />
       {access === 'limited' && (
         <LabButton
           title={translate('gallery.manage')}

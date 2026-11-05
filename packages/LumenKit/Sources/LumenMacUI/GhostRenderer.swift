@@ -1,4 +1,6 @@
 #if os(macOS)
+    import AppKit
+    import IOSurface
     import LumenDomain
     import MetalKit
 
@@ -10,14 +12,33 @@
         var condensation: Float
         var hasTexture: Float
         var glow: SIMD4<Float>
+        var grainAmount: Float
+        var bloom: Float
+        var refraction: Float
+        var progress: Float = 0
+        var wavelength: Float = 0
+        var intensity: Float = 0
+        var fromLeft: Float = 0
+    }
+
+    private struct Sweep {
+        let fromLeft: Bool
+        let startedAt: CFTimeInterval
     }
 
     @MainActor
     final class GhostRenderer: NSObject, MTKViewDelegate {
         var texture: MTLTexture?
+        var palette: GlowPalette?
+        var tuning = MotionTuning()
+        var lensSurface: (() -> IOSurfaceRef?)?
         var nextPose: (() -> GhostPose?)?
         private let queue: MTLCommandQueue
         private let pipeline: MTLRenderPipelineState
+        private let lensPipeline: MTLRenderPipelineState
+        private let sweepPipeline: MTLRenderPipelineState
+        private var sweep: Sweep?
+        var onSweepFinished: (() -> Void)?
         private let fallbackTexture: MTLTexture?
 
         init?(device: MTLDevice, pixelFormat: MTLPixelFormat) {
@@ -36,14 +57,28 @@
             attachment?.sourceAlphaBlendFactor = .one
             attachment?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
             guard let pipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
+            descriptor.fragmentFunction = library.makeFunction(name: "lensFragment")
+            guard let lensPipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
+            descriptor.fragmentFunction = library.makeFunction(name: "sweepFragment")
+            guard let sweepPipeline = try? device.makeRenderPipelineState(descriptor: descriptor) else { return nil }
+            self.sweepPipeline = sweepPipeline
             self.queue = queue
             self.pipeline = pipeline
+            self.lensPipeline = lensPipeline
             fallbackTexture = device.makeTexture(descriptor: .texture2DDescriptor(
                 pixelFormat: .rgba8Unorm,
                 width: 1,
                 height: 1,
                 mipmapped: false
             ))
+        }
+
+        var isSweeping: Bool {
+            sweep != nil
+        }
+
+        func playSweep(fromLeft: Bool) {
+            sweep = Sweep(fromLeft: fromLeft, startedAt: CACurrentMediaTime())
         }
 
         func mtkView(_: MTKView, drawableSizeWillChange _: CGSize) {}
@@ -56,6 +91,7 @@
                 let buffer = queue.makeCommandBuffer(),
                 let encoder = buffer.makeRenderCommandEncoder(descriptor: pass)
             else { return }
+            drawSweep(in: view, with: encoder)
             if let pose {
                 draw(pose, in: view, with: encoder)
             }
@@ -66,7 +102,6 @@
 
         private func draw(_ pose: GhostPose, in view: MTKView, with encoder: MTLRenderCommandEncoder) {
             let scale = Float(view.drawableSize.width / max(view.bounds.width, 1))
-            let token = DesignTokens.Glow.primary
             var uniforms = GhostUniforms(
                 center: SIMD2(Float(pose.center.x), Float(pose.center.y)) * scale,
                 viewport: SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height)),
@@ -74,13 +109,83 @@
                 rotation: Float(pose.rotation),
                 condensation: Float(pose.condensation),
                 hasTexture: texture == nil ? 0 : 1,
-                glow: SIMD4(token.red, token.green, token.blue, 1)
+                glow: glow,
+                grainAmount: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : 1,
+                bloom: tuning.bloom,
+                refraction: DesignTokens.Lens.refractionPoints * scale
             )
+            drawLens(uniforms, in: view, with: encoder)
             let length = MemoryLayout<GhostUniforms>.stride
             encoder.setRenderPipelineState(pipeline)
             encoder.setVertexBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentBytes(&uniforms, length: length, index: 0)
             encoder.setFragmentTexture(texture ?? fallbackTexture, index: 0)
+            encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        }
+
+        private var glow: SIMD4<Float> {
+            let token = DesignTokens.Glow.primary
+            return palette.map { SIMD4($0.primary.red, $0.primary.green, $0.primary.blue, 1) }
+                ?? SIMD4(token.red, token.green, token.blue, 1)
+        }
+
+        private func drawSweep(in view: MTKView, with encoder: MTLRenderCommandEncoder) {
+            guard let sweep else { return }
+            let progress = Float(CACurrentMediaTime() - sweep.startedAt) / tuning.sweepSeconds
+            guard progress < 1 else {
+                self.sweep = nil
+                onSweepFinished?()
+                onSweepFinished = nil
+                return
+            }
+            let scale = Float(view.drawableSize.width / max(view.bounds.width, 1))
+            let viewport = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
+            let screen = screenTexture(of: view)
+            var uniforms = GhostUniforms(
+                center: viewport / 2,
+                viewport: viewport,
+                size: viewport.max() * 2,
+                rotation: 0,
+                condensation: 0,
+                hasTexture: screen == nil ? 0 : 1,
+                glow: glow,
+                grainAmount: 0,
+                bloom: 0,
+                refraction: DesignTokens.Lens.refractionPoints * scale,
+                progress: progress,
+                wavelength: tuning.sweepBand * scale,
+                intensity: tuning.sweepIntensity,
+                fromLeft: sweep.fromLeft ? 1 : 0
+            )
+            let length = MemoryLayout<GhostUniforms>.stride
+            encoder.setRenderPipelineState(sweepPipeline)
+            encoder.setVertexBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentTexture(screen ?? fallbackTexture, index: 0)
+            encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        }
+
+        private func screenTexture(of view: MTKView) -> MTLTexture? {
+            guard let surface = lensSurface?(), let device = view.device else { return nil }
+            let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: .bgra8Unorm,
+                width: IOSurfaceGetWidth(surface),
+                height: IOSurfaceGetHeight(surface),
+                mipmapped: false
+            )
+            return device.makeTexture(descriptor: descriptor, iosurface: surface, plane: 0)
+        }
+
+        private func drawLens(_ ghost: GhostUniforms, in view: MTKView, with encoder: MTLRenderCommandEncoder) {
+            guard let screen = screenTexture(of: view) else { return }
+            var uniforms = ghost
+            uniforms.size = ghost.size * DesignTokens.Lens.radiusFraction * 2
+            uniforms.rotation = 0
+            let length = MemoryLayout<GhostUniforms>.stride
+            encoder.setRenderPipelineState(lensPipeline)
+            encoder.setVertexBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentBytes(&uniforms, length: length, index: 0)
+            encoder.setFragmentTexture(screen, index: 0)
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         }
     }

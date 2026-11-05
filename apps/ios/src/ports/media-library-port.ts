@@ -10,5 +10,5 @@ export interface MediaLibraryPort {
     session: number,
     assetId: string,
     phoneHeightMillimeters: number,
-  ): void;
+  ): Promise<readonly number[]>;
 }

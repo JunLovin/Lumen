@@ -24,6 +24,31 @@ const tokens = {
     },
   },
   chirp: { defaultAmplitude: 0.25 },
+  effects: {
+    particleAmount: 0.8,
+    particleCells: 26,
+    particleSpeed: 0.5,
+    bloom: 1,
+  },
+  presence: {
+    minConfidence: 0.8,
+    macWidthPoints: 2,
+    restOpacity: 0.3,
+    peakOpacity: 0.7,
+    liftOpacity: 1,
+  },
+  landing: {
+    popScale: 1.1,
+    sheenSeconds: 0.8,
+    glowFadeSeconds: 0.4,
+  },
+  sweep: {
+    seconds: 0.7,
+    bandPoints: 80,
+    intensity: 0.8,
+  },
+  sound: { frequencyHz: 740, seconds: 0.2, gain: 0.1, pan: 0.7 },
+  lens: { refractionPoints: 22, radiusFraction: 1.3 },
   mirror: {
     renderDelayMilliseconds: 30,
     maxExtrapolationMilliseconds: 100,

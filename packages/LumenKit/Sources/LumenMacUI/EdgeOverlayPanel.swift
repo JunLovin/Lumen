@@ -1,5 +1,6 @@
 #if os(macOS)
     import AppKit
+    import LumenDomain
     import MetalKit
 
     @MainActor
@@ -55,6 +56,14 @@
 
         func hide() {
             panel.orderOut(nil)
+        }
+
+        func setTuning(_ tuning: MotionTuning) {
+            renderer.tuning = tuning
+        }
+
+        func setPalette(_ palette: GlowPalette?) {
+            renderer.palette = palette
         }
 
         func setProximity(_ proximity: Float) {

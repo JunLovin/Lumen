@@ -99,6 +99,18 @@ export const en = {
   'inbox.share': 'Share',
   'inbox.delete': 'Delete',
   'inbox.folder': 'Folder',
+  'lab.motion': 'Motion Lab',
+  'motion.export': 'Export to tokens.json',
+  'motion.reset': 'Back to tokens',
+  'connection.lost':
+    'Your Mac is not connected. Open Lumen on it and use the same Wi-Fi.',
+  'onboarding.title': 'Everything that crosses turns into light',
+  'onboarding.body':
+    'Your iPhone knows where your Mac is. Hold a photo and drag it off the edge facing the Mac.',
+  'onboarding.try': 'Try it: drag this card to either edge.',
+  'onboarding.success': 'That is the whole gesture.',
+  'onboarding.start': 'Start',
+  'onboarding.skip': 'Skip',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

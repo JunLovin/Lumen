@@ -104,6 +104,7 @@ message DragBegan {
   uint32 session = 1;
   bytes thumbnail_jpeg = 2;
   float phone_height_mm = 3;
+  repeated float glow_palette = 4;
 }
 
 message DragEnded {
@@ -115,6 +116,11 @@ message DragEnded {
 
 message Landed {
   uint32 session = 1;
+}
+
+message TuneToken {
+  string name = 1;
+  float value = 2;
 }
 
 message TransferResource {
@@ -189,6 +195,7 @@ message ControlMessage {
     TransferOffer transfer_offer = 16;
     TransferCancel transfer_cancel = 17;
     TransferPreparing transfer_preparing = 18;
+    TuneToken tune_token = 19;
   }
 }
 

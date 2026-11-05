@@ -5,14 +5,22 @@ import Animated, {
   measure,
   useAnimatedRef,
   useAnimatedStyle,
+  useReducedMotion,
   withSpring,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import type { MediaAsset } from '../../domain/media';
 import { advanceDragSession } from '../../domain/drag-session';
 import { crossingFraction } from '../../domain/edge-proximity';
-import { sendDragFrame, updateGlow, updateTilt } from '../motion/drag-worklets';
-import { springs } from '../motion/spring';
+import { HAPTIC } from '../../domain/haptics';
+import {
+  playStageHaptic,
+  sendDragFrame,
+  settleDrag,
+  updateGlow,
+  updateTilt,
+} from '../motion/drag-worklets';
+import { tunedSpring } from '../motion/spring';
 import type { DragController } from '../motion/use-drag-controller';
 
 type Props = {
@@ -35,7 +43,6 @@ const REPULSION_RADIUS_POINTS = 170;
 const REPULSION_POINTS = 14;
 // A photo must be clearly past the edge to cross; an accidental graze returns to the gallery.
 const CROSSING_DEAD_ZONE = 0.25;
-const HAPTIC_SOFT = 0;
 const SPECULATIVE_UPLOAD_PROXIMITY = 0.5;
 
 export function GalleryCell({
@@ -49,6 +56,7 @@ export function GalleryCell({
 }: Props) {
   const [uri, setUri] = useState<string | null>(null);
   const reference = useAnimatedRef<Animated.View>();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     let isCurrent = true;
@@ -80,8 +88,8 @@ export function GalleryCell({
       drag.activeIndex.value = index;
       drag.x.value = event.absoluteX;
       drag.y.value = event.absoluteY;
-      drag.lift.value = withSpring(1, springs.lift);
-      drag.channel.impact(HAPTIC_SOFT);
+      drag.lift.value = withSpring(1, tunedSpring(drag.tuning.value, 'lift'));
+      drag.channel.impact(HAPTIC.soft);
       drag.dragSession.value = advanceDragSession(
         { stage: 'idle' },
         { type: 'lift' },
@@ -90,9 +98,17 @@ export function GalleryCell({
       scheduleOnRN(onLift, uri);
     },
     onUpdate: event => {
-      drag.x.value = withSpring(event.absoluteX, springs.follow);
-      drag.y.value = withSpring(event.absoluteY, springs.follow);
-      updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
+      drag.x.value = withSpring(
+        event.absoluteX,
+        tunedSpring(drag.tuning.value, 'follow'),
+      );
+      drag.y.value = withSpring(
+        event.absoluteY,
+        tunedSpring(drag.tuning.value, 'follow'),
+      );
+      if (!reduceMotion) {
+        updateTilt(drag, event.absoluteX, event.absoluteY, event.velocityX);
+      }
       const { edge, proximity } = updateGlow(drag, event.absoluteX);
       drag.lastEdge.value = edge;
       if (
@@ -102,7 +118,8 @@ export function GalleryCell({
         drag.uploadStarted.value = true;
         drag.channel.startUpload(drag.session.value);
       }
-      drag.dragSession.value = advanceDragSession(drag.dragSession.value, {
+      const previous = drag.dragSession.value;
+      const next = advanceDragSession(previous, {
         type: 'moved',
         proximity,
         crossingFraction: Math.max(
@@ -111,6 +128,8 @@ export function GalleryCell({
           0,
         ),
       });
+      playStageHaptic(drag, previous, next);
+      drag.dragSession.value = next;
       sendDragFrame(
         drag,
         event.absoluteX,
@@ -138,26 +157,16 @@ export function GalleryCell({
       );
       if (crossed) {
         scheduleOnRN(drag.reportEdgeExit, edge);
-        drag.x.value = withSpring(
-          edge === 'right' ? drag.screenWidth + size : -size,
-          { ...springs.land, velocity: event.velocityX },
-        );
       } else {
-        const frame = measure(reference);
-        if (frame !== null) {
-          drag.x.value = withSpring(frame.pageX + size / 2, springs.snapBack);
-          drag.y.value = withSpring(frame.pageY + size / 2, springs.snapBack);
-        }
+        drag.channel.impact(HAPTIC.soft);
       }
-      drag.rotation.value = withSpring(0, springs.snapBack);
-      drag.tiltX.value = withSpring(0, springs.snapBack);
-      drag.tiltY.value = withSpring(0, springs.snapBack);
-      drag.leftGlow.value = withSpring(0, springs.snapBack);
-      drag.rightGlow.value = withSpring(0, springs.snapBack);
-      drag.lift.value = withSpring(0, springs.snapBack, finished => {
-        if (finished) {
-          drag.activeIndex.value = -1;
-        }
+      settleDrag(drag, {
+        crossed,
+        edge,
+        velocityX: event.velocityX,
+        home: crossed ? null : measure(reference),
+        size,
+        reduceMotion,
       });
     },
   });

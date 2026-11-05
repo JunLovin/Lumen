@@ -100,3 +100,18 @@ private func sample(x: Float, velocityX: Float = 0, sequence: UInt32 = 1) -> Dra
     #expect(landing.isSettled)
     #expect(abs(last.condensation - 1) < 0.01)
 }
+
+@Test func aLongLandingSettlesSoonAfterItLooksArrived() {
+    var landing = GhostLanding(
+        from: GhostPose(center: MacPoint(x: 0, y: 0), size: 100, rotation: 0, condensation: 0),
+        velocity: MacPoint(x: 800, y: 0),
+        target: MacPoint(x: 1200, y: 0),
+        parameters: SpringParameters(response: 0.5, damping: 0.72)
+    )
+    var seconds = 0.0
+    while !landing.isSettled {
+        _ = landing.advance(seconds: 1.0 / 120)
+        seconds += 1.0 / 120
+    }
+    #expect(seconds < 0.8)
+}

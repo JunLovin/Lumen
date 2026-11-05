@@ -33,7 +33,11 @@ public struct SpringValue: Sendable, Equatable {
     }
 
     public func isSettled(at target: Double, tolerance: Double) -> Bool {
-        abs(position - target) < tolerance && abs(velocity) < tolerance
+        isSettled(at: target, within: tolerance, speed: tolerance)
+    }
+
+    public func isSettled(at target: Double, within distance: Double, speed: Double) -> Bool {
+        abs(position - target) < distance && abs(velocity) < speed
     }
 }
 
@@ -59,7 +63,9 @@ public struct GhostLanding: Sendable, Equatable {
     public let size: Double
     public let rotation: Double
     private let parameters: SpringParameters
-    private static let settleTolerance = 0.5
+    // Past these values the remaining motion is invisible; waiting for rest added over half a second.
+    private static let settlePoints = 1.5
+    private static let settlePointsPerSecond = 30.0
 
     public init(from pose: GhostPose, velocity: MacPoint, target: MacPoint, parameters: SpringParameters) {
         x = SpringValue(position: pose.center.x, velocity: velocity.x)
@@ -84,8 +90,8 @@ public struct GhostLanding: Sendable, Equatable {
     }
 
     public var isSettled: Bool {
-        x.isSettled(at: target.x, tolerance: Self.settleTolerance)
-            && y.isSettled(at: target.y, tolerance: Self.settleTolerance)
+        x.isSettled(at: target.x, within: Self.settlePoints, speed: Self.settlePointsPerSecond)
+            && y.isSettled(at: target.y, within: Self.settlePoints, speed: Self.settlePointsPerSecond)
     }
 }
 

@@ -7,12 +7,16 @@ import { StyleSheet, Text } from 'react-native';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { translate } from './i18n/translate';
 import { labTheme } from './lab-theme';
+import { SweepProvider } from './motion/SweepContext';
+import { EdgeSweep } from './effects/EdgeSweep';
 import { PlacementPulse } from './effects/PlacementPulse';
+import { PresenceAura } from './effects/PresenceAura';
 import { GalleryScreen } from './screens/GalleryScreen';
 import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
 import { InboxScreen } from './screens/InboxScreen';
 import { LatencyLabScreen } from './screens/LatencyLabScreen';
+import { MotionLabScreen } from './screens/MotionLabScreen';
 import { PlacementLabScreen } from './screens/PlacementLabScreen';
 
 type Routes = {
@@ -22,6 +26,7 @@ type Routes = {
   Placement: undefined;
   Latency: undefined;
   Glow: undefined;
+  Motion: undefined;
 };
 
 const Stack = createNativeStackNavigator<Routes>();
@@ -50,11 +55,12 @@ export function RootNavigator({
       onOpenPlacement={() => navigation.navigate('Placement')}
       onOpenLatency={() => navigation.navigate('Latency')}
       onOpenGlow={() => navigation.navigate('Glow')}
+      onOpenMotion={() => navigation.navigate('Motion')}
     />
   );
 
   return (
-    <>
+    <SweepProvider>
       <NavigationContainer theme={DarkTheme}>
         <Stack.Navigator>
           <Stack.Screen
@@ -62,14 +68,15 @@ export function RootNavigator({
             options={({ navigation }) => ({
               title: translate('gallery.title'),
               gestureEnabled: false,
-              headerRight: () => (
-                <Text
-                  style={styles.headerLink}
-                  onPress={() => navigation.navigate('Diagnostics')}
-                >
-                  {translate('gallery.labs')}
-                </Text>
-              ),
+              headerRight: () =>
+                __DEV__ && (
+                  <Text
+                    style={styles.headerLink}
+                    onPress={() => navigation.navigate('Diagnostics')}
+                  >
+                    {translate('gallery.labs')}
+                  </Text>
+                ),
             })}
           >
             {() => <GalleryScreen useCases={useCases} />}
@@ -110,10 +117,21 @@ export function RootNavigator({
           >
             {() => <GlowLabScreen />}
           </Stack.Screen>
+          <Stack.Screen
+            name="Motion"
+            options={{ title: translate('lab.motion') }}
+          >
+            {() => <MotionLabScreen useCases={useCases} />}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
       <PlacementPulse readPlacement={useCases.readPlacement} />
-    </>
+      <PresenceAura
+        readPlacement={useCases.readPlacement}
+        isPeerConnected={useCases.isPeerConnected}
+      />
+      <EdgeSweep />
+    </SweepProvider>
   );
 }
 

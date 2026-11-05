@@ -35,6 +35,7 @@ public enum PeerMessage: Sendable, Equatable {
     case transferOffer(TransferOffer)
     case transferCancel(transferID: UInt32)
     case transferPreparing(transferID: UInt32, fraction: Double)
+    case tuneToken(name: String, value: Float)
 }
 
 public enum PeerEvent: Sendable, Equatable {

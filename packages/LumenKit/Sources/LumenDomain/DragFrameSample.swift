@@ -45,11 +45,18 @@ public struct DragStart: Sendable, Equatable {
     public let session: UInt32
     public let thumbnailJPEG: [UInt8]
     public let phoneHeightMillimeters: Float
+    public let palette: GlowPalette?
 
-    public init(session: UInt32, thumbnailJPEG: [UInt8], phoneHeightMillimeters: Float) {
+    public init(
+        session: UInt32,
+        thumbnailJPEG: [UInt8],
+        phoneHeightMillimeters: Float,
+        palette: GlowPalette? = nil
+    ) {
         self.session = session
         self.thumbnailJPEG = thumbnailJPEG
         self.phoneHeightMillimeters = phoneHeightMillimeters
+        self.palette = palette
     }
 }
 

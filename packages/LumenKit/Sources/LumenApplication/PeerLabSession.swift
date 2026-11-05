@@ -150,6 +150,8 @@ public actor PeerLabSession {
                 transferID: transferID,
                 stage: .preparing(fraction: fraction)
             )))
+        case let .tuneToken(name, value):
+            updatesContinuation.yield(.tuning(name: name, value: value))
         case .hello, .beginLocate, .placementUpdate, .landed:
             break
         }

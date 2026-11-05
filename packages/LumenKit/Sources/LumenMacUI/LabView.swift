@@ -20,6 +20,7 @@
                     LatencySection(model: model)
                     AcousticSection(model: model)
                     OverlaySection(model: model)
+                    MotionLabSection(model: model)
                 }
                 .formStyle(.grouped)
             }

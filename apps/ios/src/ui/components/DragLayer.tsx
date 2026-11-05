@@ -1,6 +1,11 @@
 import { Image, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { EdgeGlow } from '../effects/EdgeGlow';
+import { PhotoDissolve } from '../effects/PhotoDissolve';
 import { labTheme } from '../lab-theme';
 import type { DragController } from '../motion/use-drag-controller';
 
@@ -23,14 +28,20 @@ const PIVOT_SCALE_COMPENSATION =
   (PERSPECTIVE_POINTS + PIVOT_DEPTH_POINTS) / PERSPECTIVE_POINTS;
 
 export function DragLayer({ drag, uri, size }: Props) {
+  const reduceMotion = useReducedMotion();
+  const dissolve = useDerivedValue(() =>
+    Math.max(drag.leftGlow.value, drag.rightGlow.value),
+  );
+  const edgeIsLeft = useDerivedValue(() => drag.lastEdge.value === 'left');
+
   const dimStyle = useAnimatedStyle(() => ({
     opacity: drag.lift.value * DIM_OPACITY,
   }));
 
   const photoStyle = useAnimatedStyle(() => {
-    const proximity = Math.max(drag.leftGlow.value, drag.rightGlow.value);
+    const fade = reduceMotion ? 1 - dissolve.value * FADE_AT_EDGE : 1;
     return {
-      opacity: drag.activeIndex.value < 0 ? 0 : 1 - proximity * FADE_AT_EDGE,
+      opacity: drag.activeIndex.value < 0 ? 0 : fade,
       transformOrigin: ['50%', '50%', PIVOT_DEPTH_POINTS],
       shadowOpacity: drag.lift.value * SHADOW_OPACITY,
       shadowRadius: drag.lift.value * SHADOW_RADIUS_POINTS,
@@ -56,18 +67,32 @@ export function DragLayer({ drag, uri, size }: Props) {
         width={drag.screenWidth}
         height={drag.screenHeight}
         proximity={drag.rightGlow}
+        palette={drag.palette}
       />
       <View style={[StyleSheet.absoluteFill, styles.mirrored]}>
         <EdgeGlow
           width={drag.screenWidth}
           height={drag.screenHeight}
           proximity={drag.leftGlow}
+          palette={drag.palette}
         />
       </View>
       <Animated.View
         style={[styles.photo, { width: size, height: size }, photoStyle]}
       >
-        {uri !== null && <Image source={{ uri }} style={styles.image} />}
+        {uri !== null && !reduceMotion && (
+          <PhotoDissolve
+            uri={uri}
+            size={size}
+            dissolve={dissolve}
+            edgeIsLeft={edgeIsLeft}
+            tilt={drag.tiltY}
+            palette={drag.palette}
+          />
+        )}
+        {uri !== null && reduceMotion && (
+          <Image source={{ uri }} style={styles.image} />
+        )}
       </Animated.View>
     </View>
   );

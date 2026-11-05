@@ -45,7 +45,15 @@ const datagrams = {
 
 const controlMessages = {
   'control-drag-began': {
-    dragBegan: { session: 7, thumbnailJpeg: bytes(1, 2), phoneHeightMm: 150.5 },
+    dragBegan: {
+      session: 7,
+      thumbnailJpeg: bytes(1, 2),
+      phoneHeightMm: 150.5,
+      glowPalette: [1, 0.5, 0, 0, 0.5, 1, 1, 1, 0.5],
+    },
+  },
+  'control-tune-token': {
+    tuneToken: { name: 'glow.intensity', value: 1.5 },
   },
   'control-drag-ended': {
     dragEnded: {
