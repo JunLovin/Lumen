@@ -6,6 +6,8 @@ import LumenTransport
 
 @objc(LumenKitBridge)
 public final class LumenKitBridge: NSObject, @unchecked Sendable {
+    // The system holds its delegate weakly, so the picker needs an owner until it is dismissed.
+    @MainActor static var activePicker: FilePicker?
     let session = LabSession()
     let media = MediaLibrary()
     private let haptics = Haptics()

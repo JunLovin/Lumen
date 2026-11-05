@@ -436,6 +436,8 @@ public nonisolated struct Lumen_TransferResource: Sendable {
 
   public var byteCount: UInt64 = 0
 
+  public var isDirectory: Bool = false
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -449,6 +451,8 @@ public nonisolated struct Lumen_TransferOffer: Sendable {
   public var transferID: UInt32 = 0
 
   public var resources: [Lumen_TransferResource] = []
+
+  public var isDirect: Bool = false
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -489,6 +493,10 @@ public nonisolated struct Lumen_FileHeader: Sendable {
   public var transferID: UInt32 = 0
 
   public var resourceIndex: UInt32 = 0
+
+  public var download: Bool = false
+
+  public var offset: UInt64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1580,7 +1588,7 @@ nonisolated extension Lumen_Landed: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
 nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".TransferResource"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}index\0\u{3}file_name\0\u{3}byte_count\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}index\0\u{3}file_name\0\u{3}byte_count\0\u{3}is_directory\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1591,6 +1599,7 @@ nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtob
       case 1: try { try decoder.decodeSingularUInt32Field(value: &self.index) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.fileName) }()
       case 3: try { try decoder.decodeSingularUInt64Field(value: &self.byteCount) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.isDirectory) }()
       default: break
       }
     }
@@ -1606,6 +1615,9 @@ nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtob
     if self.byteCount != 0 {
       try visitor.visitSingularUInt64Field(value: self.byteCount, fieldNumber: 3)
     }
+    if self.isDirectory != false {
+      try visitor.visitSingularBoolField(value: self.isDirectory, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1613,6 +1625,7 @@ nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtob
     if lhs.index != rhs.index {return false}
     if lhs.fileName != rhs.fileName {return false}
     if lhs.byteCount != rhs.byteCount {return false}
+    if lhs.isDirectory != rhs.isDirectory {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1620,7 +1633,7 @@ nonisolated extension Lumen_TransferResource: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Lumen_TransferOffer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".TransferOffer"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{1}resources\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{1}resources\0\u{3}is_direct\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1630,6 +1643,7 @@ nonisolated extension Lumen_TransferOffer: SwiftProtobuf.Message, SwiftProtobuf.
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
       case 2: try { try decoder.decodeRepeatedMessageField(value: &self.resources) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.isDirect) }()
       default: break
       }
     }
@@ -1642,12 +1656,16 @@ nonisolated extension Lumen_TransferOffer: SwiftProtobuf.Message, SwiftProtobuf.
     if !self.resources.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.resources, fieldNumber: 2)
     }
+    if self.isDirect != false {
+      try visitor.visitSingularBoolField(value: self.isDirect, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Lumen_TransferOffer, rhs: Lumen_TransferOffer) -> Bool {
     if lhs.transferID != rhs.transferID {return false}
     if lhs.resources != rhs.resources {return false}
+    if lhs.isDirect != rhs.isDirect {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1720,7 +1738,7 @@ nonisolated extension Lumen_TransferPreparing: SwiftProtobuf.Message, SwiftProto
 
 nonisolated extension Lumen_FileHeader: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".FileHeader"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{3}resource_index\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}transfer_id\0\u{3}resource_index\0\u{1}download\0\u{1}offset\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1730,6 +1748,8 @@ nonisolated extension Lumen_FileHeader: SwiftProtobuf.Message, SwiftProtobuf._Me
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularUInt32Field(value: &self.transferID) }()
       case 2: try { try decoder.decodeSingularUInt32Field(value: &self.resourceIndex) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.download) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.offset) }()
       default: break
       }
     }
@@ -1742,12 +1762,20 @@ nonisolated extension Lumen_FileHeader: SwiftProtobuf.Message, SwiftProtobuf._Me
     if self.resourceIndex != 0 {
       try visitor.visitSingularUInt32Field(value: self.resourceIndex, fieldNumber: 2)
     }
+    if self.download != false {
+      try visitor.visitSingularBoolField(value: self.download, fieldNumber: 3)
+    }
+    if self.offset != 0 {
+      try visitor.visitSingularUInt64Field(value: self.offset, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Lumen_FileHeader, rhs: Lumen_FileHeader) -> Bool {
     if lhs.transferID != rhs.transferID {return false}
     if lhs.resourceIndex != rhs.resourceIndex {return false}
+    if lhs.download != rhs.download {return false}
+    if lhs.offset != rhs.offset {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

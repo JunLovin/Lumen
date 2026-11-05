@@ -6,6 +6,7 @@ import { createNativePairingAdapter } from '../adapters/native-pairing-adapter';
 import { createNativePeerChannelAdapter } from '../adapters/native-peer-channel-adapter';
 import { createRuntimeInfoAdapter } from '../adapters/runtime-info-adapter';
 import { readDeviceModel as NativeDeviceModel } from '../adapters/device-model-adapter';
+import { createNativeInboxAdapter } from '../adapters/native-inbox-adapter';
 import { createNativeMediaLibraryAdapter } from '../adapters/native-media-library-adapter';
 import { createNativeUIThreadChannel } from '../adapters/native-ui-thread-channel';
 import { createLoadGalleryPage } from '../application/load-gallery-page';
@@ -23,6 +24,7 @@ const composeUseCases = (): LabUseCases => {
   const acoustic = createNativeAcousticAdapter();
   const pairing = createNativePairingAdapter();
   const media = createNativeMediaLibraryAdapter();
+  const inbox = createNativeInboxAdapter();
   peer.start();
   return {
     loadDiagnostics: createLoadDiagnostics(createRuntimeInfoAdapter()),
@@ -43,6 +45,9 @@ const composeUseCases = (): LabUseCases => {
     loadGalleryPage: createLoadGalleryPage(media),
     loadThumbnail: (assetId, size) => media.loadThumbnail(assetId, size),
     manageLimitedAccess: () => media.manageLimitedAccess(),
+    readInbox: () => inbox.read(),
+    deleteReceivedFile: name => inbox.delete(name),
+    pickFilesToSend: () => inbox.pickFilesToSend(),
     beginDragTransfer: (session, assetId, height) =>
       media.beginDragTransfer(session, assetId, height),
   };

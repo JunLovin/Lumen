@@ -232,11 +232,13 @@ export interface TransferResource {
   index: number;
   fileName: string;
   byteCount: number;
+  isDirectory: boolean;
 }
 
 export interface TransferOffer {
   transferId: number;
   resources: TransferResource[];
+  isDirect: boolean;
 }
 
 export interface TransferCancel {
@@ -251,6 +253,8 @@ export interface TransferPreparing {
 export interface FileHeader {
   transferId: number;
   resourceIndex: number;
+  download: boolean;
+  offset: number;
 }
 
 export interface FileResume {
@@ -2066,7 +2070,7 @@ export const Landed: MessageFns<Landed> = {
 };
 
 function createBaseTransferResource(): TransferResource {
-  return { index: 0, fileName: "", byteCount: 0 };
+  return { index: 0, fileName: "", byteCount: 0, isDirectory: false };
 }
 
 export const TransferResource: MessageFns<TransferResource> = {
@@ -2079,6 +2083,9 @@ export const TransferResource: MessageFns<TransferResource> = {
     }
     if (message.byteCount !== 0) {
       writer.uint32(24).uint64(message.byteCount);
+    }
+    if (message.isDirectory !== false) {
+      writer.uint32(32).bool(message.isDirectory);
     }
     return writer;
   },
@@ -2120,6 +2127,14 @@ export const TransferResource: MessageFns<TransferResource> = {
             message.byteCount = longToNumber(reader.uint64());
             continue;
           }
+          case 4: {
+            if (tag !== 32) {
+              break;
+            }
+
+            message.isDirectory = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2145,6 +2160,11 @@ export const TransferResource: MessageFns<TransferResource> = {
         : isSet(object.byte_count)
         ? globalThis.Number(object.byte_count)
         : 0,
+      isDirectory: isSet(object.isDirectory)
+        ? globalThis.Boolean(object.isDirectory)
+        : isSet(object.is_directory)
+        ? globalThis.Boolean(object.is_directory)
+        : false,
     };
   },
 
@@ -2159,6 +2179,9 @@ export const TransferResource: MessageFns<TransferResource> = {
     if (message.byteCount !== 0) {
       obj.byteCount = Math.round(message.byteCount);
     }
+    if (message.isDirectory !== false) {
+      obj.isDirectory = message.isDirectory;
+    }
     return obj;
   },
 
@@ -2170,12 +2193,13 @@ export const TransferResource: MessageFns<TransferResource> = {
     message.index = object.index ?? 0;
     message.fileName = object.fileName ?? "";
     message.byteCount = object.byteCount ?? 0;
+    message.isDirectory = object.isDirectory ?? false;
     return message;
   },
 };
 
 function createBaseTransferOffer(): TransferOffer {
-  return { transferId: 0, resources: [] };
+  return { transferId: 0, resources: [], isDirect: false };
 }
 
 export const TransferOffer: MessageFns<TransferOffer> = {
@@ -2185,6 +2209,9 @@ export const TransferOffer: MessageFns<TransferOffer> = {
     }
     for (const v of message.resources) {
       TransferResource.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.isDirect !== false) {
+      writer.uint32(24).bool(message.isDirect);
     }
     return writer;
   },
@@ -2218,6 +2245,14 @@ export const TransferOffer: MessageFns<TransferOffer> = {
             message.resources.push(TransferResource.decode(reader, reader.uint32()));
             continue;
           }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.isDirect = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2240,6 +2275,11 @@ export const TransferOffer: MessageFns<TransferOffer> = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => TransferResource.fromJSON(e))
         : [],
+      isDirect: isSet(object.isDirect)
+        ? globalThis.Boolean(object.isDirect)
+        : isSet(object.is_direct)
+        ? globalThis.Boolean(object.is_direct)
+        : false,
     };
   },
 
@@ -2251,6 +2291,9 @@ export const TransferOffer: MessageFns<TransferOffer> = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => TransferResource.toJSON(e));
     }
+    if (message.isDirect !== false) {
+      obj.isDirect = message.isDirect;
+    }
     return obj;
   },
 
@@ -2261,6 +2304,7 @@ export const TransferOffer: MessageFns<TransferOffer> = {
     const message = createBaseTransferOffer();
     message.transferId = object.transferId ?? 0;
     message.resources = object.resources?.map((e) => TransferResource.fromPartial(e)) || [];
+    message.isDirect = object.isDirect ?? false;
     return message;
   },
 };
@@ -2428,7 +2472,7 @@ export const TransferPreparing: MessageFns<TransferPreparing> = {
 };
 
 function createBaseFileHeader(): FileHeader {
-  return { transferId: 0, resourceIndex: 0 };
+  return { transferId: 0, resourceIndex: 0, download: false, offset: 0 };
 }
 
 export const FileHeader: MessageFns<FileHeader> = {
@@ -2438,6 +2482,12 @@ export const FileHeader: MessageFns<FileHeader> = {
     }
     if (message.resourceIndex !== 0) {
       writer.uint32(16).uint32(message.resourceIndex);
+    }
+    if (message.download !== false) {
+      writer.uint32(24).bool(message.download);
+    }
+    if (message.offset !== 0) {
+      writer.uint32(32).uint64(message.offset);
     }
     return writer;
   },
@@ -2471,6 +2521,22 @@ export const FileHeader: MessageFns<FileHeader> = {
             message.resourceIndex = reader.uint32();
             continue;
           }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.download = reader.bool();
+            continue;
+          }
+          case 4: {
+            if (tag !== 32) {
+              break;
+            }
+
+            message.offset = longToNumber(reader.uint64());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2495,6 +2561,8 @@ export const FileHeader: MessageFns<FileHeader> = {
         : isSet(object.resource_index)
         ? globalThis.Number(object.resource_index)
         : 0,
+      download: isSet(object.download) ? globalThis.Boolean(object.download) : false,
+      offset: isSet(object.offset) ? globalThis.Number(object.offset) : 0,
     };
   },
 
@@ -2506,6 +2574,12 @@ export const FileHeader: MessageFns<FileHeader> = {
     if (message.resourceIndex !== 0) {
       obj.resourceIndex = Math.round(message.resourceIndex);
     }
+    if (message.download !== false) {
+      obj.download = message.download;
+    }
+    if (message.offset !== 0) {
+      obj.offset = Math.round(message.offset);
+    }
     return obj;
   },
 
@@ -2516,6 +2590,8 @@ export const FileHeader: MessageFns<FileHeader> = {
     const message = createBaseFileHeader();
     message.transferId = object.transferId ?? 0;
     message.resourceIndex = object.resourceIndex ?? 0;
+    message.download = object.download ?? false;
+    message.offset = object.offset ?? 0;
     return message;
   },
 };

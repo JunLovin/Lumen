@@ -9,8 +9,18 @@ struct ExportedResource {
     let byteCount: UInt64
 }
 
+private struct ChosenResource {
+    let source: PHAssetResource
+    let name: String
+}
+
 enum AssetExporter {
-    private static let exportedTypes: Set<PHAssetResourceType> = [.photo, .alternatePhoto, .video, .pairedVideo]
+    private static let originalTypes: Set<PHAssetResourceType> = [.photo, .alternatePhoto, .video, .pairedVideo]
+    private static let editedVersions: [PHAssetResourceType: PHAssetResourceType] = [
+        .photo: .fullSizePhoto,
+        .video: .fullSizeVideo,
+        .pairedVideo: .fullSizePairedVideo,
+    ]
 
     static func export(
         assetID: String,
@@ -21,25 +31,39 @@ enum AssetExporter {
             throw CocoaError(.fileNoSuchFile)
         }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let resources = PHAssetResource.assetResources(for: asset).filter { exportedTypes.contains($0.type) }
+        let resources = chosenResources(of: asset)
         let resourceCount = Double(max(resources.count, 1))
         var exported: [ExportedResource] = []
         var usedNames: Set<String> = []
         for (index, resource) in resources.enumerated() {
             try Task.checkCancellation()
-            let name = usedNames.contains(resource.originalFilename)
-                ? "\(index)-\(resource.originalFilename)"
-                : resource.originalFilename
+            let name = usedNames.contains(resource.name)
+                ? "\(index)-\(resource.name)"
+                : resource.name
             usedNames.insert(name)
             let url = directory.appending(path: "\(index).export")
             let share = { @Sendable (fraction: Double) in
                 progress((Double(index) + fraction) / resourceCount)
             }
-            try await write(resource, to: url, progress: share)
+            try await write(resource.source, to: url, progress: share)
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? UInt64 ?? 0
             exported.append(ExportedResource(index: UInt32(index), fileName: name, url: url, byteCount: size))
         }
         return exported
+    }
+
+    /// Prefers the edited version, because that is what the gallery shows, under the original's name.
+    private static func chosenResources(of asset: PHAsset) -> [ChosenResource] {
+        let all = PHAssetResource.assetResources(for: asset)
+        return all.filter { originalTypes.contains($0.type) }.map { original in
+            let edited = editedVersions[original.type].flatMap { type in all.first { $0.type == type } }
+            guard let edited else {
+                return ChosenResource(source: original, name: original.originalFilename)
+            }
+            let stem = (original.originalFilename as NSString).deletingPathExtension
+            let suffix = (edited.originalFilename as NSString).pathExtension
+            return ChosenResource(source: edited, name: "\(stem).\(suffix)")
+        }
     }
 
     private static func write(

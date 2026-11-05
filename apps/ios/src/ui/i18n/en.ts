@@ -91,6 +91,14 @@ export const en = {
   'latency.blocked': 'JS thread blocked. Keep dragging.',
   'latency.proof':
     'If the dot and the Mac keep moving, JS is out of the gesture.',
+  'inbox.title': 'Received',
+  'inbox.send': 'Send files to your Mac',
+  'inbox.empty':
+    'Files from your Mac land here. Drag one to the edge of its screen facing this iPhone.',
+  'inbox.receiving': 'Receiving',
+  'inbox.share': 'Share',
+  'inbox.delete': 'Delete',
+  'inbox.folder': 'Folder',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

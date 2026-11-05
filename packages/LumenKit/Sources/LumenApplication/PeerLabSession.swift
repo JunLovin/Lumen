@@ -1,40 +1,26 @@
 import LumenDomain
 
-public struct LocalizedDragFrame: Sendable, Equatable {
-    public let sample: DragFrameSample
-    public let localTimestampNs: UInt64?
-}
-
-public enum PeerLabUpdate: Sendable, Equatable {
-    case connection(isConnected: Bool)
-    case bestClockRoundTrip(milliseconds: Double)
-    case frame(LocalizedDragFrame, receivedAtNs: UInt64)
-    case acousticReport(AcousticReading)
-    case placement(Placement, evidence: String)
-    case audioRoute(canPlayUltrasound: Bool)
-    case dragBegan(DragStart)
-    case dragEnded(DragEnd)
-    case transfer(TransferUpdate)
-}
-
 public actor PeerLabSession {
     private static let burstPingCount = 8
     private static let burstPingInterval = Duration.milliseconds(100)
     private static let steadyPingInterval = Duration.seconds(10)
 
     public nonisolated let updates: AsyncStream<PeerLabUpdate>
-    private let updatesContinuation: AsyncStream<PeerLabUpdate>.Continuation
-    private let link: any PeerLinkPort
+    let updatesContinuation: AsyncStream<PeerLabUpdate>.Continuation
+    let link: any PeerLinkPort
     private let clock: any ClockPort
     private let chirpPlayer: any ChirpPlayerPort
     private let audioRoute: any AudioRoutePort
     private let placementStore: any PlacementStorePort
     private let fileSink: any FileSinkPort
+    let fileSource: any FileSourcePort
     private var resolver = PlacementResolver()
     private var detachment = DetachmentDetector(farRSSI: -75, nearRSSI: -65, requiredReadings: 5)
     private var estimator = ClockOffsetEstimator()
     private var chirpAmplitude: Float
     private var pingTask: Task<Void, Never>?
+    var isConnected = false
+    var waitingOffers: [TransferOffer] = []
 
     public init(
         link: any PeerLinkPort,
@@ -43,6 +29,7 @@ public actor PeerLabSession {
         audioRoute: any AudioRoutePort,
         placementStore: any PlacementStorePort,
         fileSink: any FileSinkPort,
+        fileSource: any FileSourcePort,
         chirpAmplitude: Float
     ) {
         (updates, updatesContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(256))
@@ -52,6 +39,7 @@ public actor PeerLabSession {
         self.audioRoute = audioRoute
         self.placementStore = placementStore
         self.fileSink = fileSink
+        self.fileSource = fileSource
         self.chirpAmplitude = chirpAmplitude
     }
 
@@ -86,12 +74,15 @@ public actor PeerLabSession {
     func handle(_ event: PeerEvent) async {
         switch event {
         case .connected:
+            isConnected = true
             updatesContinuation.yield(.connection(isConnected: true))
             estimator = ClockOffsetEstimator()
             startPinging()
             await publishPlacement(evidence: "connected")
             await beginLocateIfPossible()
+            await sendWaitingOffers()
         case .disconnected, .incompatible:
+            isConnected = false
             updatesContinuation.yield(.connection(isConnected: false))
             pingTask?.cancel()
         case let .received(message):
@@ -148,8 +139,12 @@ public actor PeerLabSession {
             updatesContinuation.yield(.dragEnded(end))
         case let .transferOffer(offer):
             await fileSink.register(offer)
+            if offer.isDirect {
+                updatesContinuation.yield(.directTransfer(offer))
+            }
         case let .transferCancel(transferID):
             await fileSink.cancel(transferID: transferID)
+            await fileSource.discard(transferID: transferID)
         case let .transferPreparing(transferID, fraction):
             updatesContinuation.yield(.transfer(TransferUpdate(
                 transferID: transferID,

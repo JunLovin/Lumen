@@ -94,6 +94,14 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'latency.blocked': 'Hilo de JS bloqueado. Sigue arrastrando.',
   'latency.proof':
     'Si el punto y la Mac siguen moviéndose, JS está fuera del gesto.',
+  'inbox.title': 'Recibidos',
+  'inbox.send': 'Enviar archivos a tu Mac',
+  'inbox.empty':
+    'Lo que envíes desde tu Mac llega aquí. Arrastra un archivo al borde de su pantalla que mira a este iPhone.',
+  'inbox.receiving': 'Recibiendo',
+  'inbox.share': 'Compartir',
+  'inbox.delete': 'Eliminar',
+  'inbox.folder': 'Carpeta',
   'common.yes': 'Sí',
   'common.no': 'No',
 };

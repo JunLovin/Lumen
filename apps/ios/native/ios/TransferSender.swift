@@ -63,6 +63,27 @@ actor TransferSender {
         }
     }
 
+    func sendDirect(files urls: [URL]) async {
+        let store = FileBatchStore()
+        guard let offer = await store.prepareBatch(paths: urls.map(\.path), isDirect: true) else { return }
+        await link.send(.transferOffer(offer))
+        for resource in offer.resources where !resource.isDirectory {
+            guard let file = await store.file(transferID: offer.transferID, resourceIndex: resource.index) else {
+                continue
+            }
+            do {
+                try await link.upload(
+                    fileAt: file,
+                    transferID: offer.transferID,
+                    resourceIndex: resource.index
+                ) { _ in }
+            } catch {
+                await link.send(.transferCancel(transferID: offer.transferID))
+                return
+            }
+        }
+    }
+
     private func directory(_ transferID: UInt32) -> URL {
         root.appending(path: String(transferID))
     }

@@ -11,13 +11,20 @@ public actor MacSecureLink: SecureLinkPort {
     private let serviceType: String
     private let version: ProtocolVersion
     private let sink: any FileSinkPort
+    private let source: FileBatchStore
     private var trust: (identity: LocalIdentity, peer: PairedDevice)?
     private var controlListener: NWListener?
     private var control: FramedConnection?
     private var realtimeListener: NWListener?
     private var fileListener: NWListener?
 
-    public init(version: ProtocolVersion, sink: any FileSinkPort, serviceType: String = LumenServices.control) {
+    public init(
+        version: ProtocolVersion,
+        sink: any FileSinkPort,
+        source: FileBatchStore,
+        serviceType: String = LumenServices.control
+    ) {
+        self.source = source
         (events, continuation) = AsyncStream.makeStream()
         self.sink = sink
         self.version = version
@@ -89,6 +96,7 @@ public actor MacSecureLink: SecureLinkPort {
         let file = try NWListener(using: SecureParameters.stream(psk: secrets.filePSK))
         let continuation = continuation
         let sink = sink
+        let source = source
         realtime.newConnectionHandler = { connection in
             connection.stateUpdateHandler = { state in
                 if case .ready = state {
@@ -103,7 +111,7 @@ public actor MacSecureLink: SecureLinkPort {
             }
         }
         file.newConnectionHandler = { connection in
-            Task { await FileReceiver.serve(on: FramedConnection(connection: connection), sink: sink) }
+            Task { await FileReceiver.serve(on: FramedConnection(connection: connection), sink: sink, source: source) }
         }
         let realtimePort = try await ready(realtime)
         let filePort = try await ready(file)

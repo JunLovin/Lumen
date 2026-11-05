@@ -1,4 +1,5 @@
 import Foundation
+import LumenApplication
 import Network
 
 public extension PhoneSecureLink {
@@ -37,6 +38,28 @@ public extension PhoneSecureLink {
                 resourceIndex: resourceIndex,
                 channel: channel,
                 progress: progress
+            ) {
+                return
+            }
+        }
+        throw ChannelError.closed
+    }
+
+    func download(transferID: UInt32, resourceIndex: UInt32, into sink: any FileSinkPort) async throws {
+        for attempt in 0 ..< Self.uploadAttempts {
+            try Task.checkCancellation()
+            if attempt > 0 {
+                try await Task.sleep(for: Self.uploadRetryDelay)
+            }
+            guard let fileEndpoint, let filePSK else { continue }
+            let channel = FramedConnection(
+                connection: NWConnection(to: fileEndpoint, using: SecureParameters.stream(psk: filePSK))
+            )
+            if try await FileUploader.download(
+                transferID: transferID,
+                resourceIndex: resourceIndex,
+                channel: channel,
+                sink: sink
             ) {
                 return
             }

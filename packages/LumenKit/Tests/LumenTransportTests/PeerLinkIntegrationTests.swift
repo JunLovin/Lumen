@@ -22,7 +22,7 @@ struct PeerLinkIntegrationTests {
         let service = uniqueService()
         let trust = try await paired(service: service)
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), source: FileBatchStore(), serviceType: control)
         let phone = PhoneSecureLink(version: version, serviceType: control)
         await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
         await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
@@ -75,7 +75,7 @@ struct PeerLinkIntegrationTests {
     func theWrongSecretNeverConnects() async throws {
         let trust = try await paired(service: uniqueService())
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), source: FileBatchStore(), serviceType: control)
         let impostor = PhoneSecureLink(version: version, serviceType: control)
         let forged = PairedDevice(
             deviceID: trust.phone.peer.deviceID,
@@ -103,7 +103,7 @@ struct PeerLinkIntegrationTests {
     func aPhoneReconnectsAfterTheControlChannelDrops() async throws {
         let trust = try await paired(service: uniqueService())
         let control = uniqueService()
-        let mac = MacSecureLink(version: version, sink: temporarySink(), serviceType: control)
+        let mac = MacSecureLink(version: version, sink: temporarySink(), source: FileBatchStore(), serviceType: control)
         let phone = PhoneSecureLink(version: version, serviceType: control)
         await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
         await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
@@ -126,7 +126,7 @@ struct PeerLinkIntegrationTests {
         let trust = try await paired(service: uniqueService())
         let control = uniqueService()
         let sink = temporarySink()
-        let mac = MacSecureLink(version: version, sink: sink, serviceType: control)
+        let mac = MacSecureLink(version: version, sink: sink, source: FileBatchStore(), serviceType: control)
         let phone = PhoneSecureLink(version: version, serviceType: control)
         await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
         await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
@@ -149,6 +149,49 @@ struct PeerLinkIntegrationTests {
         }
         let path = try #require(delivered)
         #expect(try Data(contentsOf: URL(filePath: path)) == bytes)
+        await phone.deactivate()
+        await mac.deactivate()
+    }
+
+    @Test(.enabled(if: isLocalRun, "CI runners do not allow Bonjour"), .timeLimit(.minutes(1)))
+    func aFolderTravelsFromTheMacToThePhone() async throws {
+        let trust = try await paired(service: uniqueService())
+        let control = uniqueService()
+        let store = FileBatchStore()
+        let mac = MacSecureLink(version: version, sink: temporarySink(), source: store, serviceType: control)
+        let phone = PhoneSecureLink(version: version, serviceType: control)
+        await mac.activate(identity: trust.mac.identity, peer: trust.mac.peer)
+        await phone.activate(identity: trust.phone.identity, peer: trust.phone.peer)
+        _ = await first(in: phone.events) { $0 == .connected }
+
+        let manager = FileManager.default
+        let folder = manager.temporaryDirectory.appending(path: "lumen-\(UUID().uuidString)/Proyecto")
+        try manager.createDirectory(at: folder.appending(path: "docs/profunda"), withIntermediateDirectories: true)
+        try manager.createDirectory(at: folder.appending(path: "vacia"), withIntermediateDirectories: true)
+        let bytes = Data((0 ..< 2 * 1024 * 1024).map { UInt8(truncatingIfNeeded: $0) })
+        try bytes.write(to: folder.appending(path: "docs/profunda/grande.bin"))
+        try Data("hola".utf8).write(to: folder.appending(path: "nota.txt"))
+
+        let offer = try #require(await store.prepareBatch(paths: [folder.path], isDirect: true))
+        let sink = temporarySink()
+        await sink.register(offer)
+        for resource in offer.resources where !resource.isDirectory {
+            try await phone.download(transferID: offer.transferID, resourceIndex: resource.index, into: sink)
+        }
+
+        var delivered: String?
+        for await update in sink.updates {
+            if case let .completed(path, _) = update.stage {
+                delivered = path
+                break
+            }
+        }
+        let path = try #require(delivered)
+        #expect(path.hasSuffix("Proyecto"))
+        #expect(try Data(contentsOf: URL(filePath: path + "/docs/profunda/grande.bin")) == bytes)
+        #expect(try String(contentsOf: URL(filePath: path + "/nota.txt"), encoding: .utf8) == "hola")
+        var isDirectory: ObjCBool = false
+        #expect(manager.fileExists(atPath: path + "/vacia", isDirectory: &isDirectory) && isDirectory.boolValue)
         await phone.deactivate()
         await mac.deactivate()
     }

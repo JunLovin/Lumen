@@ -14,7 +14,8 @@ struct LumenApp: App {
 
     init() {
         let sink = TemporaryFileSink(root: FileManager.default.temporaryDirectory.appending(path: "Lumen"))
-        let link = MacSecureLink(version: ProtocolInfoAdapter().localProtocolVersion, sink: sink)
+        let source = FileBatchStore()
+        let link = MacSecureLink(version: ProtocolInfoAdapter().localProtocolVersion, sink: sink, source: source)
         let destinationFolder = DestinationFolder()
         let clock = SystemClockAdapter()
         let amplitude = DesignTokens.Chirp.defaultAmplitude
@@ -25,6 +26,7 @@ struct LumenApp: App {
             audioRoute: AudioRouteAdapter(),
             placementStore: UserDefaultsPlacementStore(),
             fileSink: sink,
+            fileSource: source,
             chirpAmplitude: amplitude
         )
         let model = LabModel(

@@ -95,3 +95,8 @@ public protocol FileSinkPort: Sendable {
     func finish(transferID: UInt32, resourceIndex: UInt32, sha256: [UInt8]) async -> Bool
     func cancel(transferID: UInt32) async
 }
+
+public protocol FileSourcePort: Sendable {
+    func prepareBatch(paths: [String], isDirect: Bool) async -> TransferOffer?
+    func discard(transferID: UInt32) async
+}
