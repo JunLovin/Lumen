@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package lumen;
+
+enum ProtocolVersion {
+  PROTOCOL_VERSION_UNSPECIFIED = 0;
+  PROTOCOL_VERSION_CURRENT = 1;
+}
+
+message Hello {
+  ProtocolVersion protocol_version = 1;
+  bytes device_id_hash = 2;
+}

@@ -1,0 +1,9 @@
+packages:
+  - apps/ios
+  - packages/design-tokens
+  - packages/protocol
+
+minimumReleaseAgeExclude:
+  - react-native-safe-area-context@5.11.1
+
+nodeLinker: hoisted

@@ -1,0 +1,5 @@
+--swiftversion 6.0
+--exclude **/Generated,**/.build,apps/ios/ios,node_modules
+--indent 4
+--maxwidth 120
+--ifdef indent

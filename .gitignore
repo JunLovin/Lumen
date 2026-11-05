@@ -1,0 +1,15 @@
+.DS_Store
+node_modules/
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.build/
+.swiftpm/
+coverage/
+Pods/
+vendor/bundle/
+*.jsbundle
+*.ipa
+.metro-health-check*
+**/.xcode.env.local
