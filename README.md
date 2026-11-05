@@ -2,6 +2,7 @@
 
 Lumen makes an iPhone and a Mac feel like one surface. Drag a photo off the edge of the iPhone and it enters through the edge of the Mac at the same physical size, wrapped in light that takes its colors from the photo.
 
+> **Status:** early development. Nothing is ready to install yet.
 
 ## How it works
 
@@ -30,9 +31,10 @@ pnpm install
 pnpm check
 ```
 
+To run the apps:
 
-## Documentation
-
+- **iPhone:** run `pnpm --filter @lumen/ios pods`, open `apps/ios/ios/Lumen.xcworkspace`, select your team under Signing & Capabilities and run. Start Metro with `pnpm --filter @lumen/ios start`.
+- **Mac:** run `pnpm mac`. The app appears in the menu bar, not the Dock.
 
 ## License
 
