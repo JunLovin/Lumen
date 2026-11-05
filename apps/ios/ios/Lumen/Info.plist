@@ -41,8 +41,10 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_lumen._tcp</string>
-		<string>_lumen._udp</string>
+		<string>_lumen-pair._tcp</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Lumen lets your Mac notice when this iPhone is close so you can pair them.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Lumen finds your Mac and connects to it over the local network.</string>
 	<key>NSMicrophoneUsageDescription</key>

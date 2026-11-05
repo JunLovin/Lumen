@@ -54,6 +54,19 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'placement.relativeTau': 'τ respecto al centro',
   'placement.calibrationFirst':
     'Calibra primero: pon el iPhone centrado frente al trackpad, en la orientación que usarás en todas las pruebas.',
+  'pairing.title': 'Empareja con tu Mac',
+  'pairing.searching': 'Acerca este iPhone a tu Mac.',
+  'pairing.exchanging': 'Conectando…',
+  'pairing.compare':
+    'Comprueba que tu Mac muestre los mismos colores y confirma allí.',
+  'pairing.failed': 'El emparejamiento no terminó. Intentando de nuevo…',
+  'pairing.networkHint':
+    'Ambos dispositivos deben estar en la misma Wi-Fi. Algunas redes de oficina u hotel impiden que los dispositivos se vean entre sí.',
+  'pairing.peer': 'Emparejado con',
+  'pairing.reconnect': 'Última reconexión',
+  'pairing.fileChannel': 'Canal de archivos funciona',
+  'pairing.probeFileChannel': 'Probar canal de archivos',
+  'pairing.forget': 'Olvidar esta Mac',
   'common.yes': 'Sí',
   'common.no': 'No',
 };

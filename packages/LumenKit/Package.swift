@@ -29,7 +29,7 @@ let package = Package(
             name: "LumenTransport",
             dependencies: ["LumenApplication", "LumenDomain", "LumenProtocol"]
         ),
-        .target(name: "LumenProximity"),
+        .target(name: "LumenProximity", dependencies: ["LumenApplication"]),
         .target(
             name: "LumenMacUI",
             dependencies: ["LumenApplication", "LumenDomain", "LumenSignal"],

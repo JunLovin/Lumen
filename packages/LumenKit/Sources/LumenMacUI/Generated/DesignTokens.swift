@@ -30,6 +30,19 @@ public enum DesignTokens {
         public static let highlight = ColorToken(red: 1, green: 0.86, blue: 0.72)
     }
 
+    public enum Pairing {
+        public static let ringCycleSeconds: Double = 1.6
+        public static let ringCount = 3
+        public static let verificationPalette = [
+            ColorToken(red: 1, green: 0.35, blue: 0.35),
+            ColorToken(red: 1, green: 0.72, blue: 0.2),
+            ColorToken(red: 0.3, green: 0.85, blue: 0.45),
+            ColorToken(red: 0.25, green: 0.75, blue: 1),
+            ColorToken(red: 0.55, green: 0.45, blue: 1),
+            ColorToken(red: 1, green: 0.45, blue: 0.8),
+        ]
+    }
+
     public enum Chirp {
         public static let defaultAmplitude: Float = 0.25
     }

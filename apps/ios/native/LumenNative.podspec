@@ -15,6 +15,6 @@ Pod::Spec.new do |s|
     s,
     url: File.expand_path('../../../packages/LumenKit', __dir__),
     requirement: {},
-    products: ['LumenApplication', 'LumenDomain', 'LumenSignal', 'LumenTransport']
+    products: ['LumenApplication', 'LumenDomain', 'LumenProximity', 'LumenSignal', 'LumenTransport']
   )
 end

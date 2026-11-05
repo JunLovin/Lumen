@@ -80,11 +80,62 @@ export interface AcousticReport {
 
 export interface Datagram {
   hello?: Hello | undefined;
+  dragFrame?: DragFrame | undefined;
+}
+
+export interface SessionKey {
+  x25519Public: Uint8Array;
+  signature: Uint8Array;
+}
+
+export interface SessionReady {
+  realtimePort: number;
+  filePort: number;
+}
+
+export interface IncompatibleVersion {
+  supported: ProtocolVersion;
+}
+
+export interface ControlMessage {
+  hello?: Hello | undefined;
+  sessionKey?: SessionKey | undefined;
+  sessionReady?: SessionReady | undefined;
+  incompatibleVersion?: IncompatibleVersion | undefined;
   clockPing?: ClockPing | undefined;
   clockPong?: ClockPong | undefined;
-  dragFrame?: DragFrame | undefined;
   playChirpPair?: PlayChirpPair | undefined;
   acousticReport?: AcousticReport | undefined;
+}
+
+export interface PairingCommit {
+  commitment: Uint8Array;
+}
+
+export interface PairingKey {
+  x25519Public: Uint8Array;
+  nonce: Uint8Array;
+}
+
+export interface PairingSealed {
+  sealedBox: Uint8Array;
+}
+
+export interface PairingIdentity {
+  deviceId: Uint8Array;
+  signingPublic: Uint8Array;
+  name: string;
+}
+
+export interface PairingConfirmed {
+  confirmation: Uint8Array;
+}
+
+export interface PairingMessage {
+  commit?: PairingCommit | undefined;
+  key?: PairingKey | undefined;
+  sealed?: PairingSealed | undefined;
+  confirmed?: PairingConfirmed | undefined;
 }
 
 function createBaseHello(): Hello {
@@ -862,14 +913,7 @@ export const AcousticReport: MessageFns<AcousticReport> = {
 };
 
 function createBaseDatagram(): Datagram {
-  return {
-    hello: undefined,
-    clockPing: undefined,
-    clockPong: undefined,
-    dragFrame: undefined,
-    playChirpPair: undefined,
-    acousticReport: undefined,
-  };
+  return { hello: undefined, dragFrame: undefined };
 }
 
 export const Datagram: MessageFns<Datagram> = {
@@ -877,20 +921,8 @@ export const Datagram: MessageFns<Datagram> = {
     if (message.hello !== undefined) {
       Hello.encode(message.hello, writer.uint32(10).fork()).join();
     }
-    if (message.clockPing !== undefined) {
-      ClockPing.encode(message.clockPing, writer.uint32(18).fork()).join();
-    }
-    if (message.clockPong !== undefined) {
-      ClockPong.encode(message.clockPong, writer.uint32(26).fork()).join();
-    }
     if (message.dragFrame !== undefined) {
-      DragFrame.encode(message.dragFrame, writer.uint32(34).fork()).join();
-    }
-    if (message.playChirpPair !== undefined) {
-      PlayChirpPair.encode(message.playChirpPair, writer.uint32(42).fork()).join();
-    }
-    if (message.acousticReport !== undefined) {
-      AcousticReport.encode(message.acousticReport, writer.uint32(50).fork()).join();
+      DragFrame.encode(message.dragFrame, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -921,7 +953,374 @@ export const Datagram: MessageFns<Datagram> = {
               break;
             }
 
-            message.clockPing = ClockPing.decode(reader, reader.uint32());
+            message.dragFrame = DragFrame.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Datagram {
+    return {
+      hello: isSet(object.hello) ? Hello.fromJSON(object.hello) : undefined,
+      dragFrame: isSet(object.dragFrame)
+        ? DragFrame.fromJSON(object.dragFrame)
+        : isSet(object.drag_frame)
+        ? DragFrame.fromJSON(object.drag_frame)
+        : undefined,
+    };
+  },
+
+  toJSON(message: Datagram): unknown {
+    const obj: any = {};
+    if (message.hello !== undefined) {
+      obj.hello = Hello.toJSON(message.hello);
+    }
+    if (message.dragFrame !== undefined) {
+      obj.dragFrame = DragFrame.toJSON(message.dragFrame);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Datagram>, I>>(base?: I): Datagram {
+    return Datagram.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Datagram>, I>>(object: I): Datagram {
+    const message = createBaseDatagram();
+    message.hello = (object.hello !== undefined && object.hello !== null) ? Hello.fromPartial(object.hello) : undefined;
+    message.dragFrame = (object.dragFrame !== undefined && object.dragFrame !== null)
+      ? DragFrame.fromPartial(object.dragFrame)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseSessionKey(): SessionKey {
+  return { x25519Public: new Uint8Array(0), signature: new Uint8Array(0) };
+}
+
+export const SessionKey: MessageFns<SessionKey> = {
+  encode(message: SessionKey, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.x25519Public.length !== 0) {
+      writer.uint32(10).bytes(message.x25519Public);
+    }
+    if (message.signature.length !== 0) {
+      writer.uint32(18).bytes(message.signature);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SessionKey {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseSessionKey();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.x25519Public = reader.bytes();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.signature = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): SessionKey {
+    return {
+      x25519Public: isSet(object.x25519Public)
+        ? bytesFromBase64(object.x25519Public)
+        : isSet(object.x25519_public)
+        ? bytesFromBase64(object.x25519_public)
+        : new Uint8Array(0),
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: SessionKey): unknown {
+    const obj: any = {};
+    if (message.x25519Public.length !== 0) {
+      obj.x25519Public = base64FromBytes(message.x25519Public);
+    }
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SessionKey>, I>>(base?: I): SessionKey {
+    return SessionKey.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SessionKey>, I>>(object: I): SessionKey {
+    const message = createBaseSessionKey();
+    message.x25519Public = object.x25519Public ?? new Uint8Array(0);
+    message.signature = object.signature ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseSessionReady(): SessionReady {
+  return { realtimePort: 0, filePort: 0 };
+}
+
+export const SessionReady: MessageFns<SessionReady> = {
+  encode(message: SessionReady, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.realtimePort !== 0) {
+      writer.uint32(8).uint32(message.realtimePort);
+    }
+    if (message.filePort !== 0) {
+      writer.uint32(16).uint32(message.filePort);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SessionReady {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseSessionReady();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.realtimePort = reader.uint32();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.filePort = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): SessionReady {
+    return {
+      realtimePort: isSet(object.realtimePort)
+        ? globalThis.Number(object.realtimePort)
+        : isSet(object.realtime_port)
+        ? globalThis.Number(object.realtime_port)
+        : 0,
+      filePort: isSet(object.filePort)
+        ? globalThis.Number(object.filePort)
+        : isSet(object.file_port)
+        ? globalThis.Number(object.file_port)
+        : 0,
+    };
+  },
+
+  toJSON(message: SessionReady): unknown {
+    const obj: any = {};
+    if (message.realtimePort !== 0) {
+      obj.realtimePort = Math.round(message.realtimePort);
+    }
+    if (message.filePort !== 0) {
+      obj.filePort = Math.round(message.filePort);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SessionReady>, I>>(base?: I): SessionReady {
+    return SessionReady.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SessionReady>, I>>(object: I): SessionReady {
+    const message = createBaseSessionReady();
+    message.realtimePort = object.realtimePort ?? 0;
+    message.filePort = object.filePort ?? 0;
+    return message;
+  },
+};
+
+function createBaseIncompatibleVersion(): IncompatibleVersion {
+  return { supported: 0 };
+}
+
+export const IncompatibleVersion: MessageFns<IncompatibleVersion> = {
+  encode(message: IncompatibleVersion, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.supported !== 0) {
+      writer.uint32(8).int32(message.supported);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): IncompatibleVersion {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseIncompatibleVersion();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.supported = reader.int32() as any;
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): IncompatibleVersion {
+    return { supported: isSet(object.supported) ? protocolVersionFromJSON(object.supported) : 0 };
+  },
+
+  toJSON(message: IncompatibleVersion): unknown {
+    const obj: any = {};
+    if (message.supported !== 0) {
+      obj.supported = protocolVersionToJSON(message.supported);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<IncompatibleVersion>, I>>(base?: I): IncompatibleVersion {
+    return IncompatibleVersion.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<IncompatibleVersion>, I>>(object: I): IncompatibleVersion {
+    const message = createBaseIncompatibleVersion();
+    message.supported = object.supported ?? 0;
+    return message;
+  },
+};
+
+function createBaseControlMessage(): ControlMessage {
+  return {
+    hello: undefined,
+    sessionKey: undefined,
+    sessionReady: undefined,
+    incompatibleVersion: undefined,
+    clockPing: undefined,
+    clockPong: undefined,
+    playChirpPair: undefined,
+    acousticReport: undefined,
+  };
+}
+
+export const ControlMessage: MessageFns<ControlMessage> = {
+  encode(message: ControlMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.hello !== undefined) {
+      Hello.encode(message.hello, writer.uint32(10).fork()).join();
+    }
+    if (message.sessionKey !== undefined) {
+      SessionKey.encode(message.sessionKey, writer.uint32(18).fork()).join();
+    }
+    if (message.sessionReady !== undefined) {
+      SessionReady.encode(message.sessionReady, writer.uint32(26).fork()).join();
+    }
+    if (message.incompatibleVersion !== undefined) {
+      IncompatibleVersion.encode(message.incompatibleVersion, writer.uint32(34).fork()).join();
+    }
+    if (message.clockPing !== undefined) {
+      ClockPing.encode(message.clockPing, writer.uint32(42).fork()).join();
+    }
+    if (message.clockPong !== undefined) {
+      ClockPong.encode(message.clockPong, writer.uint32(50).fork()).join();
+    }
+    if (message.playChirpPair !== undefined) {
+      PlayChirpPair.encode(message.playChirpPair, writer.uint32(58).fork()).join();
+    }
+    if (message.acousticReport !== undefined) {
+      AcousticReport.encode(message.acousticReport, writer.uint32(66).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ControlMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseControlMessage();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.hello = Hello.decode(reader, reader.uint32());
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.sessionKey = SessionKey.decode(reader, reader.uint32());
             continue;
           }
           case 3: {
@@ -929,7 +1328,7 @@ export const Datagram: MessageFns<Datagram> = {
               break;
             }
 
-            message.clockPong = ClockPong.decode(reader, reader.uint32());
+            message.sessionReady = SessionReady.decode(reader, reader.uint32());
             continue;
           }
           case 4: {
@@ -937,7 +1336,7 @@ export const Datagram: MessageFns<Datagram> = {
               break;
             }
 
-            message.dragFrame = DragFrame.decode(reader, reader.uint32());
+            message.incompatibleVersion = IncompatibleVersion.decode(reader, reader.uint32());
             continue;
           }
           case 5: {
@@ -945,11 +1344,27 @@ export const Datagram: MessageFns<Datagram> = {
               break;
             }
 
-            message.playChirpPair = PlayChirpPair.decode(reader, reader.uint32());
+            message.clockPing = ClockPing.decode(reader, reader.uint32());
             continue;
           }
           case 6: {
             if (tag !== 50) {
+              break;
+            }
+
+            message.clockPong = ClockPong.decode(reader, reader.uint32());
+            continue;
+          }
+          case 7: {
+            if (tag !== 58) {
+              break;
+            }
+
+            message.playChirpPair = PlayChirpPair.decode(reader, reader.uint32());
+            continue;
+          }
+          case 8: {
+            if (tag !== 66) {
               break;
             }
 
@@ -968,9 +1383,24 @@ export const Datagram: MessageFns<Datagram> = {
     }
   },
 
-  fromJSON(object: any): Datagram {
+  fromJSON(object: any): ControlMessage {
     return {
       hello: isSet(object.hello) ? Hello.fromJSON(object.hello) : undefined,
+      sessionKey: isSet(object.sessionKey)
+        ? SessionKey.fromJSON(object.sessionKey)
+        : isSet(object.session_key)
+        ? SessionKey.fromJSON(object.session_key)
+        : undefined,
+      sessionReady: isSet(object.sessionReady)
+        ? SessionReady.fromJSON(object.sessionReady)
+        : isSet(object.session_ready)
+        ? SessionReady.fromJSON(object.session_ready)
+        : undefined,
+      incompatibleVersion: isSet(object.incompatibleVersion)
+        ? IncompatibleVersion.fromJSON(object.incompatibleVersion)
+        : isSet(object.incompatible_version)
+        ? IncompatibleVersion.fromJSON(object.incompatible_version)
+        : undefined,
       clockPing: isSet(object.clockPing)
         ? ClockPing.fromJSON(object.clockPing)
         : isSet(object.clock_ping)
@@ -980,11 +1410,6 @@ export const Datagram: MessageFns<Datagram> = {
         ? ClockPong.fromJSON(object.clockPong)
         : isSet(object.clock_pong)
         ? ClockPong.fromJSON(object.clock_pong)
-        : undefined,
-      dragFrame: isSet(object.dragFrame)
-        ? DragFrame.fromJSON(object.dragFrame)
-        : isSet(object.drag_frame)
-        ? DragFrame.fromJSON(object.drag_frame)
         : undefined,
       playChirpPair: isSet(object.playChirpPair)
         ? PlayChirpPair.fromJSON(object.playChirpPair)
@@ -999,19 +1424,25 @@ export const Datagram: MessageFns<Datagram> = {
     };
   },
 
-  toJSON(message: Datagram): unknown {
+  toJSON(message: ControlMessage): unknown {
     const obj: any = {};
     if (message.hello !== undefined) {
       obj.hello = Hello.toJSON(message.hello);
+    }
+    if (message.sessionKey !== undefined) {
+      obj.sessionKey = SessionKey.toJSON(message.sessionKey);
+    }
+    if (message.sessionReady !== undefined) {
+      obj.sessionReady = SessionReady.toJSON(message.sessionReady);
+    }
+    if (message.incompatibleVersion !== undefined) {
+      obj.incompatibleVersion = IncompatibleVersion.toJSON(message.incompatibleVersion);
     }
     if (message.clockPing !== undefined) {
       obj.clockPing = ClockPing.toJSON(message.clockPing);
     }
     if (message.clockPong !== undefined) {
       obj.clockPong = ClockPong.toJSON(message.clockPong);
-    }
-    if (message.dragFrame !== undefined) {
-      obj.dragFrame = DragFrame.toJSON(message.dragFrame);
     }
     if (message.playChirpPair !== undefined) {
       obj.playChirpPair = PlayChirpPair.toJSON(message.playChirpPair);
@@ -1022,26 +1453,560 @@ export const Datagram: MessageFns<Datagram> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Datagram>, I>>(base?: I): Datagram {
-    return Datagram.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ControlMessage>, I>>(base?: I): ControlMessage {
+    return ControlMessage.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Datagram>, I>>(object: I): Datagram {
-    const message = createBaseDatagram();
+  fromPartial<I extends Exact<DeepPartial<ControlMessage>, I>>(object: I): ControlMessage {
+    const message = createBaseControlMessage();
     message.hello = (object.hello !== undefined && object.hello !== null) ? Hello.fromPartial(object.hello) : undefined;
+    message.sessionKey = (object.sessionKey !== undefined && object.sessionKey !== null)
+      ? SessionKey.fromPartial(object.sessionKey)
+      : undefined;
+    message.sessionReady = (object.sessionReady !== undefined && object.sessionReady !== null)
+      ? SessionReady.fromPartial(object.sessionReady)
+      : undefined;
+    message.incompatibleVersion = (object.incompatibleVersion !== undefined && object.incompatibleVersion !== null)
+      ? IncompatibleVersion.fromPartial(object.incompatibleVersion)
+      : undefined;
     message.clockPing = (object.clockPing !== undefined && object.clockPing !== null)
       ? ClockPing.fromPartial(object.clockPing)
       : undefined;
     message.clockPong = (object.clockPong !== undefined && object.clockPong !== null)
       ? ClockPong.fromPartial(object.clockPong)
       : undefined;
-    message.dragFrame = (object.dragFrame !== undefined && object.dragFrame !== null)
-      ? DragFrame.fromPartial(object.dragFrame)
-      : undefined;
     message.playChirpPair = (object.playChirpPair !== undefined && object.playChirpPair !== null)
       ? PlayChirpPair.fromPartial(object.playChirpPair)
       : undefined;
     message.acousticReport = (object.acousticReport !== undefined && object.acousticReport !== null)
       ? AcousticReport.fromPartial(object.acousticReport)
+      : undefined;
+    return message;
+  },
+};
+
+function createBasePairingCommit(): PairingCommit {
+  return { commitment: new Uint8Array(0) };
+}
+
+export const PairingCommit: MessageFns<PairingCommit> = {
+  encode(message: PairingCommit, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.commitment.length !== 0) {
+      writer.uint32(10).bytes(message.commitment);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingCommit {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingCommit();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.commitment = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingCommit {
+    return { commitment: isSet(object.commitment) ? bytesFromBase64(object.commitment) : new Uint8Array(0) };
+  },
+
+  toJSON(message: PairingCommit): unknown {
+    const obj: any = {};
+    if (message.commitment.length !== 0) {
+      obj.commitment = base64FromBytes(message.commitment);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingCommit>, I>>(base?: I): PairingCommit {
+    return PairingCommit.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingCommit>, I>>(object: I): PairingCommit {
+    const message = createBasePairingCommit();
+    message.commitment = object.commitment ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBasePairingKey(): PairingKey {
+  return { x25519Public: new Uint8Array(0), nonce: new Uint8Array(0) };
+}
+
+export const PairingKey: MessageFns<PairingKey> = {
+  encode(message: PairingKey, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.x25519Public.length !== 0) {
+      writer.uint32(10).bytes(message.x25519Public);
+    }
+    if (message.nonce.length !== 0) {
+      writer.uint32(18).bytes(message.nonce);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingKey {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingKey();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.x25519Public = reader.bytes();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.nonce = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingKey {
+    return {
+      x25519Public: isSet(object.x25519Public)
+        ? bytesFromBase64(object.x25519Public)
+        : isSet(object.x25519_public)
+        ? bytesFromBase64(object.x25519_public)
+        : new Uint8Array(0),
+      nonce: isSet(object.nonce) ? bytesFromBase64(object.nonce) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: PairingKey): unknown {
+    const obj: any = {};
+    if (message.x25519Public.length !== 0) {
+      obj.x25519Public = base64FromBytes(message.x25519Public);
+    }
+    if (message.nonce.length !== 0) {
+      obj.nonce = base64FromBytes(message.nonce);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingKey>, I>>(base?: I): PairingKey {
+    return PairingKey.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingKey>, I>>(object: I): PairingKey {
+    const message = createBasePairingKey();
+    message.x25519Public = object.x25519Public ?? new Uint8Array(0);
+    message.nonce = object.nonce ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBasePairingSealed(): PairingSealed {
+  return { sealedBox: new Uint8Array(0) };
+}
+
+export const PairingSealed: MessageFns<PairingSealed> = {
+  encode(message: PairingSealed, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sealedBox.length !== 0) {
+      writer.uint32(10).bytes(message.sealedBox);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingSealed {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingSealed();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.sealedBox = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingSealed {
+    return {
+      sealedBox: isSet(object.sealedBox)
+        ? bytesFromBase64(object.sealedBox)
+        : isSet(object.sealed_box)
+        ? bytesFromBase64(object.sealed_box)
+        : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: PairingSealed): unknown {
+    const obj: any = {};
+    if (message.sealedBox.length !== 0) {
+      obj.sealedBox = base64FromBytes(message.sealedBox);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingSealed>, I>>(base?: I): PairingSealed {
+    return PairingSealed.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingSealed>, I>>(object: I): PairingSealed {
+    const message = createBasePairingSealed();
+    message.sealedBox = object.sealedBox ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBasePairingIdentity(): PairingIdentity {
+  return { deviceId: new Uint8Array(0), signingPublic: new Uint8Array(0), name: "" };
+}
+
+export const PairingIdentity: MessageFns<PairingIdentity> = {
+  encode(message: PairingIdentity, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.deviceId.length !== 0) {
+      writer.uint32(10).bytes(message.deviceId);
+    }
+    if (message.signingPublic.length !== 0) {
+      writer.uint32(18).bytes(message.signingPublic);
+    }
+    if (message.name !== "") {
+      writer.uint32(26).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingIdentity {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingIdentity();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.deviceId = reader.bytes();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.signingPublic = reader.bytes();
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.name = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingIdentity {
+    return {
+      deviceId: isSet(object.deviceId)
+        ? bytesFromBase64(object.deviceId)
+        : isSet(object.device_id)
+        ? bytesFromBase64(object.device_id)
+        : new Uint8Array(0),
+      signingPublic: isSet(object.signingPublic)
+        ? bytesFromBase64(object.signingPublic)
+        : isSet(object.signing_public)
+        ? bytesFromBase64(object.signing_public)
+        : new Uint8Array(0),
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+    };
+  },
+
+  toJSON(message: PairingIdentity): unknown {
+    const obj: any = {};
+    if (message.deviceId.length !== 0) {
+      obj.deviceId = base64FromBytes(message.deviceId);
+    }
+    if (message.signingPublic.length !== 0) {
+      obj.signingPublic = base64FromBytes(message.signingPublic);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingIdentity>, I>>(base?: I): PairingIdentity {
+    return PairingIdentity.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingIdentity>, I>>(object: I): PairingIdentity {
+    const message = createBasePairingIdentity();
+    message.deviceId = object.deviceId ?? new Uint8Array(0);
+    message.signingPublic = object.signingPublic ?? new Uint8Array(0);
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBasePairingConfirmed(): PairingConfirmed {
+  return { confirmation: new Uint8Array(0) };
+}
+
+export const PairingConfirmed: MessageFns<PairingConfirmed> = {
+  encode(message: PairingConfirmed, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.confirmation.length !== 0) {
+      writer.uint32(10).bytes(message.confirmation);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingConfirmed {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingConfirmed();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.confirmation = reader.bytes();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingConfirmed {
+    return { confirmation: isSet(object.confirmation) ? bytesFromBase64(object.confirmation) : new Uint8Array(0) };
+  },
+
+  toJSON(message: PairingConfirmed): unknown {
+    const obj: any = {};
+    if (message.confirmation.length !== 0) {
+      obj.confirmation = base64FromBytes(message.confirmation);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingConfirmed>, I>>(base?: I): PairingConfirmed {
+    return PairingConfirmed.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingConfirmed>, I>>(object: I): PairingConfirmed {
+    const message = createBasePairingConfirmed();
+    message.confirmation = object.confirmation ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBasePairingMessage(): PairingMessage {
+  return { commit: undefined, key: undefined, sealed: undefined, confirmed: undefined };
+}
+
+export const PairingMessage: MessageFns<PairingMessage> = {
+  encode(message: PairingMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.commit !== undefined) {
+      PairingCommit.encode(message.commit, writer.uint32(10).fork()).join();
+    }
+    if (message.key !== undefined) {
+      PairingKey.encode(message.key, writer.uint32(18).fork()).join();
+    }
+    if (message.sealed !== undefined) {
+      PairingSealed.encode(message.sealed, writer.uint32(26).fork()).join();
+    }
+    if (message.confirmed !== undefined) {
+      PairingConfirmed.encode(message.confirmed, writer.uint32(34).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PairingMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBasePairingMessage();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.commit = PairingCommit.decode(reader, reader.uint32());
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.key = PairingKey.decode(reader, reader.uint32());
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.sealed = PairingSealed.decode(reader, reader.uint32());
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.confirmed = PairingConfirmed.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): PairingMessage {
+    return {
+      commit: isSet(object.commit) ? PairingCommit.fromJSON(object.commit) : undefined,
+      key: isSet(object.key) ? PairingKey.fromJSON(object.key) : undefined,
+      sealed: isSet(object.sealed) ? PairingSealed.fromJSON(object.sealed) : undefined,
+      confirmed: isSet(object.confirmed) ? PairingConfirmed.fromJSON(object.confirmed) : undefined,
+    };
+  },
+
+  toJSON(message: PairingMessage): unknown {
+    const obj: any = {};
+    if (message.commit !== undefined) {
+      obj.commit = PairingCommit.toJSON(message.commit);
+    }
+    if (message.key !== undefined) {
+      obj.key = PairingKey.toJSON(message.key);
+    }
+    if (message.sealed !== undefined) {
+      obj.sealed = PairingSealed.toJSON(message.sealed);
+    }
+    if (message.confirmed !== undefined) {
+      obj.confirmed = PairingConfirmed.toJSON(message.confirmed);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PairingMessage>, I>>(base?: I): PairingMessage {
+    return PairingMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PairingMessage>, I>>(object: I): PairingMessage {
+    const message = createBasePairingMessage();
+    message.commit = (object.commit !== undefined && object.commit !== null)
+      ? PairingCommit.fromPartial(object.commit)
+      : undefined;
+    message.key = (object.key !== undefined && object.key !== null) ? PairingKey.fromPartial(object.key) : undefined;
+    message.sealed = (object.sealed !== undefined && object.sealed !== null)
+      ? PairingSealed.fromPartial(object.sealed)
+      : undefined;
+    message.confirmed = (object.confirmed !== undefined && object.confirmed !== null)
+      ? PairingConfirmed.fromPartial(object.confirmed)
       : undefined;
     return message;
   },

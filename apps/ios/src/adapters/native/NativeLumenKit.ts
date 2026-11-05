@@ -15,10 +15,20 @@ export type NativePlacementMeasurement = {
   readonly curve: readonly number[];
 };
 
+export type NativePairingStatus = {
+  readonly stage: string;
+  readonly pattern?: readonly number[];
+  readonly peerName?: string;
+};
+
 export interface Spec extends TurboModule {
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;
+  pairingStatus(): Promise<NativePairingStatus>;
+  forgetPairing(): void;
+  reconnect(): void;
+  probeFileChannel(): Promise<boolean>;
   sendDragFrame(
     session: number,
     sequence: number,

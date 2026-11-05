@@ -26,3 +26,12 @@
 "lab.gapMax" = "Mayor separación entre frames";
 "lab.toneLeft" = "Tono audible: canal izquierdo";
 "lab.toneRight" = "Tono audible: canal derecho";
+"menu.pairedWith %@" = "Emparejada con %@";
+"menu.forget" = "Olvidar este iPhone";
+"menu.bringCloser" = "Acerca tu iPhone para emparejar";
+"pairing.title" = "Empareja tu iPhone";
+"pairing.exchanging" = "Conectando…";
+"pairing.compare" = "¿Los colores coinciden con el anillo de tu iPhone?";
+"pairing.confirm" = "Coinciden";
+"pairing.reject" = "No coinciden";
+"lab.rssi" = "Señal de Bluetooth";

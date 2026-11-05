@@ -3,22 +3,54 @@ import LumenApplication
 import LumenDomain
 import LumenProtocol
 
-public enum DatagramCodec {
-    public static func encode(_ message: PeerMessage) -> Data? {
+public enum WireCodec {
+    public static func encodeDatagram(_ sample: DragFrameSample) -> Data? {
         var datagram = Lumen_Datagram()
-        datagram.message = wire(message)
+        datagram.message = .dragFrame(wire(sample))
         return try? datagram.serializedData()
     }
 
-    public static func decode(_ data: Data) -> PeerMessage? {
+    public static func decodeDatagram(_ data: Data) -> PeerMessage? {
         guard let message = try? Lumen_Datagram(serializedBytes: data).message else { return nil }
-        return domain(message)
+        switch message {
+        case let .hello(hello):
+            return .hello(ProtocolVersion(rawValue: Int32(hello.protocolVersion.rawValue)))
+        case let .dragFrame(frame):
+            return .dragFrame(domain(frame))
+        }
     }
 
-    private static func wire(_ message: PeerMessage) -> Lumen_Datagram.OneOf_Message {
+    public static func encodeControl(_ message: PeerMessage) -> Data? {
+        guard let wireMessage = wire(message) else { return nil }
+        var control = Lumen_ControlMessage()
+        control.message = wireMessage
+        return try? control.serializedData()
+    }
+
+    public static func decodeControl(_ data: Data) -> PeerMessage? {
+        guard let message = try? Lumen_ControlMessage(serializedBytes: data).message else { return nil }
         switch message {
-        case let .hello(version):
-            .hello(.with { $0.protocolVersion = .init(rawValue: Int(version.rawValue)) ?? .unspecified })
+        case let .clockPing(ping):
+            return .clockPing(originNs: ping.originNs)
+        case let .clockPong(pong):
+            return .clockPong(originNs: pong.originNs, receiveNs: pong.receiveNs, transmitNs: pong.transmitNs)
+        case let .playChirpPair(request):
+            return .playChirpPair(requestID: request.requestID)
+        case let .acousticReport(report):
+            return .acousticReport(AcousticReading(
+                requestID: report.requestID,
+                tauMicroseconds: report.tauUs,
+                levelDifferenceDecibels: report.levelDifferenceDb,
+                snrDecibels: report.snrDb,
+                acceptedPairs: report.acceptedPairs
+            ))
+        case .hello, .sessionKey, .sessionReady, .incompatibleVersion:
+            return nil
+        }
+    }
+
+    private static func wire(_ message: PeerMessage) -> Lumen_ControlMessage.OneOf_Message? {
+        switch message {
         case let .clockPing(originNs):
             .clockPing(.with { $0.originNs = originNs })
         case let .clockPong(originNs, receiveNs, transmitNs):
@@ -27,8 +59,6 @@ public enum DatagramCodec {
                 $0.receiveNs = receiveNs
                 $0.transmitNs = transmitNs
             })
-        case let .dragFrame(sample):
-            .dragFrame(wire(sample))
         case let .playChirpPair(requestID):
             .playChirpPair(.with { $0.requestID = requestID })
         case let .acousticReport(reading):
@@ -39,6 +69,8 @@ public enum DatagramCodec {
                 $0.snrDb = reading.snrDecibels
                 $0.acceptedPairs = reading.acceptedPairs
             })
+        case .hello, .dragFrame:
+            nil
         }
     }
 
@@ -55,29 +87,6 @@ public enum DatagramCodec {
             $0.objectWidthMm = sample.objectWidthMillimeters
             $0.objectHeightMm = sample.objectHeightMillimeters
             $0.rotationRad = sample.rotationRadians
-        }
-    }
-
-    private static func domain(_ message: Lumen_Datagram.OneOf_Message) -> PeerMessage {
-        switch message {
-        case let .hello(hello):
-            .hello(ProtocolVersion(rawValue: Int32(hello.protocolVersion.rawValue)))
-        case let .clockPing(ping):
-            .clockPing(originNs: ping.originNs)
-        case let .clockPong(pong):
-            .clockPong(originNs: pong.originNs, receiveNs: pong.receiveNs, transmitNs: pong.transmitNs)
-        case let .dragFrame(frame):
-            .dragFrame(domain(frame))
-        case let .playChirpPair(request):
-            .playChirpPair(requestID: request.requestID)
-        case let .acousticReport(report):
-            .acousticReport(AcousticReading(
-                requestID: report.requestID,
-                tauMicroseconds: report.tauUs,
-                levelDifferenceDecibels: report.levelDifferenceDb,
-                snrDecibels: report.snrDb,
-                acceptedPairs: report.acceptedPairs
-            ))
         }
     }
 

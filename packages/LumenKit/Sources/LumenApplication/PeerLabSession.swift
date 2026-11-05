@@ -59,7 +59,7 @@ public actor PeerLabSession {
             updatesContinuation.yield(.connection(isConnected: true))
             estimator = ClockOffsetEstimator()
             startPinging()
-        case .disconnected:
+        case .disconnected, .incompatible:
             updatesContinuation.yield(.connection(isConnected: false))
             pingTask?.cancel()
         case let .received(message):

@@ -26,3 +26,12 @@
 "lab.gapMax" = "Longest gap between frames";
 "lab.toneLeft" = "Audible tone: left channel";
 "lab.toneRight" = "Audible tone: right channel";
+"menu.pairedWith %@" = "Paired with %@";
+"menu.forget" = "Forget this iPhone";
+"menu.bringCloser" = "Bring your iPhone close to pair";
+"pairing.title" = "Pair your iPhone";
+"pairing.exchanging" = "Connecting…";
+"pairing.compare" = "Do the colors match the ring on your iPhone?";
+"pairing.confirm" = "They match";
+"pairing.reject" = "They don't match";
+"lab.rssi" = "Bluetooth signal";

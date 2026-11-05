@@ -10,6 +10,10 @@ import { springs } from '../motion/springs';
 type Props = {
   readonly loadDiagnostics: LoadDiagnostics;
   readonly isPeerConnected: () => Promise<boolean>;
+  readonly peerName: string;
+  readonly reconnectMilliseconds: number | null;
+  readonly onForget: () => void;
+  readonly onProbeFileChannel: () => Promise<boolean>;
   readonly onOpenPlacement: () => void;
   readonly onOpenLatency: () => void;
   readonly onOpenGlow: () => void;
@@ -22,12 +26,19 @@ const yesNo = (value: boolean) => translate(value ? 'common.yes' : 'common.no');
 export function DiagnosticsScreen({
   loadDiagnostics,
   isPeerConnected,
+  peerName,
+  reconnectMilliseconds,
+  onForget,
+  onProbeFileChannel,
   onOpenPlacement,
   onOpenLatency,
   onOpenGlow,
 }: Props) {
   const diagnostics = loadDiagnostics();
   const [isConnected, setIsConnected] = useState(false);
+  const [fileChannelWorks, setFileChannelWorks] = useState<boolean | null>(
+    null,
+  );
 
   useEffect(() => {
     const poll = () => isPeerConnected().then(setIsConnected);
@@ -38,9 +49,20 @@ export function DiagnosticsScreen({
 
   return (
     <View style={styles.screen}>
+      <DiagnosticRow label={translate('pairing.peer')} value={peerName} />
       <DiagnosticRow
         label={translate('lab.connected')}
         value={yesNo(isConnected)}
+      />
+      <DiagnosticRow
+        label={translate('pairing.reconnect')}
+        value={
+          reconnectMilliseconds === null ? '—' : `${reconnectMilliseconds} ms`
+        }
+      />
+      <DiagnosticRow
+        label={translate('pairing.fileChannel')}
+        value={fileChannelWorks === null ? '—' : yesNo(fileChannelWorks)}
       />
       <DiagnosticRow
         label={translate('diagnostics.scriptProtocol')}
@@ -66,6 +88,13 @@ export function DiagnosticsScreen({
         label={translate('diagnostics.liftSpring')}
         value={`${springs.lift.response} s`}
       />
+      <LabButton
+        title={translate('pairing.probeFileChannel')}
+        onPress={() => {
+          onProbeFileChannel().then(setFileChannelWorks);
+        }}
+      />
+      <LabButton title={translate('pairing.forget')} onPress={onForget} />
       <LabButton title={translate('lab.placement')} onPress={onOpenPlacement} />
       <LabButton title={translate('lab.latency')} onPress={onOpenLatency} />
       <LabButton title={translate('lab.glow')} onPress={onOpenGlow} />

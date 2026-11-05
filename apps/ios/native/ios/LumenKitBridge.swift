@@ -17,6 +17,43 @@ public final class LumenKitBridge: NSObject, @unchecked Sendable {
         Task { await session.start() }
     }
 
+    @objc public func pairingStatus(_ completion: @escaping @Sendable (NSDictionary) -> Void) {
+        let session = session
+        Task { await completion(Self.dictionary(for: session.pairingStage)) }
+    }
+
+    @objc public func forgetPairing() {
+        let session = session
+        Task { await session.forgetPairing() }
+    }
+
+    @objc public func reconnect() {
+        let session = session
+        Task { await session.reconnect() }
+    }
+
+    @objc public func probeFileChannel(_ completion: @escaping @Sendable (Bool) -> Void) {
+        let session = session
+        Task { await completion(session.probeFileChannel()) }
+    }
+
+    private static func dictionary(for stage: PairingStage) -> NSDictionary {
+        switch stage {
+        case .idle:
+            ["stage": "idle"]
+        case .searching:
+            ["stage": "searching"]
+        case .exchanging:
+            ["stage": "exchanging"]
+        case let .awaitingConfirmation(pattern):
+            ["stage": "awaitingConfirmation", "pattern": pattern.colorIndices]
+        case let .paired(device):
+            ["stage": "paired", "peerName": device.name]
+        case .failed:
+            ["stage": "failed"]
+        }
+    }
+
     @objc public func linkStatus(_ completion: @escaping @Sendable (Bool) -> Void) {
         let session = session
         Task { await completion(session.connected) }

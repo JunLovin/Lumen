@@ -51,6 +51,19 @@ export const en = {
   'placement.relativeTau': 'τ from center',
   'placement.calibrationFirst':
     'Calibrate first: put the iPhone in front of the trackpad, centered, in the orientation you will use for every trial.',
+  'pairing.title': 'Pair with your Mac',
+  'pairing.searching': 'Bring this iPhone close to your Mac.',
+  'pairing.exchanging': 'Connecting…',
+  'pairing.compare':
+    'Check that your Mac shows the same colors, then confirm there.',
+  'pairing.failed': 'Pairing did not finish. Trying again…',
+  'pairing.networkHint':
+    'Both devices must be on the same Wi-Fi. Some office or hotel networks block devices from seeing each other.',
+  'pairing.peer': 'Paired with',
+  'pairing.reconnect': 'Last reconnection',
+  'pairing.fileChannel': 'File channel works',
+  'pairing.probeFileChannel': 'Test file channel',
+  'pairing.forget': 'Forget this Mac',
   'common.yes': 'Yes',
   'common.no': 'No',
 } as const;

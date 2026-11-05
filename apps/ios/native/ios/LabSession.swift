@@ -1,6 +1,7 @@
 import Foundation
 import LumenApplication
 import LumenDomain
+import LumenProximity
 import LumenSignal
 import LumenTransport
 
@@ -23,17 +24,31 @@ actor LabSession {
     private static let recordingSeconds = 0.5
     private static let curvePointCount = 240
 
-    private let link: PhonePeerLink
+    private let link: PhoneSecureLink
+    private let pairing: PairNearbyDevice
+    private let advertiser = PhoneProximityAdvertiser()
     private let clock = SystemClockAdapter()
     private let recorder = MicrophoneRecorder()
     private let frames: AsyncStream<DragFrameSample>.Continuation
     private var isConnected = false
+    private var hasStarted = false
+    private(set) var pairingStage: PairingStage = .idle
     private var nextRequestID: UInt32 = 1
     private var lastRecording: MicrophoneRecording?
 
     init() {
-        let link = PhonePeerLink(protocolVersion: ProtocolInfoAdapter().localProtocolVersion)
+        let link = PhoneSecureLink(version: ProtocolInfoAdapter().localProtocolVersion)
         self.link = link
+        pairing = PairNearbyDevice(
+            trustStore: KeychainTrustStore(service: "com.junlovin.lumen"),
+            identityFactory: IdentityFactoryAdapter(),
+            pairing: PairingInitiator(),
+            proximity: nil,
+            link: link,
+            clock: SystemClockAdapter(),
+            deviceName: "iPhone",
+            detector: NearbyDetector(minimumRSSI: 0, dwellNanoseconds: 0)
+        )
         let (stream, continuation) = AsyncStream.makeStream(of: DragFrameSample.self)
         frames = continuation
         Task {
@@ -56,8 +71,35 @@ actor LabSession {
     }
 
     func start() async {
-        _ = await link.start()
+        guard !hasStarted else { return }
+        hasStarted = true
         Task { await consumeEvents() }
+        Task { await consumePairing() }
+        await pairing.start()
+    }
+
+    func forgetPairing() async {
+        await pairing.forget()
+    }
+
+    func reconnect() async {
+        await link.reconnectNow()
+    }
+
+    func probeFileChannel() async -> Bool {
+        await link.probeFileChannel()
+    }
+
+    private func consumePairing() async {
+        for await stage in pairing.stages {
+            pairingStage = stage
+            switch stage {
+            case .searching, .exchanging, .awaitingConfirmation, .failed:
+                advertiser.start()
+            case .paired, .idle:
+                advertiser.stop()
+            }
+        }
     }
 
     func measurePlacement() async throws -> PlacementMeasurement {
@@ -131,7 +173,7 @@ actor LabSession {
             switch event {
             case .connected:
                 isConnected = true
-            case .disconnected:
+            case .disconnected, .incompatible:
                 isConnected = false
             case let .received(.clockPing(originNs)):
                 let now = clock.nowNanoseconds()
