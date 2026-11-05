@@ -33,3 +33,7 @@ pnpm check
 
 ## Documentation
 
+
+## License
+
+[MIT](LICENSE)
