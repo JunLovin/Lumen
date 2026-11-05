@@ -10,6 +10,14 @@ export function assertValidTokens(tokens) {
       throw new Error(`Spring "${name}" needs positive response and damping`);
     }
   }
+  for (const [name, value] of Object.entries(tokens.glow.palette)) {
+    if (
+      value.length !== 3 ||
+      value.some(channel => channel < 0 || channel > 1)
+    ) {
+      throw new Error(`Color "${name}" needs three channels between 0 and 1`);
+    }
+  }
   for (const [name, cycle] of Object.entries(tokens.motion.cycles)) {
     if (!(cycle.seconds > 0)) {
       throw new Error(`Cycle "${name}" needs positive seconds`);
@@ -31,6 +39,9 @@ export function renderSwift(tokens) {
     ([name, { seconds }]) =>
       `        public static let ${name}Seconds: Double = ${seconds}`,
   );
+  const { glow, chirp } = tokens;
+  const color = ([red, green, blue]) =>
+    `ColorToken(red: ${red}, green: ${green}, blue: ${blue})`;
   return [
     `// ${HEADER}`,
     'public struct SpringToken: Sendable, Equatable {',
@@ -38,10 +49,31 @@ export function renderSwift(tokens) {
     '    public let damping: Double',
     '}',
     '',
+    'public struct ColorToken: Sendable, Equatable {',
+    '    public let red: Float',
+    '    public let green: Float',
+    '    public let blue: Float',
+    '}',
+    '',
     'public enum DesignTokens {',
     '    public enum Motion {',
     ...springs,
     ...cycles,
+    '    }',
+    '',
+    '    public enum Glow {',
+    `        public static let overlayWidthPoints: Double = ${glow.overlayWidthPoints}`,
+    `        public static let bandFraction: Float = ${glow.bandFraction}`,
+    `        public static let intensity: Float = ${glow.intensity}`,
+    `        public static let flowSpeed: Float = ${glow.flowSpeed}`,
+    `        public static let noiseScale: Float = ${glow.noiseScale}`,
+    `        public static let primary = ${color(glow.palette.primary)}`,
+    `        public static let secondary = ${color(glow.palette.secondary)}`,
+    `        public static let highlight = ${color(glow.palette.highlight)}`,
+    '    }',
+    '',
+    '    public enum Chirp {',
+    `        public static let defaultAmplitude: Float = ${chirp.defaultAmplitude}`,
     '    }',
     '}',
     '',

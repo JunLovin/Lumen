@@ -24,5 +24,32 @@ export const tokens = {
         "seconds": 3
       }
     }
+  },
+  "glow": {
+    "overlayWidthPoints": 160,
+    "bandFraction": 0.45,
+    "intensity": 1.1,
+    "flowSpeed": 0.35,
+    "noiseScale": 3.2,
+    "palette": {
+      "primary": [
+        0.42,
+        0.62,
+        1
+      ],
+      "secondary": [
+        0.78,
+        0.45,
+        1
+      ],
+      "highlight": [
+        1,
+        0.86,
+        0.72
+      ]
+    }
+  },
+  "chirp": {
+    "defaultAmplitude": 0.25
   }
 } as const;
