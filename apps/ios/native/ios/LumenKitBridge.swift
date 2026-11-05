@@ -7,9 +7,23 @@ import LumenTransport
 @objc(LumenKitBridge)
 public final class LumenKitBridge: NSObject, @unchecked Sendable {
     private let session = LabSession()
+    let media = MediaLibrary()
+    private let haptics = Haptics()
 
     @objc public static func protocolVersion() -> Int32 {
         ProtocolInfoAdapter().localProtocolVersion.rawValue
+    }
+
+    @objc public static func deviceModel() -> String {
+        var size = 0
+        sysctlbyname("hw.machine", nil, &size, nil, 0)
+        var machine = [CChar](repeating: 0, count: size)
+        sysctlbyname("hw.machine", &machine, &size, nil, 0)
+        return String(cString: machine)
+    }
+
+    @objc public func impact(style: Int) {
+        haptics.impact(style: style)
     }
 
     @objc public func startLink() {

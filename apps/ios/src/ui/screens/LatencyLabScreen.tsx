@@ -6,43 +6,50 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import type { DragFrameSender } from '../../application/drag-frame-sender';
-import { pointsToMillimeters } from '../../domain/device-metrics';
-import type { DragFrameInput } from '../../domain/drag-frame';
 import { edgeProximity, horizontalExitEdge } from '../../domain/edge-proximity';
 import type { PhoneEdge } from '../../domain/peer-placement';
-import { DiagnosticRow } from '../components/DiagnosticRow';
+import type { PhoneMetrics } from '../../domain/phone-metrics';
+import type { UIThreadChannelPort } from '../../application/lab-use-cases';
+import { LabButton } from '../components/LabButton';
 import { translate } from '../i18n/translate';
 import { labTheme } from '../lab-theme';
 
 type Props = {
-  readonly sender: DragFrameSender;
+  readonly channel: UIThreadChannelPort;
+  readonly metrics: PhoneMetrics;
   readonly onEdgeExit: (edge: PhoneEdge) => void;
 };
 
 const DOT_SIZE_POINTS = 72;
 const ACTIVATION_DISTANCE_POINTS = 200;
 const EXIT_MARGIN_POINTS = 24;
+const JS_BLOCK_MILLISECONDS = 5000;
 
-export function LatencyLabScreen({ sender, onEdgeExit }: Props) {
+export function LatencyLabScreen({ channel, metrics, onEdgeExit }: Props) {
   const { width } = useWindowDimensions();
-  const [framesSent, setFramesSent] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
   const x = useSharedValue(width / 2);
   const y = useSharedValue(width / 2);
+  const session = useSharedValue(0);
+  const sequence = useSharedValue(0);
+  const perMillimeter = metrics.pointsPerMillimeter;
 
-  const send = useCallback(
-    (input: DragFrameInput) => {
-      sender.send(input);
-      setFramesSent(count => count + 1);
-    },
-    [sender],
-  );
-  const begin = useCallback(() => sender.begin(), [sender]);
+  const blockJavaScript = useCallback(() => {
+    setIsBlocked(true);
+    setTimeout(() => {
+      const end = Date.now() + JS_BLOCK_MILLISECONDS;
+      while (Date.now() < end) {
+        continue;
+      }
+      setIsBlocked(false);
+    }, 50);
+  }, []);
 
   const pan = usePanGesture({
     minDistance: 0,
     onBegin: () => {
-      scheduleOnRN(begin);
+      session.value += 1;
+      sequence.value = 0;
     },
     onDeactivate: () => {
       const edge = horizontalExitEdge(x.value, width, EXIT_MARGIN_POINTS);
@@ -53,22 +60,20 @@ export function LatencyLabScreen({ sender, onEdgeExit }: Props) {
     onUpdate: event => {
       x.value = event.x;
       y.value = event.y;
-      const size = pointsToMillimeters(DOT_SIZE_POINTS);
-      scheduleOnRN(send, {
-        capturedAtMilliseconds: Date.now(),
-        xMillimeters: pointsToMillimeters(event.x),
-        yMillimeters: pointsToMillimeters(event.y),
-        velocityX: pointsToMillimeters(event.velocityX),
-        velocityY: pointsToMillimeters(event.velocityY),
-        edgeProximity: edgeProximity(
-          event.x,
-          width,
-          ACTIVATION_DISTANCE_POINTS,
-        ),
-        objectWidthMillimeters: size,
-        objectHeightMillimeters: size,
-        rotationRadians: 0,
-      });
+      sequence.value += 1;
+      const size = DOT_SIZE_POINTS / perMillimeter;
+      channel.sendFrame(
+        session.value,
+        sequence.value,
+        event.x / perMillimeter,
+        event.y / perMillimeter,
+        event.velocityX / perMillimeter,
+        event.velocityY / perMillimeter,
+        edgeProximity(event.x, width, ACTIVATION_DISTANCE_POINTS),
+        size,
+        size,
+        0,
+      );
     },
   });
 
@@ -84,9 +89,11 @@ export function LatencyLabScreen({ sender, onEdgeExit }: Props) {
       <View style={styles.screen}>
         <View style={styles.header}>
           <Text style={styles.hint}>{translate('latency.hint')}</Text>
-          <DiagnosticRow
-            label={translate('latency.framesSent')}
-            value={String(framesSent)}
+          <Text style={styles.hint}>{translate('latency.proof')}</Text>
+          <LabButton
+            title={translate(isBlocked ? 'latency.blocked' : 'latency.block')}
+            disabled={isBlocked}
+            onPress={blockJavaScript}
           />
         </View>
         <Animated.View style={[styles.dot, dotStyle]} />
@@ -97,7 +104,7 @@ export function LatencyLabScreen({ sender, onEdgeExit }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: labTheme.background },
-  header: { padding: labTheme.spacing },
+  header: { padding: labTheme.spacing, gap: 8 },
   hint: { color: labTheme.secondaryText, fontSize: 14 },
   dot: {
     position: 'absolute',

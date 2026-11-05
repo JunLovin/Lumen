@@ -3,15 +3,19 @@ import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
 } from '@react-navigation/native-stack';
+import { StyleSheet, Text } from 'react-native';
 import type { LabUseCases } from '../application/lab-use-cases';
 import { translate } from './i18n/translate';
+import { labTheme } from './lab-theme';
 import { PlacementPulse } from './effects/PlacementPulse';
+import { GalleryScreen } from './screens/GalleryScreen';
 import { DiagnosticsScreen } from './screens/DiagnosticsScreen';
 import { GlowLabScreen } from './screens/GlowLabScreen';
 import { LatencyLabScreen } from './screens/LatencyLabScreen';
 import { PlacementLabScreen } from './screens/PlacementLabScreen';
 
 type Routes = {
+  Gallery: undefined;
   Diagnostics: undefined;
   Placement: undefined;
   Latency: undefined;
@@ -52,6 +56,23 @@ export function RootNavigator({
       <NavigationContainer theme={DarkTheme}>
         <Stack.Navigator>
           <Stack.Screen
+            name="Gallery"
+            options={({ navigation }) => ({
+              title: translate('gallery.title'),
+              gestureEnabled: false,
+              headerRight: () => (
+                <Text
+                  style={styles.headerLink}
+                  onPress={() => navigation.navigate('Diagnostics')}
+                >
+                  {translate('gallery.labs')}
+                </Text>
+              ),
+            })}
+          >
+            {() => <GalleryScreen useCases={useCases} />}
+          </Stack.Screen>
+          <Stack.Screen
             name="Diagnostics"
             options={{ title: translate('diagnostics.title') }}
           >
@@ -69,7 +90,8 @@ export function RootNavigator({
           >
             {() => (
               <LatencyLabScreen
-                sender={useCases.dragFrameSender}
+                channel={useCases.uiThreadChannel}
+                metrics={useCases.phoneMetrics}
                 onEdgeExit={useCases.reportEdgeExit}
               />
             )}
@@ -86,3 +108,7 @@ export function RootNavigator({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  headerLink: { color: labTheme.accent, fontSize: 16, paddingHorizontal: 8 },
+});

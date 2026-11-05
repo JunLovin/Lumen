@@ -31,7 +31,23 @@ export type NativePlacementStatus = {
   readonly locateMilliseconds?: number;
 };
 
+export type NativeLibraryAsset = {
+  readonly id: string;
+  readonly width: number;
+  readonly height: number;
+  readonly mediaType: string;
+};
+
 export interface Spec extends TurboModule {
+  deviceModel(): string;
+  libraryAccess(): string;
+  requestLibraryAccess(): Promise<string>;
+  fetchLibraryAssets(
+    offset: number,
+    limit: number,
+  ): Promise<readonly NativeLibraryAsset[]>;
+  loadThumbnail(assetId: string, size: number): Promise<string | null>;
+  manageLimitedLibrary(): void;
   protocolVersion(): number;
   startLink(): void;
   linkStatus(): Promise<boolean>;
@@ -41,19 +57,6 @@ export interface Spec extends TurboModule {
   placementStatus(): Promise<NativePlacementStatus>;
   reconnect(): void;
   probeFileChannel(): Promise<boolean>;
-  sendDragFrame(
-    session: number,
-    sequence: number,
-    ageMilliseconds: number,
-    xMillimeters: number,
-    yMillimeters: number,
-    velocityX: number,
-    velocityY: number,
-    edgeProximity: number,
-    objectWidth: number,
-    objectHeight: number,
-    rotation: number,
-  ): void;
   measurePlacement(): Promise<NativePlacementMeasurement>;
   exportLastRecording(): Promise<string | null>;
 }

@@ -80,6 +80,20 @@ export const es: Readonly<Record<TranslationKey, string>> = {
   'side.above': 'Detrás',
   'side.unknown': 'Desconocido',
   'live.locateTime': 'Tiempo de localización al asentarse',
+  'gallery.title': 'Fotos',
+  'gallery.labs': 'Laboratorios',
+  'gallery.primerTitle': 'Tus fotos, a un arrastre de tu Mac',
+  'gallery.primerBody':
+    'Lumen muestra tu biblioteca aquí para que arrastres fotos y videos a tu Mac. Nada sale de tus dispositivos.',
+  'gallery.allow': 'Permitir acceso',
+  'gallery.denied':
+    'Lumen no puede ver tus fotos. Puedes permitir el acceso en Ajustes.',
+  'gallery.manage': 'Elegir más fotos',
+  'gallery.empty': 'Aún no hay fotos para mostrar.',
+  'latency.block': 'Bloquear el hilo de JS 5 s',
+  'latency.blocked': 'Hilo de JS bloqueado. Sigue arrastrando.',
+  'latency.proof':
+    'Si el punto y la Mac siguen moviéndose, JS está fuera del gesto.',
   'common.yes': 'Sí',
   'common.no': 'No',
 };
