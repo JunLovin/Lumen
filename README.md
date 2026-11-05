@@ -2,6 +2,10 @@
 
 Lumen makes an iPhone and a Mac feel like one surface. Drag a photo off the edge of the iPhone and it enters through the edge of the Mac at the same physical size, wrapped in light that takes its colors from the photo.
 
+![An illustration of a photo crossing from an iPhone to a Mac in a wave of light](.github/assets/lumen-preview.gif)
+
+_Animated illustration of the gesture, not a screen recording._
+
 > **Status:** early development. Nothing is ready to install yet.
 
 ## How it works
